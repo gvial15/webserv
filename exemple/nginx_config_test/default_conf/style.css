@@ -1,0 +1,19 @@
+body
+{
+	margin-top: 25px;
+	text-align: center;
+	text-align: center;
+	font-family: Trebuchet MS;
+}
+
+h3
+{
+	background-color: lightgray;
+	font-family: monospace;
+	font-weight: 250;
+	border-radius: 2px;
+	padding-bottom: 3px;
+	padding-top: 3px;
+	margin: 0 auto;
+	width: 22%;
+}
