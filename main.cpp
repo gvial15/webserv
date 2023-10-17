@@ -1,12 +1,19 @@
+#include <exception>
+#include <iostream>
+#include "Class/Webserv.hpp"
+
 int	main(int argc, char **argv)
 {
-	// parse config file
-	// create server(s) from config
-	// start listening
+	std::string configFile(argv[1]);
 
-	// event loop:
-	//  - receive request
-	//  - formulate response
-	//  - send response
-	//  - start again...
+	if (argc != 2)
+		std::cout << "Error: Webserv takes 2 arguments\n";	
+	try {
+		// parse config
+		Configuration	config(configFile);
+		// start server
+		Webserv webserv(config);
+	} catch (std::exception& ex) {
+		std::cerr << ex.what() << std::endl;
+	}
 }
