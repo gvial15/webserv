@@ -1,3 +1,4 @@
+#pragma once
 #include <iostream>
 #include "Configuration.hpp"
 
@@ -9,7 +10,6 @@ public:
 public:
 
     // public methods
-    void run(std::vector<Server>);
 
     // public attributes
 

@@ -1,0 +1,77 @@
+#include <poll.h>
+#include <cstring>
+#include <string>
+#include <iostream>
+#include <unistd.h>  // for close()
+#include <arpa/inet.h>  // for inet_ntop()
+#include <sys/socket.h>
+#include <netinet/in.h>
+
+#define PORT 8080
+
+int main() {
+    int server_fd, receiving_socket;
+    struct sockaddr_in address;
+	struct sockaddr_in sender_address; // to get the client ip/infos
+    int addrlen = sizeof(address);
+    char buffer[1024] = {0};
+
+    // Creating socket file descriptor
+    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
+        perror("socket failed");
+        exit(EXIT_FAILURE);
+    }
+
+    // setup sockaddr_in
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = INADDR_ANY;
+    address.sin_port = htons(PORT);
+
+
+    // Binding the socket to the port
+    if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
+        perror("bind failed");
+        exit(EXIT_FAILURE);
+    }
+
+    // Listening for a connection
+    if (listen(server_fd, 3) < 0) {
+        perror("listen failed");
+        exit(EXIT_FAILURE);
+    }
+
+	// Accepting an incoming connection
+	if ((receiving_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0)
+	{
+		perror("accept failed");
+		exit(EXIT_FAILURE);
+	}
+
+    socklen_t sender_addrlen = sizeof(sender_address);
+    if (getpeername(receiving_socket, (struct sockaddr*)&sender_address, &sender_addrlen) == 0)
+    {
+        char client_ip[INET_ADDRSTRLEN];
+        if (inet_ntop(AF_INET, &sender_address.sin_addr, client_ip, INET_ADDRSTRLEN))
+        {
+            std::cout << "Connection from: " << client_ip << std::endl;
+        }
+        else 
+        {
+            perror("inet_ntop failed");
+        }
+    }
+    else 
+        perror("getpeername failed");
+
+	// Reading data from the socket
+	while (buffer[0] != '0')
+	{
+		read(receiving_socket, buffer, 1024);
+		std::cout << buffer << std::endl;
+		memset(buffer, 0, strlen(buffer));
+	}
+    close(server_fd);
+	close(receiving_socket);
+
+    return 0;
+}

@@ -9,6 +9,7 @@ Configuration::Configuration(const std::string& filePath)
 // destructor
 Configuration::~Configuration() {};
 
-void Configuration::parse(const std::string& filePath) {
-
+void Configuration::parse(const std::string& filePath)
+{
+    (void) filePath;
 }

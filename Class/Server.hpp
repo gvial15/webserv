@@ -1,3 +1,4 @@
+#pragma once
 #include <map>
 #include <string>
 
@@ -10,14 +11,13 @@ public:
     // public methods
 
     // public attributes
+    std::string                         listen;
+    std::map<std::string, std::string>  routes;
+    std::map<std::string, std::string>  defaultErrorPages;
 
 private:
 
     // private methods
 
     // private attributes
-    int port;
-    std::string host;
-    std::map<std::string, std::string> routes;
-    std::map<std::string, std::string> defaultErrorPages;
 };

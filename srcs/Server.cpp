@@ -1,7 +1,10 @@
 #include "../Class/Server.hpp"
 
 // constructor
-Server::Server() {}
+Server::Server()
+{
+	
+}
 
 // destructor
 Server::~Server() {}
