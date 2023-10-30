@@ -16,7 +16,7 @@ int main()
     struct sockaddr_in address;
     int addrlen = sizeof(address);
     struct sockaddr_in sender_address; // to get the client ip/infos
-    char buffer[1024] = {0};
+    char buffer[2048] = {0};
 
     // Creating socket file descriptor
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
@@ -95,11 +95,12 @@ int main()
             }
         }
 
+        // print client inputs
         for (int i = 1; i <= MAX_CLIENTS; ++i) // Check all client sockets
         {
             if (fds[i].revents & POLLIN)
             {
-                int bytes_read = read(fds[i].fd, buffer, 1024);
+                int bytes_read = read(fds[i].fd, buffer, 2048);
                 if (bytes_read <= 0) // Connection closed or error
                 {
                     close(fds[i].fd);

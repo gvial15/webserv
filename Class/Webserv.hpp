@@ -20,10 +20,28 @@ class Webserv {
     private:
 
         // private methods
-        void    create_pollfds();
         void    run();
+        void    create_pollfds();
+        void    display_socket_infos(int new_socket);
+        void    create_and_add_new_client(int new_socket);
             
         // private attributes
-        std::vector<pollfd> fds_vec;
+        std::vector<pollfd> pollfd_vec;
         std::vector<Server> servers;
+
+        // private exceptions
+        class PollException : public std::exception {
+        public:
+            virtual const char* what() const throw() {
+                return "poll() failed";
+            }
+        };
+
+        class AcceptException : public std::exception {
+        public:
+            virtual const char* what() const throw() {
+                return "accept() failed";
+            }
+        };
+
 };
