@@ -17,7 +17,7 @@ class Server {
     private:
 
         // private methods
-        void	init_server_fd();
+        void	init_socket();
 
         // private attributes
         std::string	ip;

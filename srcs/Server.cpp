@@ -1,25 +1,42 @@
 #include "../Class/Server.hpp"
 #include <arpa/inet.h>  // inet_pton()
+#include <fcntl.h> // fcntl() macros
 
 // constructor
 Server::Server(std::string ip, int port):
 ip(ip), port(port)
 {
-	init_server_fd();
+	init_socket();
 }
 
 // destructor
 Server::~Server() {}
 
-void	Server::init_server_fd()
+void	Server::init_socket()
 {
     struct sockaddr_in address;
+	int flags;
 
     // Creating socket file descriptor
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
     {
         // create exception for this in class
         perror("socket failed");
+        exit(EXIT_FAILURE);
+    }
+
+    // Set the socket to non-blocking mode
+    flags = fcntl(server_fd, F_GETFL, 0);
+    if (flags == -1)
+    {
+        // create exception for this in class
+        perror("fcntl F_GETFL failed");
+        exit(EXIT_FAILURE);
+    }
+    if (fcntl(server_fd, F_SETFL, flags | O_NONBLOCK) == -1)
+    {
+        // create exception for this in class
+        perror("fcntl F_SETFL O_NONBLOCK failed");
         exit(EXIT_FAILURE);
     }
 

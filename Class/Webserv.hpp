@@ -2,6 +2,7 @@
 #include <iostream>
 #include <sys/poll.h>
 #include "Configuration.hpp"
+#include "Server.hpp"
 
 // receive the Server vector and fill a vector of pollfd
 // with all the Server(s) socket and runs the poll() loop.
@@ -17,11 +18,11 @@ class Webserv {
 
 
     private:
-
         // private methods
-        void    create_pollfds(std::vector<Server> servers);
-        void    run(std::vector<Server> servers);
+        void    create_pollfds();
+        void    run();
             
         // private attributes
-        std::vector<pollfd> fds;
+        std::vector<pollfd> fds_vec;
+        std::vector<Server> servers;
 };
