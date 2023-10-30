@@ -9,10 +9,13 @@ class Server {
     public:
         Server(std::string ip, int port);
         ~Server();
+
         // public methods
 
+        // getters
+        int getServerFd() const { return server_fd; }
+
         // public attributes
-        int	server_fd;
 
     private:
 
@@ -22,6 +25,7 @@ class Server {
         // private attributes
         std::string	ip;
 		int 		port;
+        int         server_fd;
 
         // private exceptions
 

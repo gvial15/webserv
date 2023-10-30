@@ -10,22 +10,25 @@ class Configuration {
         ~Configuration();
 
         // public methods
-        void parse(const std::string& filePath);
+
+        // getters
+        std::vector<Server> getServers() const { return servers; }
 
         // public attributes
-        std::vector<Server> servers;
-
 
     private:
+
         // private methods
+        void parse(const std::string& filePath);
 
         // private attributes
+        std::vector<Server> servers;
 
         // private exceptions
         class UnknownDirective : public std::exception {
         public:
             virtual const char* what() const throw() {
-                return "Unknown directive encountered.";
+                return "Unknown directive in config";
             }
         };
 };

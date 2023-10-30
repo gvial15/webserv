@@ -6,7 +6,7 @@
 
 // receive the Server vector and fill a vector of pollfd
 // with all the Server(s) socket and runs the poll() loop.
-// All the accept() and queue processing happens in this loop as well
+// All the accept() and the processing queue happen in this loop as well
 class Webserv {
     public:
         Webserv(std::vector<Server> servers);
@@ -18,6 +18,7 @@ class Webserv {
 
 
     private:
+
         // private methods
         void    create_pollfds();
         void    run();
