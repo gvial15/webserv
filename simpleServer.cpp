@@ -9,8 +9,9 @@
 #define PORT 8080
 #define MAX_CLIENTS 10  // Maximum number of clients
 
-int main() 
+int main()
 {
+//  ***************** this happens in the Server class *****************
     int server_fd;
     struct sockaddr_in address;
     int addrlen = sizeof(address);
@@ -43,6 +44,7 @@ int main()
         exit(EXIT_FAILURE);
     }
 
+//  ***************** Webserv run() *****************
     struct pollfd fds[MAX_CLIENTS + 1];  // +1 for the server socket
     memset(fds, 0, sizeof(fds));
     fds[0].fd = server_fd;
@@ -83,7 +85,6 @@ int main()
             else 
                 perror("getpeername failed");
 
-            
             for (int i = 1; i <= MAX_CLIENTS; ++i)
             {
                 if (fds[i].fd == 0) {

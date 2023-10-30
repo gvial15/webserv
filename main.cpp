@@ -5,17 +5,32 @@
 #include "Class/Configuration.hpp"
 
 
+// 1. 	In the main() i create a Config object that takes
+//		my config file as a string
+
+// 2. 	inside the Config object i fill a vector of Server object,
+//		one for each server {} block in the config, that each self
+//		initialize there own socket, and bind them to there
+// 		respective ip:port and make them listen() at creation.
+
+// 3.	Then once the Server vector is created and all the servers
+//		fds are binded and listen(), i pass the server vector to a Webserv
+//		object that fills a vector of pollfd with all the Server(s)
+// 		socket and runs the poll() loop.
+
+// 4. 	then in the poll() loop all the accept() of connections and
+//		processing of request from clients is managed.
+
 int	main(int argc, char **argv)
 {
-	std::string configFile(argv[1]);
-
 	if (argc != 2)
-		std::cout << "Error: Webserv takes 2 arguments\n";
+		return std::cout << "Error: Webserv takes 2 arguments\n", 1;
 	try {
-		// parse config and create a vector<Server> servers
+		std::string configFile(argv[1]);
+		// parse config file into a vector of servers {}
 		Configuration	config(configFile);
-		// start server, polling
-		Webserv webserv(config);
+		// run servers (poll(), accept(), ...)
+		Webserv webserv(config.servers);
 	} catch (std::exception& ex) {
 		std::cerr << ex.what() << std::endl;
 	}
