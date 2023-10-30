@@ -15,15 +15,18 @@ class Webserv {
         // public methods
 
         // public attributes
+        static Webserv* instance;
 
 
     private:
 
         // private methods
-        void    run();
-        void    create_pollfds();
-        void    display_socket_infos(int new_socket);
-        void    create_and_add_new_client(int new_socket);
+        void        run();
+        void	    close_all_fds();
+        void        create_pollfds();
+        static void signal_handler(int signum);
+        void        display_socket_infos(int new_socket);
+        void        create_and_add_new_client(int new_socket);
             
         // private attributes
         std::vector<pollfd> pollfd_vec;
