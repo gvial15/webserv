@@ -29,7 +29,7 @@ int	main(int argc, char **argv)
 		std::string configFile(argv[1]);
 		// parse config file into a vector of servers {}
 		Configuration	config(configFile);
-		// run servers (poll(), accept(), ...)
+		// run servers, process request and send response to client (poll(), accept(), ...)
 		Webserv webserv(config.servers);
 	} catch (std::exception& ex) {
 		std::cerr << ex.what() << std::endl;

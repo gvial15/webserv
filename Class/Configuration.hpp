@@ -24,6 +24,8 @@ class Configuration {
         // private exceptions
         class UnknownDirective : public std::exception {
         public:
-            virtual const char* what() const throw();
+            virtual const char* what() const throw() {
+                return "Unknown directive encountered.";
+            }
         };
 };
