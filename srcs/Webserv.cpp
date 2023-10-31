@@ -61,10 +61,10 @@ void	Webserv::run()
                 {
                     if ((new_socket = accept(pollfd_vec[i].fd, (struct sockaddr *)&address, &addrlen)) < 0)
 						throw AcceptException();
-                    // display_socket_infos(new_socket);
+                    display_socket_infos(new_socket);
 					create_and_add_new_client(new_socket);
                 }
-                else  // Input from a client
+                else // Input from a client
                 {
                     char buffer[1024];
                     int bytes_read = read(pollfd_vec[i].fd, buffer, 1024);
@@ -79,7 +79,6 @@ void	Webserv::run()
                     	std::cout << buffer << std::endl;
                     }
                 }
-
                 // Clear the revents field for the next poll call
                 pollfd_vec[i].revents = 0;
             }

@@ -23,11 +23,12 @@
 
 int	main(int argc, char **argv)
 {
-	printf("%i\n", argc);
 	if (argc > 2)
 		return std::cout << "Error: Webserv takes 1 or no arguments\n", 1;
 	try {
-		std::string configFile(argv[1]);
+		std::string configFile;
+		if (argc == 2)
+			configFile = argv[1];
 		// parse config file into a vector of servers {}
 		Configuration	config(configFile);
 		// run servers, process request and send response to client (poll(), accept(), ...)
