@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include <signal.h>
 
+Webserv* Webserv::instance = nullptr;
+
 // constructor
 Webserv::Webserv(std::vector<Server> servers) :
 servers(servers)
