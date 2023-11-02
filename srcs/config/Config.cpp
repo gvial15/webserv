@@ -6,7 +6,7 @@
 /*   By: diegofranciscolunalopez <diegofrancisco    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/13 12:18:08 by dluna-lo          #+#    #+#             */
-/*   Updated: 2023/11/02 11:11:29 by diegofranci      ###   ########.fr       */
+/*   Updated: 2023/11/02 12:09:40 by diegofranci      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -163,6 +163,8 @@ void Config::saveData(std::string dataUrl)
     {
       bool server = false;
       bool location = false;
+      bool server_body_size = false;
+      bool location_index = false;
       size_t num_location = 0;
 
       Server *s_tem;
@@ -177,6 +179,7 @@ void Config::saveData(std::string dataUrl)
           if (line.find("server") != std::string::npos && server == false)
           {
             server = true;
+            server_body_size = false;
             s_tem = new Server;
             num_location = 0;
           } else if (line.find("server ") != std::string::npos && server == true){
@@ -186,6 +189,7 @@ void Config::saveData(std::string dataUrl)
           if (line.find("location") != std::string::npos && location == false)
           {
             location = true;
+            location_index = false;
             l_tem = new Location;
             num_location++;
           } else if (line.find("location ") != std::string::npos && location == true){
@@ -202,14 +206,28 @@ void Config::saveData(std::string dataUrl)
           else if (line.find("}") != std::string::npos && location == true)
           {
             location = false;
-            if (l_tem->get_name().length() == 0)
-              l_tem->set_name("Default" + std::to_string(num_location));
-            if (l_tem->get_root().length() == 0)
-              l_tem->set_root("data/www/Pages");
-            if (l_tem->get_index().length() == 0)
-              l_tem->set_index("400badRequest.html;");
-            if (l_tem->get_methods_size() == 0)
-              l_tem->set_new_method("GET");
+            if (l_tem->get_name().length() == 1)
+              throw formatWrong();
+
+            if (l_tem->get_root().length() == 0 || l_tem->get_index().length() == 0 || l_tem->get_methods_size() == 0)
+            {
+              std::cout << "-> putting default location information:" << std::endl;
+              if (l_tem->get_root().length() == 0)
+              {
+                std::cout << "--> default root: data/www/Pages" << std::endl;
+                l_tem->set_root("data/www/Pages");
+              }
+              if (l_tem->get_index().length() == 0)
+              {
+                std::cout << "--> default index: 400badRequest.html;" << std::endl;
+                l_tem->set_index("400badRequest.html;");
+              }
+              if (l_tem->get_methods_size() == 0)
+              {
+                std::cout << "--> default method: GET" << std::endl;
+                l_tem->set_new_method("GET");
+              }
+            }
             s_tem->set_new_location(*l_tem);
             delete l_tem;
           }
@@ -222,42 +240,68 @@ void Config::saveData(std::string dataUrl)
           {
             if (line.find("listen") != std::string::npos)
             {
-
+              if (s_tem->get_ports_size() != 0)
+              {
+                throw formatWrong();
+              }
               f_save_multiple_values_in_server(line, line.find("listen") + 7, s_tem, "ports");
             }
-            if (line.find("host") != std::string::npos)
+            if (f_counter_clean_worlds(line, "host") == 1)
             {
-              s_tem->set_host(f_cut_space(line, line.find("host") + 5));
+              if (s_tem->get_host().length() != 0)
+              {
+                throw formatWrong();
+              }
+              s_tem->set_host(f_cut_space(line, line.find("host") + 4));
             }
             if (line.find("methods") != std::string::npos)
             {
-
+              if (s_tem->get_methods_size() != 0)
+              {
+                throw formatWrong();
+              }
               f_save_multiple_values_in_server(line, line.find("methods") + 8, s_tem, "methods");
             }
             if (line.find("error_page") != std::string::npos)
             {
-
+              if (s_tem->get_error_page_size() != 0)
+              {
+                throw formatWrong();
+              }
               f_save_multiple_values_in_server_2(line, line.find("error_page") + 11, s_tem);
             }
 
             if (line.find("server_name") != std::string::npos)
             {
-
+              if (s_tem->get_name().length() != 0)
+              {
+                throw formatWrong();
+              }
               s_tem->set_name(f_cut_space(line, line.find("server_name") + 12));
             }
             if (line.find("body_size") != std::string::npos)
             {
-
+              if (server_body_size == true)
+              {
+                throw formatWrong();
+              }
               s_tem->set_body_size(std::stoll( f_cut_space(line, line.find("body_size") + 10)));
+              server_body_size = true;
             }
             if (line.find("root") != std::string::npos)
             {
-
+              if (s_tem->get_root().length() != 0)
+              {
+                throw formatWrong();
+              }
               s_tem->set_root(f_cut_space(line, line.find("root") + 5));
             }
             if (line.find("index") != std::string::npos)
             {
-
+              if (s_tem->get_index().length() != 0)
+              {
+                throw formatWrong();
+              }
               s_tem->set_index(f_cut_space(line, line.find("index") + 6));
             }
 
@@ -267,26 +311,62 @@ void Config::saveData(std::string dataUrl)
           {
             if (line.find("location") != std::string::npos)
             {
-
               l_tem->set_name(f_cut_space(line, line.find("location") + 9));
             }
             if (line.find("root") != std::string::npos)
             {
-
+              if (l_tem->get_root().length() != 0)
+              {
+                throw formatWrong();
+              }
               l_tem->set_root(f_cut_space(line, line.find("root") + 5));
             }
             // methods
             if (line.find("methods") != std::string::npos)
             {
-
+              if (l_tem->get_methods_size() != 0)
+              {
+                throw formatWrong();
+              }
               f_save_multiple_values_in_location(line, line.find("methods") + 8, l_tem, "methods");
             }
 
             if (line.find("index") != std::string::npos)
             {
-
+              /// ///
+              if (location_index == true)
+              {
+                throw formatWrong();
+              }
               l_tem->set_index(f_cut_space(line, line.find("index") + 6));
+
+              location_index = true;
             }
+          }
+        }
+
+        if (get_server_size() == 0)
+        {
+          throw emptyFile();
+        }
+        // list
+
+        this->f_organise_listen();
+        this->f_clean_listen();
+        
+        for (size_t serve_i = 0; serve_i < get_server_size(); serve_i++)
+        {
+          if ((this->v_servers[serve_i].get_name().length() == 0 &&
+            this->v_servers[serve_i].get_ports_size() == 0 &&
+            this->v_servers[serve_i].get_host().length() == 0 &&
+            this->v_servers[serve_i].get_root().length() == 0 &&
+            this->v_servers[serve_i].get_index().length() == 0 &&
+            this->v_servers[serve_i].get_error_page_size() == 0 &&
+            this->v_servers[serve_i].get_methods_size() == 0 ) ||
+            (this->v_servers[serve_i].get_host().length() == 0 ||
+             this->v_servers[serve_i].get_ports_size() == 0 ))
+          {
+            throw formatWrong();
           }
         }
 
@@ -297,9 +377,11 @@ void Config::saveData(std::string dataUrl)
       {
         throw formatWrong();
       }
+
+      (void)num_location;
     }
+
     this->f_check_data_with_path();
-    // this->f_organise_listen();
     return;
   }
   catch (const std::exception &e)
@@ -609,6 +691,7 @@ void    Config::f_save_default(){
   }
 }
 
+// void    Config::f_check_repeat() {
 void    Config::f_check_repeat() {
   for(size_t i = 0; i <  this->get_server_size(); i++){
     Server server_check = get_server(i);
@@ -627,6 +710,13 @@ void    Config::f_check_repeat() {
             throw formatWrong();
       }
       }
+    }
+
+    // check de repeat host in server
+    for (size_t p = i + 1; p < this->get_server_size(); p++){
+      Server host_check = get_server(p);
+      if (host_check.get_host() == server_check.get_host())
+        throw formatWrong();
     }
 
     // check de repeat name in server
@@ -648,8 +738,36 @@ void    Config::f_check_repeat() {
     }
   }
 
-  // repeat name
+  // check de repeat metod in server
+  for (size_t i = 0; i < this->get_server_size(); i++){
+    Server server_check = get_server(i);
+    for (size_t ii = 0; ii < server_check.get_methods_size(); ii++)
+    {
+      std::string metod_compare = server_check.get_methods(ii);
+      for (size_t iii = ii + 1; iii < server_check.get_methods_size(); iii++)
+      {
+        if (metod_compare == server_check.get_methods(iii))
+          throw formatWrong();
+      }
+    }
+  }
+  // check de repeat metod in location
+  for (size_t i = 0; i < this->get_server_size(); i++){
+    Server server_check = get_server(i);
+    for (size_t jj = 0; jj < server_check.get_location_size(); jj++)
+    {
+      for (size_t ii = 0; ii < server_check.get_location(jj).get_methods_size(); ii++)
+      {
+        std::string metod_compare = server_check.get_location(jj).get_methods(ii);
+        for (size_t iii = ii + 1; iii < server_check.get_location(jj).get_methods_size(); iii++)
+        {
+          if (metod_compare == server_check.get_location(jj).get_methods(iii))
+            throw formatWrong();
+        }
+      }
+    }
 
+  }
 }
 
 bool Config::f_check_clean_line(std::string path, std::string find){
@@ -677,7 +795,28 @@ bool Config::f_check_clean_line(std::string path, std::string find){
   return true;
 }
 
+void Config::f_clean_listen()
+{
+  for (size_t i = 0; i < get_server_size(); i++)
+  {
+    Server &s_default = get_ref_server(i);
+    for (size_t ii = 0; ii < s_default.get_ports_size(); ii++)
+    {
+      if (s_default.get_ports(ii).compare(0, 10, "localhost:") == 0)
+      {
+        this->v_servers[i].get_ports_ref()[ii] = s_default.get_ports(ii).erase(0, 10);
+      }
+    }
+  }
+}
+
 // ->  try{} cath{}
+
+const char *Config::emptyFile::what() const throw()
+{
+  return "Error: empty file => ";
+}
+
 const char *Config::formatWrong::what() const throw()
 {
   return "Error: bad config file => ";

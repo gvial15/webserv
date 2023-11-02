@@ -44,6 +44,7 @@ private:
     // -> functions save
     void    f_organise_listen();
     void    f_save_default();
+    void    f_clean_listen();
     void    f_save_default_location();
     void    f_save_multiple_values_in_location(std::string path, size_t start, Location *loc, std::string metod);
     void    f_save_multiple_values_in_server(std::string path, size_t start, Server *ser, std::string metod);
@@ -87,7 +88,12 @@ public:
         virtual const char* what() const throw();
     };
 
-}; 
+    class emptyFile : public std::exception {
+    public:
+        virtual const char* what() const throw();
+    };
+
+};
 
 /********COLORS*********/
 #define RESET   "\033[0m"
