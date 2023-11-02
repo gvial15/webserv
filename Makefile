@@ -1,11 +1,5 @@
 SRCS =	main.cpp \
-		srcs/Webserv.cpp \
-		srcs/config/uitlParsing.cpp srcs/config/check_utils.cpp srcs/config/Config.cpp \
-		srcs/server/Server.cpp \
-		srcs/server/location/Location.cpp \
-
-# SRCS =	main.cpp \
-# 		srcs/Webserv.cpp srcs/config/Configuration.cpp srcs/Server.cpp \
+		srcs/Webserv.cpp srcs/Configuration.cpp srcs/Server.cpp \
 		# srcs/HTTPRequest.cpp srcs/HTTPResponse.cpp
 
 OBJDIR = obj

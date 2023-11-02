@@ -1,4 +1,4 @@
-#include "../../Class/Configuration.hpp"
+#include "../Class/Configuration.hpp"
 
 // constructor
 Configuration::Configuration(const std::string& filePath)

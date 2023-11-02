@@ -1,8 +1,7 @@
 #pragma once
 #include <iostream>
 #include <sys/poll.h>
-// #include "Configuration.hpp"
-#include "./Config.hpp"
+#include "Configuration.hpp"
 #include "Server.hpp"
 
 // receive the Server vector and fill a vector of pollfd
@@ -28,7 +27,7 @@ class Webserv {
         static void signal_handler(int signum);
         void        display_socket_infos(int new_socket);
         void        create_and_add_new_client(int new_socket);
-
+            
         // private attributes
         std::vector<pollfd> pollfd_vec;
         std::vector<Server> servers;
