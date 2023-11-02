@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Form</title>
+    <style>
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #4B5563;
+            padding: 1rem;
+        }
+
+        .navbar-logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ffffff;
+            text-decoration: none;
+        }
+
+        .navbar-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .navbar-link {
+            color: #ffffff;
+            text-decoration: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .navbar-link:hover {
+            opacity: 0.8;
+        }
+        body {
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f3f4f6;
+        }
+        .content{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .form-container {
+            width: 50%;
+            right: 0;
+            left: 0;
+            background-color: #ffffff;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .form-input {
+            display: block;
+            width: 100%;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 0.25rem;
+        }
+
+        .form-submit {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background-color: #4B5563;
+            color: #ffffff;
+            font-size: 1rem;
+            border: none;
+            border-radius: 0.25rem;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+
+        .form-submit:hover {
+            background-color: #374151;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="#" class="navbar-logo">42-Webserver</a>
+        <div class="navbar-links">
+            <a href="index.html" class="navbar-link">Home</a>
+            <a href="form.html" class="navbar-link">CGI</a>
+            <a href="team.html" class="navbar-link">Team</a>
+        </div>
+    </nav>
+    <div class="content">
+
+        <div class="form-container">
+            <h1>Registration Form</h1>
+            <form>
+                <input type="text" class="form-input" placeholder="First Name" required>
+                <input type="text" class="form-input" placeholder="Last Name" required>
+                <input type="text" class="form-input" placeholder="Login" required>
+                <input type="email" class="form-input" placeholder="Email" required>
+                <input type="date" class="form-input" placeholder="Date of Birth" required>
+                <input type="tel" class="form-input" placeholder="Phone Number">
+                <input type="password" class="form-input" placeholder="Password" required>
+                <input type="password" class="form-input" placeholder="Confirm Password" required>
+                
+                <button type="submit" class="form-submit">Submit</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

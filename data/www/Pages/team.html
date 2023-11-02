@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Page</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #4B5563;
+            padding: 1rem;
+        }
+
+        .navbar-logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ffffff;
+            text-decoration: none;
+        }
+
+        .navbar-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .navbar-link {
+            color: #ffffff;
+            text-decoration: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .navbar-link:hover {
+            opacity: 0.8;
+        }
+
+        .team-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 80vh;
+        }
+
+        .team-card {
+            background-color: #ffffff;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+            text-align: center;
+            margin: 1rem;
+        }
+
+        .team-card-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #4B5563;
+        }
+
+        .team-card-text {
+            color: #6B7280;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="#" class="navbar-logo">42-Webserver</a>
+        <div class="navbar-links">
+            <a href="index.html" class="navbar-link">Home</a>
+            <a href="form.html" class="navbar-link">CGI</a>
+            <a href="team.html" class="navbar-link">Team</a>
+        </div>
+    </nav>
+
+    <div class="team-container">
+        <div class="team-card">
+            <img src="https://via.placeholder.com/500x500" alt="Random Image">
+            <h2 class="team-card-title">Team Member 1</h2>
+            <p class="team-card-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec nec venenatis velit.</p>
+        </div>
+        <div class="team-card">
+            <img src="https://via.placeholder.com/500x500" alt="Random Image">
+            <h2 class="team-card-title">Team Member 2</h2>
+            <p class="team-card-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec nec venenatis velit.</p>
+        </div>
+    </div>
+</body>
+</html>

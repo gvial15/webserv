@@ -2,7 +2,7 @@
 #include <iostream>
 #include "Class/Webserv.hpp"
 #include "Class/Server.hpp"
-#include "Class/Configuration.hpp"
+#include "Class/Config.hpp"
 
 
 // 1. 	In the main() i create a Config object that takes
@@ -26,13 +26,36 @@ int	main(int argc, char **argv)
 	if (argc > 2)
 		return std::cout << "Error: Webserv takes 1 or no arguments\n", 1;
 	try {
+		Config setting;
+
 		std::string configFile;
 		if (argc == 2)
+		{
 			configFile = argv[1];
+			setting.checkData(configFile);
+			if (setting.check_error())
+				return (1);
+			setting.saveData(configFile);
+			if (setting.check_error())
+				return (1);
+		}
+		else
+		{
+			setting.saveData("run default");
+			if (setting.check_error())
+				return (1);
+		}
+
+		setting.init_sockets();
+		if (setting.check_error())
+			return (1);
+
+		setting.seeData();
+
 		// parse config file into a vector of servers {}
-		Configuration	config(configFile);
+		// Configuration	config(configFile);
 		// run servers, process request and send response to client (poll(), accept(), ...)
-		Webserv webserv(config.getServers());
+		Webserv webserv(setting.getServers());
 	} catch (std::exception& ex) {
 		std::cerr << ex.what() << std::endl;
 	}
