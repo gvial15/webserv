@@ -28,27 +28,11 @@ int	main(int argc, char **argv)
 	try {
 		Config setting;
 
-		std::string configFile;
+		std::string configFile = "";
 		if (argc == 2)
-		{
 			configFile = argv[1];
-			setting.checkData(configFile);
-			if (setting.check_error())
-				return (1);
-			setting.saveData(configFile);
-			if (setting.check_error())
-				return (1);
-		}
-		else
-		{
-			setting.saveData("run default");
-			if (setting.check_error())
-				return (1);
-		}
-
-		setting.init_sockets();
-		if (setting.check_error())
-			return (1);
+		if (!setting.run(configFile))
+			return 1;
 
 		setting.seeData();
 

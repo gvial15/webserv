@@ -23,6 +23,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <poll.h>
+#include <sstream>
 
 class Config
 {
@@ -61,6 +62,8 @@ public:
     ~Config();
 
     std::vector<Server> getServers() const { return v_servers; }
+
+    bool run(std::string data);
 
     bool check_error();
 
@@ -122,6 +125,7 @@ bool f_check_nothing(std::string line , int *num);
 bool f_check_path_line(std::string line , int *num);
 bool f_check_methods_line(std::string line , int *num);
 bool f_check_port(std::string line , int *num);
+bool f_check_port_listen(std::string line, int* num);
 bool f_check_on(std::string line , int *num);
 bool f_check_number(std::string line , int *num);
 bool f_check_par(std::string line , int *num, bool (*f_1)(std::string str, int *num), bool (*f_2)(std::string str, int *num));

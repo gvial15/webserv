@@ -6,7 +6,7 @@
 /*   By: diegofranciscolunalopez <diegofrancisco    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/13 12:18:08 by dluna-lo          #+#    #+#             */
-/*   Updated: 2023/11/02 12:09:40 by diegofranci      ###   ########.fr       */
+/*   Updated: 2023/11/03 12:35:06 by diegofranci      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -139,7 +139,7 @@ void Config::saveData(std::string dataUrl)
 
       s_default.set_name("default");
       s_default.set_new_port("8080");
-      s_default.set_host("127.0.0.1:8080");
+      s_default.set_host("127.0.0.1");
       s_default.set_root("data/www/Pages");
 
       s_default.set_body_size(500);
@@ -808,6 +808,29 @@ void Config::f_clean_listen()
       }
     }
   }
+}
+
+
+bool Config::run(std::string data){
+
+  if (data.length() != 0) {
+    checkData(data);
+    if (check_error())
+      return (false);
+    saveData(data);
+    if (check_error())
+      return (false);
+  }else{
+    saveData("run default");
+    if (check_error())
+      return (false);
+  }
+
+  // init_sockets();
+	// if (check_error())
+    // return (false);
+
+  return (true);
 }
 
 // ->  try{} cath{}

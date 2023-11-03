@@ -6,7 +6,7 @@
 /*   By: diegofranciscolunalopez <diegofrancisco    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/21 12:05:10 by dluna-lo          #+#    #+#             */
-/*   Updated: 2023/11/02 09:30:18 by diegofranci      ###   ########.fr       */
+/*   Updated: 2023/11/03 12:34:29 by diegofranci      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ void Config::f_check_proms(std::string line){
     f_count_words_string(line) == 3){
     return ;
   }else if (f_counter_clean_worlds(line, "listen") == 1 &&
-    f_run_each_words(line, &num_worlds, line.find("listen") + 7, &f_check_port) == true &&
+    f_run_each_words(line, &num_worlds, line.find("listen") + 7, &f_check_port_listen) == true &&
     num_worlds > 0 && f_check_clean_line(line, "listen") == true){
     return ;
   }
@@ -113,9 +113,9 @@ bool f_check_port(std::string line, int *num){
   (void)num;
   bool is_local = false;
   bool is_point = false;
-  if (( f_counter_worlds(line, "localhost") > 1 || f_counter_worlds(line, "localhost:") > 1 || f_counter_worlds(line, "http://localhost:") > 1))
+  if ((f_counter_worlds(line, "localhost") > 1 || f_counter_worlds(line, "localhost:") > 1 || f_counter_worlds(line, "http://localhost:") > 1))
     return false;
-  if ((f_counter_worlds(line, "localhost:") == 1 ||f_counter_worlds(line, "http://localhost:") == 1))
+  if ((f_counter_worlds(line, "localhost:") == 1 || f_counter_worlds(line, "http://localhost:") == 1))
     is_local = true;
 
   for (size_t i = 0; i < line.length(); i++)
@@ -136,10 +136,6 @@ bool f_check_port(std::string line, int *num){
       line.substr(i, i + 10) == "localhost:" &&
       f_check_port(line.substr(10, line.length()), num) == true
       ){
-      // if (i == 0 && (
-      //   (line[i] == 'h' && line.length() > 10  && line.substr(0, 10) == "localhost:" && f_check_port(line.substr(10, line.length()), num) == true)
-      //   || (line[i] == 'l' && line.length() > 17 && line.substr(0, 17) == "http://localhost:" && f_check_port(line.substr(17, line.length()), num) == true))){
-          // is_local = false;
           continue;
       }
       else if (i == 0) {
@@ -148,6 +144,54 @@ bool f_check_port(std::string line, int *num){
     }
   }
   return true;
+}
+
+bool isValidIPAddress(const std::string& address) {
+    // Implement your IP address validation logic here
+    // For simplicity, this example assumes any non-empty string is a valid IP address.
+    return !address.empty();
+}
+
+bool f_check_port_listen(std::string line, int* num) {
+    *num = -1; // Initialize num to a sentinel value
+
+    // Split the line by ":" to separate address and port
+    std::vector<std::string> parts;
+    std::istringstream iss(line);
+    std::string part;
+    while (std::getline(iss, part, ':')) {
+        parts.push_back(part);
+    }
+
+    if (parts.empty()) {
+        return false;
+    }
+
+    // Check if the last part is a valid port number
+    if (parts.back().find_first_not_of("0123456789") != std::string::npos) {
+        return false; // Port is not a valid number
+    }
+
+    int port = std::stoi(parts.back());
+
+    // Check the first part for a valid IP address
+    if (parts.size() == 1) {
+        // If only the port is provided, it's valid
+        if (port >= 0 && port <= 65535) {
+            *num = port;
+            return true;
+        }
+    } else if (parts.size() == 2) {
+        std::string address = parts.front();
+
+        // Check if the IP address is valid (you can add more checks if needed)
+        if (isValidIPAddress(address) && port >= 0 && port <= 65535) {
+            *num = port;
+            return true;
+        }
+    }
+
+    return false;
 }
 
 // bool Config::f_check_methods_line(std::string line){
