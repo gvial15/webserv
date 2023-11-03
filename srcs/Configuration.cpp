@@ -1,7 +1,7 @@
 #include "../Class/Configuration.hpp"
 
 // constructor
-Configuration::Configuration(const std::string& filePath)
+Configuration::Configuration(const std::string filePath)
 {
     (void)  filePath;
 

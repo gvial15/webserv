@@ -6,7 +6,7 @@
 // each server in the vector represents a server {}; block
 class Configuration {
     public:
-        Configuration(const std::string& filePath);
+        Configuration(const std::string filePath);
         ~Configuration();
 
         // public methods
