@@ -32,7 +32,7 @@ void    Webserv::create_pollfds()
     while (it != servers.end()) {
         struct pollfd fds;  // +1 for the server socket
     	memset(&fds, 0, sizeof(fds));
-    	fds.fd = it->getServerFd();
+    	fds.fd = it->get_server_fd();
     	fds.events = POLLIN;
 		pollfd_vec.push_back(fds);
         ++it;

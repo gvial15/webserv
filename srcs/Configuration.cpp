@@ -1,9 +1,4 @@
 #include "../Class/Configuration.hpp"
-#include <cctype>
-#include <cstddef>
-#include <fstream>
-#include <string>
-#include <vector>
 
 // constructor
 Configuration::Configuration(const std::string config_file_path)
@@ -16,10 +11,9 @@ Configuration::Configuration(const std::string config_file_path)
 	}
 	else {
 		if (!config_file)
-			throw UnableToOpenFile();
-		else {
+			throw unable_to_open_file();
+		else
 			parse(config_file);
-		}
 	}
 
     // **** hardcode servers for testing ****
@@ -37,47 +31,57 @@ void	Configuration::parse(std::ifstream& config_file)
 {
 	std::string					file_content((std::istreambuf_iterator<char>(config_file)), std::istreambuf_iterator<char>());
 	std::string					spaced_out_content;
+	std::vector<std::string>	tokenized_content;
 	std::vector<server_block>	server_blocks;
 
 
-	// space out special symbols
 	spaced_out_content = space_out_symbols(file_content);
-	std::cout << spaced_out_content << "\n";
-	// tokenize string \n included to track line # for error messages
+	tokenized_content = tokenize(spaced_out_content);
+	// std::size_t i = -1;
+	// while (++i < tokenized_content.size())
+	// 	std::cout << tokenized_content[i] << "\n";
 
-	// loop throught tokens and for each server {} block
-	// create a ServerBlock
+	// loop throught tokens and for each server {} block create a server_block
+
+
+	// create the vector of servers from server blocks
 }
 
-std::string	Configuration::space_out_symbols(std::string file_content)
-{
-	std::string	spaced_out_content;
-	std::size_t	i;
-	char		c;
+// space out special symbols } { ; \n
+std::string Configuration::space_out_symbols(std::string file_content) {
+    std::string spaced_out_content;
+    std::size_t i = 0;
+    char c;
 
-	i = -1;
-	while (++i < file_content.size()) {
-		c = file_content[i];
-		if ((c == ';' || c == '{' || c == '}')
-			&& i != 0 && i != file_content.size() - 1) {
-			if (!isspace(file_content[i + 1]) && !isspace(file_content[i - 1])) {
-				spaced_out_content.push_back(' ');
-				spaced_out_content.push_back(c);
-				spaced_out_content.push_back(' ');
-			}
-			else if (!isspace(file_content[i - 1])) {
-				spaced_out_content.push_back(' ');
-				spaced_out_content.push_back(c);
-			}
-			else if (!isspace(file_content[i + 1])) {
-				spaced_out_content.push_back(c);
-				spaced_out_content.push_back(' ');
-			}
-			else
-				spaced_out_content.push_back(c);
+    while (i < file_content.size()) {
+    	c = file_content[i];
+		if (c == ';' || c == '{' || c == '}' || c == '\n') {
+			if (i > 0 && !isspace(file_content[i - 1]))
+        		spaced_out_content.push_back(' ');
+        	spaced_out_content.push_back(c);
+            if (i < file_content.size() - 1 && !isspace(file_content[i + 1]))
+        		spaced_out_content.push_back(' ');
 		}
 		else
-			spaced_out_content.push_back(c);
-	}
-	return (spaced_out_content);
+        	spaced_out_content.push_back(c);
+        i++;
+    }
+    return (spaced_out_content);
+}
+
+// tokenize string with white as delimiter but including "\n" for line # tracking for error messages
+std::vector<std::string>	Configuration::tokenize(std::string spaced_out_content)
+{
+    std::istringstream			stream(spaced_out_content);
+	std::vector<std::string>	tokenized_content;
+	std::string					token;
+
+    while (stream >> token) {
+        tokenized_content.push_back(token);
+        if (stream.peek() == '\n') {
+            stream.get();
+            tokenized_content.push_back("\n");
+        }
+    }
+	return (tokenized_content);
 }

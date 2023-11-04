@@ -1,4 +1,5 @@
 #pragma once
+#include <cstddef>
 #include <map>
 #include <string>
 
@@ -13,9 +14,14 @@ class Server {
         // public methods
 
         // getters
-        int         getServerFd() const { return server_fd; }
-        int         getPort() const { return port; }
-        std::string getIp() const { return ip; }
+        int									get_server_fd() const { return server_fd; }
+        int									get_port() const { return port; }
+        std::string							get_ip() const { return ip; }
+        std::string							get_root() const { return root; }
+        std::string							get_index() const { return index; }
+        std::size_t							get_autoindex() const { return autoindex; }
+        std::size_t							get_client_max_body_size() const { return client_max_body_size; }
+        std::map<std::string, std::string>	get_error_pages() const { return error_pages; }
 
         // public attributes
 
@@ -25,9 +31,14 @@ class Server {
         void	init_socket();
 
         // private attributes
-        int         server_fd;
-		int 		port;
-        std::string	ip;
+        int									server_fd;
+		int									port;
+        std::string							ip;
+        std::string 						root;
+        std::string 						index;
+        bool        						autoindex;
+        std::size_t 						client_max_body_size;
+        std::map<std::string, std::string>	error_pages;
 
         // private exceptions
 

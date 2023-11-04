@@ -34,7 +34,7 @@ int	main(int argc, char **argv)
 		// run servers, process request and send response to client (poll(), accept(), ...)
 		Webserv webserv(config.getServers());
 	} catch (std::exception& ex) {
-		std::cerr << ex.what() << std::endl;
+		std::cerr << "Error: " << ex.what() << std::endl;
 	}
 }
 

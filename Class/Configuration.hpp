@@ -10,7 +10,6 @@
 // each server in the vector represents a server {}; block
 class Configuration {
 
-
     public:
 
         Configuration(const std::string config_file_path);
@@ -25,7 +24,7 @@ class Configuration {
 
     private:
 
-		// private data structure
+		// private data structures
 		struct location_block {
 			std::vector<std::string> lines;
 		};
@@ -36,22 +35,23 @@ class Configuration {
 		};
 
         // private methods
-		void		parse(std::ifstream& config_file);
-		std::string	space_out_symbols(std::string file_content);
+		void						parse(std::ifstream& config_file);
+		std::string					space_out_symbols(std::string file_content);
+		std::vector<std::string>	tokenize(std::string spaced_out_content);
 
         // private attributes
         std::vector<Server> servers;
 
         // private exceptions
-		class UnableToOpenFile : public std::exception {
+		class unable_to_open_file : public std::exception {
 				virtual const char* what() const throw() {
-					return "Error: Unable to open configuration file";
+					return "Unable to open configuration file";
         		}
     	};
 
-		class UnknownDirective : public std::exception {
+		class unknown_directive : public std::exception {
 				virtual const char* what() const throw() {
-					return "Error: Unknown directive in config";
+					return "Unknown directive in config";
 				}
         };
 };
