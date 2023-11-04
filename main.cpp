@@ -26,11 +26,11 @@ int	main(int argc, char **argv)
 	if (argc > 2)
 		return std::cout << "Error: Webserv takes 1 or no arguments\n", 1;
 	try {
-		std::string configFile;
+		std::string config_file_path;
 		if (argc == 2)
-			configFile = argv[1];
+			config_file_path = argv[1];
 		// parse config file into a vector of servers {}
-		Configuration	config(configFile);
+		Configuration	config(config_file_path);
 		// run servers, process request and send response to client (poll(), accept(), ...)
 		Webserv webserv(config.getServers());
 	} catch (std::exception& ex) {

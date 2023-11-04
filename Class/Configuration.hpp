@@ -1,12 +1,19 @@
 #pragma once
+#include <fstream>
+#include <string>
+#include <vector>
+#include <sstream>
 #include <iostream>
 #include "Server.hpp"
 
 // parse the config file by filling the servers vector
 // each server in the vector represents a server {}; block
 class Configuration {
+
+
     public:
-        Configuration(const std::string filePath);
+
+        Configuration(const std::string config_file_path);
         ~Configuration();
 
         // public methods
@@ -18,17 +25,33 @@ class Configuration {
 
     private:
 
+		// private data structure
+		struct location_block {
+			std::vector<std::string> lines;
+		};
+
+		struct server_block {
+			std::vector<std::string> lines;
+			std::vector<location_block> locationBlocks;
+		};
+
         // private methods
-        void parse(const std::string& filePath);
+		void		parse(std::ifstream& config_file);
+		std::string	space_out_symbols(std::string file_content);
 
         // private attributes
         std::vector<Server> servers;
 
         // private exceptions
-        class UnknownDirective : public std::exception {
-        public:
-            virtual const char* what() const throw() {
-                return "Unknown directive in config";
-            }
+		class UnableToOpenFile : public std::exception {
+				virtual const char* what() const throw() {
+					return "Error: Unable to open configuration file";
+        		}
+    	};
+
+		class UnknownDirective : public std::exception {
+				virtual const char* what() const throw() {
+					return "Error: Unknown directive in config";
+				}
         };
 };

@@ -4,7 +4,7 @@
 
 // constructor
 Server::Server(std::string ip, int port):
-ip(ip), port(port)
+port(port), ip(ip)
 {
 	init_socket();
 }

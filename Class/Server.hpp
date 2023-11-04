@@ -13,7 +13,9 @@ class Server {
         // public methods
 
         // getters
-        int getServerFd() const { return server_fd; }
+        int         getServerFd() const { return server_fd; }
+        int         getPort() const { return port; }
+        std::string getIp() const { return ip; }
 
         // public attributes
 
@@ -23,9 +25,9 @@ class Server {
         void	init_socket();
 
         // private attributes
-        std::string	ip;
-		int 		port;
         int         server_fd;
+		int 		port;
+        std::string	ip;
 
         // private exceptions
 
