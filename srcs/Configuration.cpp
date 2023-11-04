@@ -43,7 +43,6 @@ void	Configuration::parse(std::ifstream& config_file)
 
 	// loop throught tokens and for each server {} block create a server_block
 
-
 	// create the vector of servers from server blocks
 }
 
