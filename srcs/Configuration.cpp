@@ -68,7 +68,7 @@ std::string Configuration::space_out_symbols(std::string file_content) {
     return (spaced_out_content);
 }
 
-// tokenize string with white as delimiter but including "\n" for line # tracking for error messages
+// tokenize string with white spaces as delimiter but include "\n" as token for line # tracking for error messages
 std::vector<std::string>	Configuration::tokenize(std::string spaced_out_content)
 {
     std::istringstream			stream(spaced_out_content);
