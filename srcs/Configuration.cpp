@@ -48,7 +48,7 @@ void	Configuration::parse(std::ifstream& config_file)
 }
 
 // space out special symbols } { ; \n
-std::string Configuration::space_out_symbols(std::string file_content) {
+std::string	Configuration::space_out_symbols(std::string file_content) {
     std::string spaced_out_content;
     std::size_t i = 0;
     char c;
@@ -72,18 +72,31 @@ std::string Configuration::space_out_symbols(std::string file_content) {
 // tokenize string with white spaces as delimiter but include "\n" as token for line # tracking for error messages
 std::vector<std::string>	Configuration::tokenize(std::string spaced_out_content)
 {
-    std::istringstream			stream(spaced_out_content);
-	std::vector<std::string>	tokenized_content;
-	std::string					token;
+    std::vector<std::string> tokenized_content;
+    std::istringstream stream(spaced_out_content);
+    std::string token;
+    char c;
 
-    while (stream >> token) {
-        tokenized_content.push_back(token);
-        if (stream.peek() == '\n') {
-            stream.get();
-            tokenized_content.push_back("\n");
+    while (stream.get(c)) {
+		if (c == '\n') {
+            if (!token.empty()) {
+                tokenized_content.push_back(token);
+                token.clear();
+            }
+            tokenized_content.push_back("\\n");
         }
+		else if (isspace(c)) {
+            if (!token.empty()) {
+                tokenized_content.push_back(token);
+                token.clear();
+            }
+        }
+		else
+            token += c;
     }
-	return (tokenized_content);
+    if (!token.empty())
+        tokenized_content.push_back(token);
+    return tokenized_content;
 }
 
 std::vector<Configuration::server_block>	Configuration::parse_server_blocks(std::vector<std::string> tokenized_content) {

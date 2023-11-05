@@ -16,8 +16,8 @@ class Server : public SharedConfigAttributes {
         // public classes
         class Location : public SharedConfigAttributes {
 			public:
-				Location();
-				~Location();
+				Location() {};
+				~Location() {};
         };
 
         // public methods
