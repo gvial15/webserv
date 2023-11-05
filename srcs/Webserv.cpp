@@ -10,8 +10,8 @@ Webserv::Webserv(std::vector<Server> servers) :
 servers(servers)
 {
 	instance = this;
-    create_pollfds();
-    run();
+	create_pollfds();
+	run();
 }
 
 // destructor
@@ -22,69 +22,69 @@ Webserv::~Webserv()
 
 void	Webserv::signal_handler(int signum)
 {
-    instance->close_all_fds();
-    exit(signum);
+	instance->close_all_fds();
+	exit(signum);
 }
 
 void    Webserv::create_pollfds()
 {
-    std::vector<Server>::iterator it = servers.begin();
-    while (it != servers.end()) {
-        struct pollfd fds;  // +1 for the server socket
-    	memset(&fds, 0, sizeof(fds));
-    	fds.fd = it->get_server_fd();
-    	fds.events = POLLIN;
+	std::vector<Server>::iterator it = servers.begin();
+	while (it != servers.end()) {
+		struct pollfd fds;  // +1 for the server socket
+		memset(&fds, 0, sizeof(fds));
+		fds.fd = it->get_server_fd();
+		fds.events = POLLIN;
 		pollfd_vec.push_back(fds);
-        ++it;
-    }
+		++it;
+	}
 }
 
 void	Webserv::run()
 {
 	signal(SIGINT, signal_handler);
 	signal(SIGTERM, signal_handler);
-    while (true)
-    {
-    	size_t i = 0;
+	while (true)
+	{
+		size_t i = 0;
 		int new_socket;
 		struct sockaddr_in address;
 		socklen_t addrlen = sizeof(address);
-        int ret = poll(&pollfd_vec[0], pollfd_vec.size(), -1);
-    
-        if (ret < 0)
-            throw PollException();
-        while (i < pollfd_vec.size())
-        {
-            if (pollfd_vec[i].revents & POLLIN)  // Event on the socket
-            {
-                if (i < servers.size())  // Is a new connection
-                {
-                    if ((new_socket = accept(pollfd_vec[i].fd, (struct sockaddr *)&address, &addrlen)) < 0)
+		int ret = poll(&pollfd_vec[0], pollfd_vec.size(), -1);
+	
+		if (ret < 0)
+			throw PollException();
+		while (i < pollfd_vec.size())
+		{
+			if (pollfd_vec[i].revents & POLLIN)  // Event on the socket
+			{
+				if (i < servers.size())  // Is a new connection
+				{
+					if ((new_socket = accept(pollfd_vec[i].fd, (struct sockaddr *)&address, &addrlen)) < 0)
 						throw AcceptException();
-                    display_socket_infos(new_socket);
+					display_socket_infos(new_socket);
 					create_and_add_new_client(new_socket);
-                }
-                else // Input from a client
-                {
-                    char buffer[1024];
-                    int bytes_read = read(pollfd_vec[i].fd, buffer, 1024);
-                    if (bytes_read <= 0)  // Connection closed or error
-                    {
-                    	close(pollfd_vec[i].fd);
-                    	pollfd_vec[i].fd = 0;  // Mark as available
-                    }
-                    else
-                    {
-                    	buffer[bytes_read] = '\0';
-                    	std::cout << buffer << std::endl;
-                    }
-                }
-                // Clear the revents field for the next poll call
-                pollfd_vec[i].revents = 0;
-            }
-            ++i;
-        }
-    }
+				}
+				else // Input from a client
+				{
+					char buffer[1024];
+					int bytes_read = read(pollfd_vec[i].fd, buffer, 1024);
+					if (bytes_read <= 0)  // Connection closed or error
+					{
+						close(pollfd_vec[i].fd);
+						pollfd_vec[i].fd = 0;  // Mark as available
+					}
+					else
+					{
+						buffer[bytes_read] = '\0';
+						std::cout << buffer << std::endl;
+					}
+				}
+				// Clear the revents field for the next poll call
+				pollfd_vec[i].revents = 0;
+			}
+			++i;
+		}
+	}
 }
 
 void    Webserv::create_and_add_new_client(int new_socket)
@@ -116,13 +116,13 @@ void    Webserv::display_socket_infos(int client_socket)
 
 void	Webserv::close_all_fds()
 {
-    size_t i = -1;
-    while (++i < pollfd_vec.size())
+	size_t i = -1;
+	while (++i < pollfd_vec.size())
 	{
-        if (pollfd_vec[i].fd >= 0)
+		if (pollfd_vec[i].fd >= 0)
 		{
-            close(pollfd_vec[i].fd);
-            pollfd_vec[i].fd = -1;
-        }
-    }
+			close(pollfd_vec[i].fd);
+			pollfd_vec[i].fd = -1;
+		}
+	}
 }

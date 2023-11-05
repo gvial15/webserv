@@ -8,43 +8,43 @@
 // with all the Server(s) socket and runs the poll() loop.
 // All the accept() and the processing queue happen in this loop as well
 class Webserv {
-    public:
-        Webserv(std::vector<Server> servers);
-        ~Webserv();
+	public:
+		Webserv(std::vector<Server> servers);
+		~Webserv();
 
-        // public methods
+		// public methods
 
-        // public attributes
-        static Webserv* instance;
+		// public attributes
+		static Webserv* instance;
 
 
-    private:
+	private:
 
-        // private methods
-        void        run();
-        void	    close_all_fds();
-        void        create_pollfds();
-        static void signal_handler(int signum);
-        void        display_socket_infos(int new_socket);
-        void        create_and_add_new_client(int new_socket);
-            
-        // private attributes
-        std::vector<pollfd> pollfd_vec;
-        std::vector<Server> servers;
+		// private methods
+		void        run();
+		void	    close_all_fds();
+		void        create_pollfds();
+		static void signal_handler(int signum);
+		void        display_socket_infos(int new_socket);
+		void        create_and_add_new_client(int new_socket);
+			
+		// private attributes
+		std::vector<pollfd> pollfd_vec;
+		std::vector<Server> servers;
 
-        // private exceptions
-        class PollException : public std::exception {
-        public:
-            virtual const char* what() const throw() {
-                return "poll() failed";
-            }
-        };
+		// private exceptions
+		class PollException : public std::exception {
+		public:
+			virtual const char* what() const throw() {
+				return "poll() failed";
+			}
+		};
 
-        class AcceptException : public std::exception {
-        public:
-            virtual const char* what() const throw() {
-                return "accept() failed";
-            }
-        };
+		class AcceptException : public std::exception {
+		public:
+			virtual const char* what() const throw() {
+				return "accept() failed";
+			}
+		};
 
 };
