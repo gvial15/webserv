@@ -42,6 +42,7 @@ void	Configuration::parse(std::ifstream& config_file)
 	// 	std::cout << tokenized_content[i] << "\n";
 
 	// loop throught tokens and for each server {} block create a server_block
+	server_blocks = parse_server_blocks(tokenized_content);
 
 	// create the vector of servers from server blocks
 }
@@ -83,4 +84,15 @@ std::vector<std::string>	Configuration::tokenize(std::string spaced_out_content)
         }
     }
 	return (tokenized_content);
+}
+
+std::vector<Configuration::server_block>	Configuration::parse_server_blocks(std::vector<std::string> tokenized_content) {
+	std::vector<Configuration::server_block>	server_blocks;
+	std::vector<std::string>::const_iterator it = tokenized_content.begin();
+
+	while (it != tokenized_content.end()) {
+		++it;
+	}
+
+	return (server_blocks);
 }

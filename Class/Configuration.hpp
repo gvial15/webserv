@@ -26,11 +26,11 @@ class Configuration {
 
 		// private data structures
 		struct location_block {
-			std::vector<std::string> lines;
+			std::vector<std::string> tokens;
 		};
 
 		struct server_block {
-			std::vector<std::string> lines;
+			std::vector<std::string> tokens;
 			std::vector<location_block> locationBlocks;
 		};
 
@@ -38,6 +38,7 @@ class Configuration {
 		void						parse(std::ifstream& config_file);
 		std::string					space_out_symbols(std::string file_content);
 		std::vector<std::string>	tokenize(std::string spaced_out_content);
+		std::vector<server_block>	parse_server_blocks(std::vector<std::string> tokenized_content);
 
         // private attributes
         std::vector<Server> servers;
