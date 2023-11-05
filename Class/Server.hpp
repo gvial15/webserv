@@ -5,8 +5,8 @@
 #include <vector>
 
 
-// one for each server {} block, they each self initialize there own socket,
-// and bind them to there respective ip:port and make them listen() at creation.
+// one for each server {} block, they each self initialize their own socket,
+// bind() them to their respective ip:port and make them listen().
 class Server {
     public:
         Server(std::string ip, int port);
@@ -40,6 +40,7 @@ class Server {
 
     private:
 
+
         // private methods
         void	init_socket();
 
@@ -53,6 +54,7 @@ class Server {
 		std::vector<std::string>			try_files;
         std::map<std::string, std::string>	error_pages;
         std::size_t 						client_max_body_size;
+
 
         // private exceptions
 

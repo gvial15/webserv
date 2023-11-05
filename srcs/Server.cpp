@@ -1,6 +1,7 @@
 #include "../Class/Server.hpp"
 #include <arpa/inet.h>  // inet_pton()
 #include <fcntl.h> // fcntl() macros
+#include <unistd.h> // close()
 
 // constructor
 Server::Server(std::string ip, int port):
@@ -10,7 +11,9 @@ port(port), ip(ip)
 }
 
 // destructor
-Server::~Server() {}
+Server::~Server() {
+    close(server_fd);
+}
 
 // create socket, make it non-blocking, bind() and listen()
 void	Server::init_socket()
