@@ -43,6 +43,7 @@ class Server : public SharedConfigAttributes {
         int			server_fd;
 		int			port;
         std::string	ip;
+		std::vector<Location> locations;
 
         // private exceptions
 
