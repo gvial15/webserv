@@ -44,15 +44,45 @@ class Configuration {
 		std::vector<Server> servers;
 
 		// private exceptions
+		class parsing_exception : public std::exception {
+		protected:
+			std::string message;
+			int file_line;
+			std::string error_token;
+
+		public:
+			parsing_exception(const std::string& msg, int line, const std::string& token = "")
+				: message(msg), file_line(line), error_token(token) {
+				std::ostringstream stream;
+				stream << "line " << file_line << ": " << message;
+				if (!error_token.empty()) {
+					stream << ": '" << error_token << "'";
+				}
+				message = stream.str();
+			}
+
+			virtual ~parsing_exception() throw() {}
+
+			virtual const char* what() const throw() {
+				return message.c_str();
+			}
+		};
+
+		class unknown_block_type : public parsing_exception {
+		public:
+			unknown_block_type(const int line, const std::string& token)
+				: parsing_exception("Unknown block type in config", line, token) {}
+		};
+
+		class unknown_directive : public parsing_exception {
+		public:
+			unknown_directive(const int line, const std::string& token)
+				: parsing_exception("Unknown directive in config", line, token) {}
+		};
+
 		class unable_to_open_file : public std::exception {
 				virtual const char* what() const throw() {
 					return "Unable to open configuration file";
-				}
-		};
-
-		class unknown_directive : public std::exception {
-				virtual const char* what() const throw() {
-					return "Unknown directive in config";
 				}
 		};
 };

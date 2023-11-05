@@ -1,4 +1,5 @@
 #include "../Class/Configuration.hpp"
+#include <string>
 
 // constructor
 Configuration::Configuration(const std::string config_file_path)
@@ -26,9 +27,10 @@ Configuration::Configuration(const std::string config_file_path)
 // destructor
 Configuration::~Configuration() {};
 
+
+
 // *** parsing ***
-void	Configuration::parse(std::ifstream& config_file)
-{
+void	Configuration::parse(std::ifstream& config_file) {
 	std::string					file_content((std::istreambuf_iterator<char>(config_file)), std::istreambuf_iterator<char>());
 	std::string					spaced_out_content;
 	std::vector<std::string>	tokenized_content;
@@ -37,9 +39,7 @@ void	Configuration::parse(std::ifstream& config_file)
 
 	spaced_out_content = space_out_symbols(file_content);
 	tokenized_content = tokenize(spaced_out_content);
-	// loop throught tokens and for each server {} block create a server_block
 	server_blocks = parse_server_blocks(tokenized_content);
-
 	// create the vector of servers from server blocks
 }
 
@@ -66,8 +66,7 @@ std::string	Configuration::space_out_symbols(std::string file_content) {
 }
 
 // tokenize string with white spaces as delimiter but include "\n" as token for line # tracking for error messages
-std::vector<std::string>	Configuration::tokenize(std::string spaced_out_content)
-{
+std::vector<std::string>	Configuration::tokenize(std::string spaced_out_content) {
 	std::vector<std::string> tokenized_content;
 	std::istringstream stream(spaced_out_content);
 	std::string token;
@@ -95,14 +94,29 @@ std::vector<std::string>	Configuration::tokenize(std::string spaced_out_content)
 	return (tokenized_content);
 }
 
+// loop throught tokens, for each server {} block create a server object, ignore commented line
 std::vector<Configuration::server_block>	Configuration::parse_server_blocks(std::vector<std::string> tokenized_content) {
-	std::vector<Configuration::server_block>	server_blocks;
-	std::vector<std::string>::const_iterator it = tokenized_content.begin();
+	std::vector<server_block>	server_blocks;
+	int							in_server_block;
+	int							in_location_block;
+	(void) in_location_block;
+	int							line;
+	size_t						i;
 
-	while (it != tokenized_content.end()) {
-		std::cout << *it << "\n";
-		++it;
+	in_server_block = 0;
+	in_location_block = 0;
+	line = 1;
+	i = -1;
+	while (++i < tokenized_content.size()) {
+		if (tokenized_content[i] == "\\n")
+			line++;
+		if (!in_server_block && tokenized_content[i] != "\\n" && tokenized_content[i] != "server")
+			throw unknown_block_type(line, tokenized_content[i]);
+		else if (tokenized_content[i] == "server") {
+			while (tokenized_content[++i] != "{") {
+				
+			}
+		}
 	}
-
 	return (server_blocks);
 }
