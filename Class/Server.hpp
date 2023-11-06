@@ -50,42 +50,42 @@ class Server : public SharedConfigAttributes {
 		class SocketException : public std::exception {
 		public:
 			virtual const char* what() const throw() {
-				return "socket() failed";
+				return "Fatal Error: socket() failed";
 			}
 		};
 
 		class fcntl_F_GETFL_Exception : public std::exception {
 		public:
 			virtual const char* what() const throw() {
-				return "fcntl() F_GETFL failed";
+				return "Fatal Error: fcntl() F_GETFL failed";
 			}
 		};
 
 		class fcntl_F_SETFL_O_NONBLOCK_Exception : public std::exception {
 		public:
 			virtual const char* what() const throw() {
-				return "fcntl() F_SETFL O_NONBLOCK failed";
+				return "Fatal Error: fcntl() F_SETFL O_NONBLOCK failed";
 			}
 		};
 
 		class inet_pton_Exception : public std::exception {
 		public:
 			virtual const char* what() const throw() {
-				return "inet_pton() failed";
+				return "Fatal Error: inet_pton() failed";
 			}
 		};
 
 		class ListenException : public std::exception {
 		public:
 			virtual const char* what() const throw() {
-				return "listen() failed";
+				return "Fatal Error: listen() failed";
 			}
 		};
 
 		class BindException : public std::exception {
 		public:
 			virtual const char* what() const throw() {
-				return "bind() failed";
+				return "Fatal Error: bind() failed";
 			}
 		};
 };
