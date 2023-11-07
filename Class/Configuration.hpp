@@ -95,8 +95,6 @@ class Configuration {
 				: parsing_exception("Location path invalid", line, token) {}
 		};
 
-		
-
 		class unable_to_open_file : public std::exception {
 				virtual const char* what() const throw() {
 					return "Unable to open configuration file";

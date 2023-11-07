@@ -59,7 +59,6 @@ void	Configuration::parse(std::ifstream& config_file) {
 	std::vector<std::string>	tokenized_content;
 	std::vector<server_block>	server_blocks;
 
-
 	spaced_out_content = space_out_symbols(file_content);
 	tokenized_content = tokenize(spaced_out_content);
 	server_blocks = parse_server_blocks(tokenized_content);
