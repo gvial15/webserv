@@ -44,7 +44,7 @@ class Configuration {
 		void						is_valid_server_block(std::vector<std::string> tokenized_content, size_t &i, int  &line);
 		location_block				create_location_block(std::vector<std::string> tokenized_content, size_t &i, int  &line);
 		void						is_valid_location_block(std::vector<std::string> tokenized_content, size_t &i, int  &line);
-		void						check_unexpected_tokens(std::vector<std::string> tokenized_content, size_t &i, int  &line);
+		void						validate_synthax(std::vector<std::string> tokenized_content, size_t &i, int  &line);
 		void						create_servers(std::vector<server_block> server_blocks);
 		// ***testing***
 		void						print_server_blocks(const std::vector<server_block>& servers);
@@ -91,6 +91,12 @@ class Configuration {
 		public:
 			unexpected_token(const int line, const std::string& token)
 				: parsing_exception("Unexpected token", line, token) {}
+		};
+
+		class end_of_line : public parsing_exception {
+		public:
+			end_of_line(const int line, const std::string& token)
+				: parsing_exception("Line must finish with ;", line, token) {}
 		};
 
 		class location_path_invalid : public parsing_exception {
