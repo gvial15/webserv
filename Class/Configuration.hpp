@@ -39,11 +39,14 @@ class Configuration {
 		std::string					space_out_symbols(std::string file_content);
 		std::vector<std::string>	tokenize(std::string spaced_out_content);
 		std::vector<server_block>	parse_server_blocks(std::vector<std::string> tokenized_content);
-		void						print_server_blocks(const std::vector<server_block>& servers);
-		int							is_valid_server_block(std::vector<std::string> tokenized_content, size_t &i, int  &line);
-		int							is_valid_location_block(std::vector<std::string> tokenized_content, size_t &i, int  &line);
+		void						line_counter(std::vector<std::string> tokenized_content, size_t &i, int  &line);
+		server_block				create_server_block(std::vector<std::string> tokenized_content, size_t &i, int  &line);
+		void						is_valid_server_block(std::vector<std::string> tokenized_content, size_t &i, int  &line);
+		location_block				create_location_block(std::vector<std::string> tokenized_content, size_t &i, int  &line);
+		void						is_valid_location_block(std::vector<std::string> tokenized_content, size_t &i, int  &line);
 		void						create_servers(std::vector<server_block> server_blocks);
-
+		// ***testing***
+		void						print_server_blocks(const std::vector<server_block>& servers);
 
 		// private attributes
 		std::vector<Server> servers;

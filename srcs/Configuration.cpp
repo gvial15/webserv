@@ -60,7 +60,11 @@ void	Configuration::parse(std::ifstream& config_file) {
 	std::vector<server_block>	server_blocks;
 
 	spaced_out_content = space_out_symbols(file_content);
+	// std::cout << spaced_out_content << "\n";
 	tokenized_content = tokenize(spaced_out_content);
+	// size_t	i = -1;
+	// while (++i < tokenized_content.size())
+	// 	std::cout << tokenized_content[i] << "\n";
 	server_blocks = parse_server_blocks(tokenized_content);
 	print_server_blocks(server_blocks);
 
@@ -70,10 +74,11 @@ void	Configuration::parse(std::ifstream& config_file) {
 // space out special symbols } { ; \n
 std::string	Configuration::space_out_symbols(std::string file_content) {
 	std::string spaced_out_content;
-	std::size_t i = 0;
+	std::size_t i;;
 	char c;
 
-	while (i < file_content.size()) {
+	i = -1;
+	while (file_content[++i]) {
 		c = file_content[i];
 		if (c == ';' || c == '{' || c == '}' || c == '\n' || c == '#') {
 			if (i > 0 && !isspace(file_content[i - 1]))
@@ -84,135 +89,120 @@ std::string	Configuration::space_out_symbols(std::string file_content) {
 		}
 		else
 			spaced_out_content.push_back(c);
-		i++;
 	}
 	return (spaced_out_content);
 }
 
-// tokenize string with white spaces as delimiter
-// delimiter also includes "\n" for line # tracking for error messages and "#" for commented sections parsing
+// tokenize string with white spaces as delimiter excluding "\n" for line # tracking in error messages
+// also ignores commented sections
+// ***non-problematic but buggy behavior: 5 newlines tokens at the end***
 std::vector<std::string>	Configuration::tokenize(std::string spaced_out_content) {
 	std::vector<std::string> tokenized_content;
-	std::istringstream stream(spaced_out_content);
 	std::string token;
-	char c;
+	int			i;
 
-	while (stream.get(c)) {
-		if (c == '\n') {
+	i = -1;
+	while (spaced_out_content[++i]) {
+		if (spaced_out_content[i] == '#')
+			while (spaced_out_content[++i] != '\n');
+		else if (spaced_out_content[i] == '\n') {
 			if (!token.empty()) {
 				tokenized_content.push_back(token);
 				token.clear();
 			}
 			tokenized_content.push_back("\\n");
 		}
-		else if (isspace(c)) {
+		else if (isspace(spaced_out_content[i])) {
 			if (!token.empty()) {
 				tokenized_content.push_back(token);
 				token.clear();
 			}
 		}
 		else
-			token += c;
+			token += spaced_out_content[i];
 	}
 	if (!token.empty())
 		tokenized_content.push_back(token);
 	return (tokenized_content);
 }
 
-// loop throught tokens, for each server {} block create a server_block with nested location_block, ignore commented lines
+void	Configuration::line_counter(std::vector<std::string> tokenized_content, size_t &i, int  &line) {
+	if (tokenized_content[i] == "\\n")
+		line++;
+}
+
+// loop throught tokens, for each server {} block create a server_block with nested location_block
 std::vector<Configuration::server_block>	Configuration::parse_server_blocks(std::vector<std::string> tokenized_content) {
 	std::vector<server_block>	server_blocks;
-	int							in_server_block;
-	int							server_block_i;
-	int							in_location_block;
-	int							location_block_i;
-	int							in_comment;
 	int							line;
 	size_t						i;
 
-	in_comment = 0;
-	in_server_block = 0;
-	in_location_block = 0;
 	line = 1;
 	i = -1;
 	while (++i < tokenized_content.size()) {
-		// count lines
-		if (tokenized_content[i] == "\\n") {
-			line++;
-			in_comment = 0;
-		}
-		// ignore commented sections
-		if (tokenized_content[i] == "#")
-			in_comment = 1;
-		if (!in_comment) {
-			// block types other than 'server {}' are not authorized in the main scope of file
-			if (!in_server_block && tokenized_content[i] != "\\n" && tokenized_content[i] != "server")
-				throw unknown_block_type(line, tokenized_content[i]);
-			// find server {} blocks start
-			else if (!in_server_block && tokenized_content[i] == "server"
-					&& is_valid_server_block(tokenized_content, i, line)) {
-				server_block server_block;
-				server_blocks.push_back(server_block);
-				server_block_i = server_blocks.size() - 1;
-				in_server_block = 1;
-			}
-			// find location {} blocks start
-			else if (in_server_block && tokenized_content[i] == "location"
-					&& is_valid_location_block(tokenized_content, i, line)) {
-				location_block location_block;
-				server_blocks[server_block_i].location_blocks.push_back(location_block);
-				location_block_i = server_blocks[server_block_i].location_blocks.size() - 1;
-				in_location_block = 1;
-			}
-			// find server {} blocks end
-			else if (in_server_block && !in_location_block && tokenized_content[i] == "}")
-				in_server_block = 0;
-			// find location {} blocks end
-			else if (in_location_block && tokenized_content[i] == "}")
-				in_location_block = 0;
-			// when in server block push tokens in server_block.tokens
-			else if (in_server_block && !in_location_block && tokenized_content[i] != "\\n")
-				server_blocks[server_block_i].tokens.push_back(tokenized_content[i]);
-			// when in location block fill the location_block inside the server_block struct with tokens
-			else if (in_location_block && tokenized_content[i] != "\\n")
-				server_blocks[server_block_i].location_blocks[location_block_i].tokens.push_back(tokenized_content[i]);
-		}
+		line_counter(tokenized_content, i, line);
+		// block types other than 'server {}' are not authorized in the main scope of file
+		if (tokenized_content[i] != "\\n" && tokenized_content[i] != "server")
+			throw unknown_block_type(line, tokenized_content[i]);
+		// find server {} blocks start
+		else if (tokenized_content[i] == "server")
+			server_blocks.push_back(create_server_block(tokenized_content, i, line));
 	}
 	return (server_blocks);
 }
 
-// verify if server block declaration is valid
-int	Configuration::is_valid_server_block(std::vector<std::string> tokenized_content, size_t &i, int  &line) {
-	while (tokenized_content[++i] != "{") {
-		// count lines
-		if (tokenized_content[i] == "\\n")
-			line++;
-		else if (tokenized_content[i] != "\\n" || i == tokenized_content.size() - 1)
-			throw unexpected_token(line, tokenized_content[i]);
+
+Configuration::server_block	Configuration::create_server_block(std::vector<std::string> tokenized_content, size_t &i, int  &line) {
+	server_block	server_block;
+
+	is_valid_server_block(tokenized_content, i, line);
+	while (tokenized_content[++i] != "}") {
+		line_counter(tokenized_content, i, line);
+		if (tokenized_content[i] == "location")
+			server_block.location_blocks.push_back(create_location_block(tokenized_content, i, line));
+		if (tokenized_content[i] != "\\n")
+			server_block.tokens.push_back(tokenized_content[i]);
 	}
-	return (1);
+	return (server_block);
 }
 
-// verify if location block declaration is valid
-int	Configuration::is_valid_location_block(std::vector<std::string> tokenized_content, size_t &i, int  &line) {
+Configuration::location_block	Configuration::create_location_block(std::vector<std::string> tokenized_content, size_t &i, int  &line) {
+	location_block	location_block;
+
+	is_valid_location_block(tokenized_content, i, line);
+	while (tokenized_content[++i] != "}") {
+		line_counter(tokenized_content, i, line);
+		if (tokenized_content[i] != "\\n")
+			location_block.tokens.push_back(tokenized_content[i]);
+	}
+	return (location_block);
+}
+
+// verify if server {} block declaration is valid
+void	Configuration::is_valid_server_block(std::vector<std::string> tokenized_content, size_t &i, int  &line) {
+	while (tokenized_content[++i] != "{") {
+		line_counter(tokenized_content, i, line);
+		if (tokenized_content[i] != "\\n" || i == tokenized_content.size() - 1)
+			throw unexpected_token(line, tokenized_content[i]);
+	}
+}
+
+// verify if location {} block declaration is valid
+void	Configuration::is_valid_location_block(std::vector<std::string> tokenized_content, size_t &i, int  &line) {
 	struct stat buffer;
 	int	path_found;
 
 	path_found = 0;
 	while (tokenized_content[++i] != "{") {
-		// count lines
-		if (tokenized_content[i] == "\\n")
-			line++;
-		else if (tokenized_content[i] != "\\n" && path_found)
+		line_counter(tokenized_content, i, line);
+		if (tokenized_content[i] != "\\n" && path_found)
 			throw unexpected_token(line, tokenized_content[i]);
 		else if (tokenized_content[i] != "\\n") {
-			// look for the specified path and test if it exist
 			if (stat(tokenized_content[i].c_str(), &buffer) != 0) // todo: verify from config path not this file
 				throw location_path_invalid(line, tokenized_content[i]);
 			path_found = 1;
 		}
 	}
-	return (1);
 }
 
 void	Configuration::create_servers(std::vector<server_block> server_blocks) {
