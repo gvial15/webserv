@@ -90,8 +90,6 @@ void Configuration::space_out_symbols(std::string& file_content) {
     }
 }
 
-
-
 // tokenize string with white spaces as delimiter excluding "\n" for line # tracking in error messages
 // also ignores commented sections
 // ***non-problematic but buggy behavior: 5 newlines tokens instead of 3 at the end***
@@ -127,11 +125,6 @@ std::vector<std::string>	Configuration::tokenize(std::string spaced_out_content)
 	return (tokenized_content);
 }
 
-void	Configuration::line_counter(std::vector<std::string> tokenized_content, size_t &i, int  &line) {
-	if (tokenized_content[i] == "\\n")
-		line++;
-}
-
 // loop throught tokens, for each server {} block create a server_block with nested location_block
 std::vector<Configuration::server_block>	Configuration::parse_server_blocks(std::vector<std::string> tokenized_content) {
 	std::vector<server_block>	server_blocks;
@@ -141,7 +134,7 @@ std::vector<Configuration::server_block>	Configuration::parse_server_blocks(std:
 	line = 1;
 	i = -1;
 	while (++i < tokenized_content.size()) {
-		line_counter(tokenized_content, i, line);
+		count_line(tokenized_content, i, line);
 		// block types other than 'server {}' are not authorized in the main scope of file
 		if (tokenized_content[i] != "\\n" && tokenized_content[i] != "server")
 			throw unknown_block_type(line, tokenized_content[i]);
@@ -158,7 +151,8 @@ Configuration::server_block	Configuration::create_server_block(std::vector<std::
 
 	is_valid_server_block(tokenized_content, i, line);
 	while (tokenized_content[++i] != "}") {
-		line_counter(tokenized_content, i, line);
+		check_unexpected_tokens(tokenized_content, i, line);
+		count_line(tokenized_content, i, line);
 		if (tokenized_content[i] == "location")
 			server_block.location_blocks.push_back(create_location_block(tokenized_content, i, line));
 		if (tokenized_content[i] != "\\n" && tokenized_content[i] != "}")
@@ -172,7 +166,8 @@ Configuration::location_block	Configuration::create_location_block(std::vector<s
 
 	is_valid_location_block(tokenized_content, i, line);
 	while (tokenized_content[++i] != "}") {
-		line_counter(tokenized_content, i, line);
+		check_unexpected_tokens(tokenized_content, i, line);
+		count_line(tokenized_content, i, line);
 		if (tokenized_content[i] != "\\n")
 			location_block.tokens.push_back(tokenized_content[i]);
 	}
@@ -182,7 +177,7 @@ Configuration::location_block	Configuration::create_location_block(std::vector<s
 // verify if server {} block declaration is valid
 void	Configuration::is_valid_server_block(std::vector<std::string> tokenized_content, size_t &i, int  &line) {
 	while (tokenized_content[++i] != "{") {
-		line_counter(tokenized_content, i, line);
+		count_line(tokenized_content, i, line);
 		if (tokenized_content[i] != "\\n" || i == tokenized_content.size() - 1)
 			throw unexpected_token(line, tokenized_content[i]);
 	}
@@ -195,7 +190,7 @@ void	Configuration::is_valid_location_block(std::vector<std::string> tokenized_c
 
 	path_found = 0;
 	while (tokenized_content[++i] != "{") {
-		line_counter(tokenized_content, i, line);
+		count_line(tokenized_content, i, line);
 		if (tokenized_content[i] != "\\n" && path_found)
 			throw unexpected_token(line, tokenized_content[i]);
 		else if (tokenized_content[i] != "\\n") {
@@ -204,6 +199,17 @@ void	Configuration::is_valid_location_block(std::vector<std::string> tokenized_c
 			path_found = 1;
 		}
 	}
+}
+
+void	Configuration::count_line(std::vector<std::string> tokenized_content, size_t &i, int  &line) {
+	if (tokenized_content[i] == "\\n")
+		line++;
+}
+
+// check for invalid directives or context characters
+void	Configuration::check_unexpected_tokens(std::vector<std::string> tokenized_content, size_t &i, int  &line) {
+	if (tokenized_content[i] == "{")
+		throw unexpected_token(line, tokenized_content[i]);
 }
 
 void	Configuration::create_servers(std::vector<server_block> server_blocks) {
