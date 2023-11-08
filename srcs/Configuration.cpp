@@ -8,6 +8,8 @@ Configuration::Configuration(const std::string config_file_path)
 {
 	std::ifstream config_file(config_file_path);
 
+	create_directive_bank();
+
 	if (config_file_path.empty()) {
 		std::cout << "Starting with default configuration...\n";
 		// generate_default_config();
@@ -18,16 +20,22 @@ Configuration::Configuration(const std::string config_file_path)
 		else
 			parse(config_file);
 	}
-
-	// // **** hardcode servers for testing ****
-	// Server test_server("127.0.0.1", 8080);
-	// servers.push_back(test_server);
-	// Server test_serverr("127.0.0.1", 8081);
-	// servers.push_back(test_serverr);
 }
 
 // destructor
 Configuration::~Configuration() {};
+
+void	Configuration::create_directive_bank() {
+	directive_bank.insert("listen");
+	directive_bank.insert("server_name");
+	directive_bank.insert("root");
+	directive_bank.insert("index");
+	directive_bank.insert("autoindex");
+	directive_bank.insert("client_max_body_size");
+	directive_bank.insert("error_page");
+	directive_bank.insert("try_files");
+	directive_bank.insert("\\n");
+}
 
 // ***server_blocks testing
 void Configuration::print_server_blocks(const std::vector<server_block>& servers) {
@@ -54,7 +62,6 @@ void Configuration::print_server_blocks(const std::vector<server_block>& servers
 }
 
 // *** parsing ***
-// TODO: check that each line with a directive ends with a ';'
 void	Configuration::parse(std::ifstream& config_file) {
 	std::string					file_content((std::istreambuf_iterator<char>(config_file)), std::istreambuf_iterator<char>());
 	std::vector<std::string>	tokenized_content;
@@ -92,8 +99,7 @@ void Configuration::space_out_symbols(std::string& file_content) {
 }
 
 // tokenize string with white spaces as delimiter excluding "\n" for line # tracking in error messages
-// also ignores commented sections
-// ***non-problematic but buggy behavior: 5 newlines tokens instead of 3 at the end***
+// ***non-problematic but buggy behaviour: 5 newlines tokens instead of 3 at the end***
 std::vector<std::string>	Configuration::tokenize(std::string spaced_out_content) {
 	std::vector<std::string> tokenized_content;
 	std::string token;
@@ -139,21 +145,21 @@ std::vector<Configuration::server_block>	Configuration::parse_server_blocks(std:
 		// block types other than 'server {}' are not authorized in the main scope of file
 		if (tokenized_content[i] != "\\n" && tokenized_content[i] != "server")
 			throw unknown_block_type(line, tokenized_content[i]);
-		// find server {} blocks start
+		// find server {} blocks start and create server_block struct
 		else if (tokenized_content[i] == "server")
 			server_blocks.push_back(create_server_block(tokenized_content, i, line));
 	}
 	return (server_blocks);
 }
 
-// TODO: need to insure that nested blocks are only named location {}
 Configuration::server_block	Configuration::create_server_block(std::vector<std::string> tokenized_content, size_t &i, int  &line) {
 	server_block	server_block;
 
 	is_valid_server_block(tokenized_content, i, line);
 	while (tokenized_content[++i] != "}") {
-		validate_synthax(tokenized_content, i, line);
+		verify_end_of_line(tokenized_content, i, line);
 		count_line(tokenized_content, i, line);
+		// find server {} blocks start and create location_block struct
 		if (tokenized_content[i] == "location")
 			server_block.location_blocks.push_back(create_location_block(tokenized_content, i, line));
 		if (tokenized_content[i] != "\\n" && tokenized_content[i] != "}")
@@ -167,23 +173,12 @@ Configuration::location_block	Configuration::create_location_block(std::vector<s
 
 	is_valid_location_block(tokenized_content, i, line);
 	while (tokenized_content[++i] != "}") {
-		validate_synthax(tokenized_content, i, line);
+		verify_end_of_line(tokenized_content, i, line);
 		count_line(tokenized_content, i, line);
 		if (tokenized_content[i] != "\\n")
 			location_block.tokens.push_back(tokenized_content[i]);
 	}
 	return (location_block);
-}
-
-// check for invalid tokens inside server and location blocks
-void	Configuration::validate_synthax(std::vector<std::string> tokenized_content, size_t &i, int  &line) {
-	if ( i != 0 && tokenized_content[i] == "\\n"
-	&& tokenized_content[i - 1] != "{" && tokenized_content[i - 1] != "}" && tokenized_content[i- 1] != "\\n"
-		&& tokenized_content[i - 1] != "#" && tokenized_content[i - 1] != ";" && tokenized_content[i - 1] != " ") {
-		throw end_of_line(line, "");
-	}
-	if (tokenized_content[i] == "{")
-		throw unexpected_token(line, tokenized_content[i]);
 }
 
 // verify if server {} block declaration is valid
@@ -210,6 +205,15 @@ void	Configuration::is_valid_location_block(std::vector<std::string> tokenized_c
 				throw location_path_invalid(line, tokenized_content[i]);
 			path_found = 1;
 		}
+	}
+}
+
+// verify wether end of line is ';'
+void	Configuration::verify_end_of_line(std::vector<std::string> tokenized_content, size_t &i, int  &line) {
+	if ( i != 0 && tokenized_content[i] == "\\n"
+		&& tokenized_content[i - 1] != "{" && tokenized_content[i - 1] != "}"
+		&& tokenized_content[i- 1] != "\\n" && tokenized_content[i - 1] != ";" && tokenized_content[i - 1] != " ") {
+		throw end_of_line(line, "");
 	}
 }
 
