@@ -53,12 +53,14 @@ void Configuration::print_server_blocks(const std::vector<server_block>& servers
 }
 
 // *** parsing ***
+// TODO: check that each line with a directive ends with a ';'
 void	Configuration::parse(std::ifstream& config_file) {
 	std::string					file_content((std::istreambuf_iterator<char>(config_file)), std::istreambuf_iterator<char>());
 	std::string					spaced_out_content;
 	std::vector<std::string>	tokenized_content;
 	std::vector<server_block>	server_blocks;
 
+	// TODO: instead of creating a new string modify file_content with std::string::insert
 	spaced_out_content = space_out_symbols(file_content);
 	// std::cout << spaced_out_content << "\n";
 	tokenized_content = tokenize(spaced_out_content);
@@ -95,7 +97,7 @@ std::string	Configuration::space_out_symbols(std::string file_content) {
 
 // tokenize string with white spaces as delimiter excluding "\n" for line # tracking in error messages
 // also ignores commented sections
-// ***non-problematic but buggy behavior: 5 newlines tokens at the end***
+// ***non-problematic but buggy behavior: 5 newlines tokens instead of 3 at the end***
 std::vector<std::string>	Configuration::tokenize(std::string spaced_out_content) {
 	std::vector<std::string> tokenized_content;
 	std::string token;
@@ -103,8 +105,10 @@ std::vector<std::string>	Configuration::tokenize(std::string spaced_out_content)
 
 	i = -1;
 	while (spaced_out_content[++i]) {
-		if (spaced_out_content[i] == '#')
+		if (spaced_out_content[i] == '#') {
 			while (spaced_out_content[++i] != '\n');
+			tokenized_content.push_back("\\n");
+		}
 		else if (spaced_out_content[i] == '\n') {
 			if (!token.empty()) {
 				tokenized_content.push_back(token);
@@ -198,7 +202,7 @@ void	Configuration::is_valid_location_block(std::vector<std::string> tokenized_c
 		if (tokenized_content[i] != "\\n" && path_found)
 			throw unexpected_token(line, tokenized_content[i]);
 		else if (tokenized_content[i] != "\\n") {
-			if (stat(tokenized_content[i].c_str(), &buffer) != 0) // todo: verify from config path not this file
+			if (stat(tokenized_content[i].c_str(), &buffer) != 0) // TODO: verify from config path not this file
 				throw location_path_invalid(line, tokenized_content[i]);
 			path_found = 1;
 		}
