@@ -36,7 +36,7 @@ class Configuration {
 
 		// private methods
 		void						parse(std::ifstream& config_file);
-		std::string					space_out_symbols(std::string file_content);
+		void						space_out_symbols(std::string& file_content);
 		std::vector<std::string>	tokenize(std::string spaced_out_content);
 		std::vector<server_block>	parse_server_blocks(std::vector<std::string> tokenized_content);
 		void						line_counter(std::vector<std::string> tokenized_content, size_t &i, int  &line);

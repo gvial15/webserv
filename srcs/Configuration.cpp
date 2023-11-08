@@ -56,14 +56,12 @@ void Configuration::print_server_blocks(const std::vector<server_block>& servers
 // TODO: check that each line with a directive ends with a ';'
 void	Configuration::parse(std::ifstream& config_file) {
 	std::string					file_content((std::istreambuf_iterator<char>(config_file)), std::istreambuf_iterator<char>());
-	std::string					spaced_out_content;
 	std::vector<std::string>	tokenized_content;
 	std::vector<server_block>	server_blocks;
 
-	// TODO: instead of creating a new string modify file_content with std::string::insert
-	spaced_out_content = space_out_symbols(file_content);
-	// std::cout << spaced_out_content << "\n";
-	tokenized_content = tokenize(spaced_out_content);
+	space_out_symbols(file_content);
+	// std::cout << file_content << "\n";
+	tokenized_content = tokenize(file_content);
 	// size_t	i = -1;
 	// while (++i < tokenized_content.size())
 	// 	std::cout << tokenized_content[i] << "\n";
@@ -74,26 +72,25 @@ void	Configuration::parse(std::ifstream& config_file) {
 }
 
 // space out special symbols } { ; \n
-std::string	Configuration::space_out_symbols(std::string file_content) {
-	std::string spaced_out_content;
-	std::size_t i;;
-	char c;
+void Configuration::space_out_symbols(std::string& file_content) {
+    std::size_t i;
 
-	i = -1;
-	while (file_content[++i]) {
-		c = file_content[i];
+	i = 0;
+    while (i < file_content.size()) {
+        char c = file_content[i];
 		if (c == ';' || c == '{' || c == '}' || c == '\n' || c == '#') {
-			if (i > 0 && !isspace(file_content[i - 1]))
-				spaced_out_content.push_back(' ');
-			spaced_out_content.push_back(c);
-			if (i < file_content.size() - 1 && !isspace(file_content[i + 1]))
-				spaced_out_content.push_back(' ');
-		}
+            if (i > 0 && !isspace(file_content[i - 1]))
+                file_content.insert(i++, " ");
+            ++i;
+            if (i < file_content.size() && !isspace(file_content[i]))
+                file_content.insert(i++, " ");
+        }
 		else
-			spaced_out_content.push_back(c);
-	}
-	return (spaced_out_content);
+            ++i;
+    }
 }
+
+
 
 // tokenize string with white spaces as delimiter excluding "\n" for line # tracking in error messages
 // also ignores commented sections
@@ -155,7 +152,7 @@ std::vector<Configuration::server_block>	Configuration::parse_server_blocks(std:
 	return (server_blocks);
 }
 
-
+// TODO: need to insure that nested blocks are only named location {}
 Configuration::server_block	Configuration::create_server_block(std::vector<std::string> tokenized_content, size_t &i, int  &line) {
 	server_block	server_block;
 
@@ -164,7 +161,7 @@ Configuration::server_block	Configuration::create_server_block(std::vector<std::
 		line_counter(tokenized_content, i, line);
 		if (tokenized_content[i] == "location")
 			server_block.location_blocks.push_back(create_location_block(tokenized_content, i, line));
-		if (tokenized_content[i] != "\\n")
+		if (tokenized_content[i] != "\\n" && tokenized_content[i] != "}")
 			server_block.tokens.push_back(tokenized_content[i]);
 	}
 	return (server_block);
