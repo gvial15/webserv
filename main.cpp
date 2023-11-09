@@ -32,7 +32,7 @@ int	main(int argc, char **argv)
 		// parse config file into a vector of servers {}
 		Configuration	config(config_file_path);
 		// run servers, process request and send response to client (poll(), accept(), ...)
-		Webserv webserv(config.getServers());
+		// Webserv webserv(config.getServers());
 	} catch (std::exception& ex) {
 		std::cerr << ex.what() << std::endl;
 	}

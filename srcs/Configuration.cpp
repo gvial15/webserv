@@ -1,6 +1,7 @@
 #include "../Class/Configuration.hpp"
 #include <sys/stat.h>
 #include <string>
+#include <algorithm>
 #include <vector>
 
 // constructor
@@ -26,15 +27,16 @@ Configuration::Configuration(const std::string config_file_path)
 Configuration::~Configuration() {};
 
 void	Configuration::create_directive_bank() {
-	directive_bank.insert("listen");
-	directive_bank.insert("server_name");
-	directive_bank.insert("root");
-	directive_bank.insert("index");
-	directive_bank.insert("autoindex");
-	directive_bank.insert("client_max_body_size");
-	directive_bank.insert("error_page");
-	directive_bank.insert("try_files");
-	directive_bank.insert("\\n");
+	directive_bank.push_back("listen");
+	directive_bank.push_back("server_name");
+	directive_bank.push_back("root");
+	directive_bank.push_back("index");
+	directive_bank.push_back("autoindex");
+	directive_bank.push_back("client_max_body_size");
+	directive_bank.push_back("error_page");
+	directive_bank.push_back("try_files");
+	directive_bank.push_back("location");
+	directive_bank.push_back("\\n");
 }
 
 // ***server_blocks testing
@@ -74,7 +76,7 @@ void	Configuration::parse(std::ifstream& config_file) {
 	// while (++i < tokenized_content.size())
 	// 	std::cout << tokenized_content[i] << "\n";
 	server_blocks = parse_server_blocks(tokenized_content);
-	print_server_blocks(server_blocks);
+	// print_server_blocks(server_blocks);
 
 	// create the vector of servers from server blocks
 }
@@ -152,11 +154,14 @@ std::vector<Configuration::server_block>	Configuration::parse_server_blocks(std:
 	return (server_blocks);
 }
 
+// TODO: verify directives are valid when inside server {} and location {} blocks
+// when a server {} block is encountered in config file, create a server_block struct
 Configuration::server_block	Configuration::create_server_block(std::vector<std::string> tokenized_content, size_t &i, int  &line) {
 	server_block	server_block;
 
 	is_valid_server_block(tokenized_content, i, line);
 	while (tokenized_content[++i] != "}") {
+		validate_directive(tokenized_content, i, line);
 		verify_end_of_line(tokenized_content, i, line);
 		count_line(tokenized_content, i, line);
 		// find server {} blocks start and create location_block struct
@@ -168,11 +173,13 @@ Configuration::server_block	Configuration::create_server_block(std::vector<std::
 	return (server_block);
 }
 
+// when a server {} block is encountered in config file, create a location_block struct
 Configuration::location_block	Configuration::create_location_block(std::vector<std::string> tokenized_content, size_t &i, int  &line) {
 	location_block	location_block;
 
 	is_valid_location_block(tokenized_content, i, line);
 	while (tokenized_content[++i] != "}") {
+		validate_directive(tokenized_content, i, line);
 		verify_end_of_line(tokenized_content, i, line);
 		count_line(tokenized_content, i, line);
 		if (tokenized_content[i] != "\\n")
@@ -208,11 +215,22 @@ void	Configuration::is_valid_location_block(std::vector<std::string> tokenized_c
 	}
 }
 
+// TODO: 2 directives cannot be on the same line, once there is a ';' there must be a at least one new line before another directive
+// verify that directives are valid
+void	Configuration::validate_directive(std::vector<std::string> tokenized_content, size_t &i, int  &line) {
+	if ((tokenized_content[i - 1] == "{" || tokenized_content[i - 1] == ";" || tokenized_content[i - 1] == "\\n")
+		&& tokenized_content[i] != "{" && tokenized_content[i] != "\\n")
+		if (std::find(directive_bank.begin(), directive_bank.end(), tokenized_content[i]) == directive_bank.end()) {
+			throw unknown_directive(line, tokenized_content[i]);
+		}
+}
+
 // verify wether end of line is ';'
 void	Configuration::verify_end_of_line(std::vector<std::string> tokenized_content, size_t &i, int  &line) {
 	if ( i != 0 && tokenized_content[i] == "\\n"
 		&& tokenized_content[i - 1] != "{" && tokenized_content[i - 1] != "}"
 		&& tokenized_content[i- 1] != "\\n" && tokenized_content[i - 1] != ";" && tokenized_content[i - 1] != " ") {
+		// TODO: the token in the error message needs to be the previous directive
 		throw end_of_line(line, "");
 	}
 }

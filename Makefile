@@ -9,7 +9,7 @@ NAME = webserv
 
 CFLAGS = -Wall -Wextra -Werror -std=c++98
 
-CXX = g++
+CC = g++
 
 all: $(OBJDIR) $(NAME)
 
@@ -17,11 +17,11 @@ $(OBJDIR):
 	mkdir -p $(OBJDIR)
 
 $(NAME): $(OBJS)
-	$(CXX) $(CFLAGS) $(OBJS) -o $(NAME)
+	$(CC) $(CFLAGS) $(OBJS) -o $(NAME)
 
 $(OBJDIR)/%.o: %.cpp
 	@mkdir -p $(@D)
-	$(CXX) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
 	rm -rf $(OBJDIR)

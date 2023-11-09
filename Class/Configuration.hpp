@@ -47,6 +47,7 @@ class Configuration {
 		void						is_valid_server_block(std::vector<std::string> tokenized_content, size_t &i, int  &line);
 		location_block				create_location_block(std::vector<std::string> tokenized_content, size_t &i, int  &line);
 		void						is_valid_location_block(std::vector<std::string> tokenized_content, size_t &i, int  &line);
+		void						validate_directive(std::vector<std::string> tokenized_content, size_t &i, int  &line);
 		void						verify_end_of_line(std::vector<std::string> tokenized_content, size_t &i, int  &line);
 		void						create_servers(std::vector<server_block> server_blocks);
 		// ***testing***
@@ -54,7 +55,7 @@ class Configuration {
 
 		// private attributes
 		std::vector<Server> servers;
-		std::set<std::string> directive_bank;
+		std::vector<std::string> directive_bank;
 
 		// private exceptions
 		class parsing_exception : public std::exception {
