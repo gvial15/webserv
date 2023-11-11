@@ -49,6 +49,7 @@ class Configuration {
 		void						is_valid_location_block(std::vector<std::string> tokenized_content, size_t &i, int  &line);
 		void						validate_directive(std::vector<std::string> tokenized_content, size_t &i, int  &line);
 		void						verify_end_of_line(std::vector<std::string> tokenized_content, size_t &i, int  &line);
+		std::string					get_full_line(std::vector<std::string> tokenized_content, size_t& i);
 		void						create_servers(std::vector<server_block> server_blocks);
 		// ***testing***
 		void						print_server_blocks(const std::vector<server_block>& servers);
@@ -64,7 +65,7 @@ class Configuration {
 					: message(msg), file_line(line), error_token(token) {
 					std::ostringstream stream;
 					stream << "Config Error: "<< "'" << message << "'";
-					stream << " '" << error_token << "'";	
+					stream << " \"" << error_token << "\"";
 					stream << " at line " << file_line;
 					message = stream.str();
 				}
@@ -102,6 +103,12 @@ class Configuration {
 		public:
 			end_of_line(const int line, const std::string& token)
 				: parsing_exception("Line must finish with ;", line, token) {}
+		};
+
+		class multile_directive_on_same_line : public parsing_exception {
+		public:
+			multile_directive_on_same_line(const int line, const std::string& token)
+				: parsing_exception("Multiple directives on same line", line, token) {}
 		};
 
 		class location_path_invalid : public parsing_exception {

@@ -154,8 +154,7 @@ std::vector<Configuration::server_block>	Configuration::parse_server_blocks(std:
 	return (server_blocks);
 }
 
-// TODO: verify directives are valid when inside server {} and location {} blocks
-// when a server {} block is encountered in config file, create a server_block struct
+// when a server {} block is encountered in config file, create a server_block struct and fill it with tokens
 Configuration::server_block	Configuration::create_server_block(std::vector<std::string> tokenized_content, size_t &i, int  &line) {
 	server_block	server_block;
 
@@ -164,7 +163,7 @@ Configuration::server_block	Configuration::create_server_block(std::vector<std::
 		validate_directive(tokenized_content, i, line);
 		verify_end_of_line(tokenized_content, i, line);
 		count_line(tokenized_content, i, line);
-		// find server {} blocks start and create location_block struct
+		// find location {} blocks start and create location_block struct
 		if (tokenized_content[i] == "location")
 			server_block.location_blocks.push_back(create_location_block(tokenized_content, i, line));
 		if (tokenized_content[i] != "\\n" && tokenized_content[i] != "}")
@@ -173,7 +172,7 @@ Configuration::server_block	Configuration::create_server_block(std::vector<std::
 	return (server_block);
 }
 
-// when a server {} block is encountered in config file, create a location_block struct
+// when a server {} block is encountered in config file, create a location_block struct and fill it with tokens
 Configuration::location_block	Configuration::create_location_block(std::vector<std::string> tokenized_content, size_t &i, int  &line) {
 	location_block	location_block;
 
@@ -215,24 +214,44 @@ void	Configuration::is_valid_location_block(std::vector<std::string> tokenized_c
 	}
 }
 
-// TODO: 2 directives cannot be on the same line, once there is a ';' there must be a at least one new line before another directive
-// verify that directives are valid
+// verify that directives are valid and there is only one per line
 void	Configuration::validate_directive(std::vector<std::string> tokenized_content, size_t &i, int  &line) {
-	if ((tokenized_content[i - 1] == "{" || tokenized_content[i - 1] == ";" || tokenized_content[i - 1] == "\\n")
-		&& tokenized_content[i] != "{" && tokenized_content[i] != "\\n")
+	// verify that there is only one directive per line
+	if (tokenized_content[i] == ";")
+		if (tokenized_content[i + 1] != "\\n" && tokenized_content[i + 1] != "}")
+			throw multile_directive_on_same_line(line, get_full_line(tokenized_content, i));
+	// verify that directive are valid
+	if ((tokenized_content[i - 1] == "{" || tokenized_content[i - 1] == "\\n")
+		&& tokenized_content[i] != "{" && tokenized_content[i] != "\\n") {
 		if (std::find(directive_bank.begin(), directive_bank.end(), tokenized_content[i]) == directive_bank.end()) {
 			throw unknown_directive(line, tokenized_content[i]);
 		}
+	}
 }
 
 // verify wether end of line is ';'
 void	Configuration::verify_end_of_line(std::vector<std::string> tokenized_content, size_t &i, int  &line) {
 	if ( i != 0 && tokenized_content[i] == "\\n"
 		&& tokenized_content[i - 1] != "{" && tokenized_content[i - 1] != "}"
-		&& tokenized_content[i- 1] != "\\n" && tokenized_content[i - 1] != ";" && tokenized_content[i - 1] != " ") {
-		// TODO: the token in the error message needs to be the previous directive
-		throw end_of_line(line, "");
+		&& tokenized_content[i- 1] != "\\n" && tokenized_content[i - 1] != ";") {
+		// TODO: the token in the error message needs to be the whole line
+		throw end_of_line(line, get_full_line(tokenized_content, i));
 	}
+}
+
+std::string	Configuration::get_full_line(std::vector<std::string> tokenized_content, size_t& i) {
+	std::string	line;
+
+	i--;
+	while (tokenized_content[i] != "\\n")
+		i--;
+	while (tokenized_content[++i] != "\\n") {
+		line.insert(line.size(), tokenized_content[i]);
+		if (tokenized_content[i] != ";")
+			line.push_back(' ');
+	}
+	line.pop_back();
+	return (line);
 }
 
 void	Configuration::count_line(std::vector<std::string> tokenized_content, size_t &i, int  &line) {
