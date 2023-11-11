@@ -102,7 +102,7 @@ class Configuration {
 		class end_of_line : public parsing_exception {
 		public:
 			end_of_line(const int line, const std::string& token)
-				: parsing_exception("Line must finish with ;", line, token) {}
+				: parsing_exception("Directive must finish with semicolon", line, token) {}
 		};
 
 		class multile_directive_on_same_line : public parsing_exception {

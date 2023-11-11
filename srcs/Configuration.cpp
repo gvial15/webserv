@@ -76,7 +76,7 @@ void	Configuration::parse(std::ifstream& config_file) {
 	// while (++i < tokenized_content.size())
 	// 	std::cout << tokenized_content[i] << "\n";
 	server_blocks = parse_server_blocks(tokenized_content);
-	// print_server_blocks(server_blocks);
+	print_server_blocks(server_blocks);
 
 	// create the vector of servers from server blocks
 }
@@ -134,7 +134,7 @@ std::vector<std::string>	Configuration::tokenize(std::string spaced_out_content)
 	return (tokenized_content);
 }
 
-// loop throught tokens, for each server {} block create a server_block with nested location_blocks
+// loop throught tokens, for each server {} blocks create a server_block with nested location_blocks
 std::vector<Configuration::server_block>	Configuration::parse_server_blocks(std::vector<std::string> tokenized_content) {
 	std::vector<server_block>	server_blocks;
 	int							line;
@@ -234,7 +234,6 @@ void	Configuration::verify_end_of_line(std::vector<std::string> tokenized_conten
 	if ( i != 0 && tokenized_content[i] == "\\n"
 		&& tokenized_content[i - 1] != "{" && tokenized_content[i - 1] != "}"
 		&& tokenized_content[i- 1] != "\\n" && tokenized_content[i - 1] != ";") {
-		// TODO: the token in the error message needs to be the whole line
 		throw end_of_line(line, get_full_line(tokenized_content, i));
 	}
 }
