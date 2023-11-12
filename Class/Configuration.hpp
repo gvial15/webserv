@@ -19,7 +19,7 @@ class Configuration {
 		// public methods
 
 		// getters
-		std::vector<Server> getServers() const { return servers; }
+		std::vector<Server> get_servers() const { return servers; }
 
 		// public attributes
 
@@ -50,14 +50,13 @@ class Configuration {
 		void						validate_directive(std::vector<std::string> tokenized_content, size_t &i, int  &line);
 		void						verify_end_of_line(std::vector<std::string> tokenized_content, size_t &i, int  &line);
 		std::string					get_full_line(std::vector<std::string> tokenized_content, size_t& i);
-		void						create_servers(std::vector<server_block> server_blocks);
+		void						create_server(server_block server_blocks);
 		// ***testing***
 		void						print_server_blocks(const std::vector<server_block>& servers);
 
 		// private attributes
 		std::vector<Server> servers;
 		std::vector<std::string> directive_bank;
-
 		// private exceptions
 		class parsing_exception : public std::exception {
 			public:

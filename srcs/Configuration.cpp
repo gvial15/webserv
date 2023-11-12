@@ -1,4 +1,5 @@
 #include "../Class/Configuration.hpp"
+#include <cstddef>
 #include <sys/stat.h>
 #include <string>
 #include <algorithm>
@@ -29,6 +30,7 @@ Configuration::~Configuration() {};
 void	Configuration::create_directive_bank() {
 	directive_bank.push_back("listen");
 	directive_bank.push_back("server_name");
+	directive_bank.push_back("return");
 	directive_bank.push_back("root");
 	directive_bank.push_back("index");
 	directive_bank.push_back("autoindex");
@@ -68,17 +70,18 @@ void	Configuration::parse(std::ifstream& config_file) {
 	std::string					file_content((std::istreambuf_iterator<char>(config_file)), std::istreambuf_iterator<char>());
 	std::vector<std::string>	tokenized_content;
 	std::vector<server_block>	server_blocks;
+	size_t						i;
 
 	space_out_symbols(file_content);
-	// std::cout << file_content << "\n";
 	tokenized_content = tokenize(file_content);
 	// size_t	i = -1;
 	// while (++i < tokenized_content.size())
 	// 	std::cout << tokenized_content[i] << "\n";
 	server_blocks = parse_server_blocks(tokenized_content);
 	print_server_blocks(server_blocks);
-
-	// create the vector of servers from server blocks
+	i = -1;
+	while (++i < server_blocks.size())
+		create_server(server_blocks[i]); 
 }
 
 // space out special symbols } { ; \n
@@ -178,7 +181,8 @@ Configuration::location_block	Configuration::create_location_block(std::vector<s
 
 	is_valid_location_block(tokenized_content, i, line);
 	while (tokenized_content[++i] != "}") {
-		validate_directive(tokenized_content, i, line);
+		if (tokenized_content[i] != "methods")
+			validate_directive(tokenized_content, i, line);
 		verify_end_of_line(tokenized_content, i, line);
 		count_line(tokenized_content, i, line);
 		if (tokenized_content[i] != "\\n")
@@ -231,7 +235,7 @@ void	Configuration::validate_directive(std::vector<std::string> tokenized_conten
 
 // verify wether end of line is ';'
 void	Configuration::verify_end_of_line(std::vector<std::string> tokenized_content, size_t &i, int  &line) {
-	if ( i != 0 && tokenized_content[i] == "\\n"
+	if (tokenized_content[i] == "\\n"
 		&& tokenized_content[i - 1] != "{" && tokenized_content[i - 1] != "}"
 		&& tokenized_content[i- 1] != "\\n" && tokenized_content[i - 1] != ";") {
 		throw end_of_line(line, get_full_line(tokenized_content, i));
@@ -258,6 +262,11 @@ void	Configuration::count_line(std::vector<std::string> tokenized_content, size_
 		line++;
 }
 
-void	Configuration::create_servers(std::vector<server_block> server_blocks) {
-	(void)	server_blocks;
+void	Configuration::create_server(server_block server_blocks) {
+	size_t	i;
+
+	i = -1;
+	while (++i < server_blocks.tokens.size()) {
+		// set all attributes of the server object
+	}
 }

@@ -4,8 +4,7 @@
 #include <unistd.h> // close()
 
 // constructor
-Server::Server(std::string ip, int port):
-port(port), ip(ip)
+Server::Server()
 {
 	init_socket();
 }
