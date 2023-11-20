@@ -1,7 +1,7 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <cstddef> // for std::size_t
+#include <cstddef>
 
 class SharedConfigAttributes {
 

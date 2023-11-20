@@ -81,7 +81,7 @@ void	Configuration::parse(std::ifstream& config_file) {
 	print_server_blocks(server_blocks);
 	i = -1;
 	while (++i < server_blocks.size())
-		create_server(server_blocks[i]); 
+		create_server(server_blocks[i]);
 }
 
 // space out special symbols } { ; \n
@@ -262,11 +262,112 @@ void	Configuration::count_line(std::vector<std::string> tokenized_content, size_
 		line++;
 }
 
+// *** server only ***
+// std::string							ip;
+// int									port;
+
+// *** shared
+// std::string 							root;
+// std::string 							index;
+// bool 								autoindex;
+// std::string							redirection;
+// std::vector<std::string> 			try_files;
+// std::map<std::string, std::string>	error_pages;
+// std::size_t							client_max_body_size;
+// int									server_fd;
+// std::string							server_name;
+
+// *** location only ***
+// std::map<std::string, Location>		locations;
+// std::vector<std::string>				methods;
+
 void	Configuration::create_server(server_block server_blocks) {
+	Server	server;
+	size_t	i;
+
+	// fill server only attributes
+	fill_server_attributes(server_blocks.tokens, server);
+	// fill shared attributes between location and server objects
+	fill_shared_attributes(server_blocks.tokens, server);
+	// for each location block, fill location only attributes
+	i = -1;
+	while (++i < server_blocks.location_blocks.size()) {
+		fill_shared_attributes(server_blocks.location_blocks[i].tokens, server);
+		fill_location_attributes(server_blocks.location_blocks[i].tokens, server);
+	}
+	servers.push_back(server);
+}
+
+void	Configuration::fill_server_attributes(std::vector<std::string> tokens, Server &server) {
+	(void)	server;
 	size_t	i;
 
 	i = -1;
-	while (++i < server_blocks.tokens.size()) {
-		// set all attributes of the server object
+	while (++i < tokens.size()) {
+		if (i == 0 || tokens[i - 1] == ";") {
+			if (tokens[i] == "listen") {
+				std::cout << "arg: "<< count_directive_arg(tokens, i) << "\n";
+			}
+			if (tokens[i] == "server_name") {
+				
+			}
+		}
 	}
+}
+
+void	Configuration::fill_shared_attributes(std::vector<std::string> tokens, Server &server) {
+	(void)	server;
+	size_t	i;
+
+	i = -1;
+	while (++i < tokens.size()) {
+		if (i == 0 || tokens[i - 1] == ";") {
+			if (tokens[i] == "root") {
+
+			}
+			if (tokens[i] == "index") {
+
+			}
+			if (tokens[i] == "autoindex") {
+
+			}
+			if (tokens[i] == "redirection") {
+
+			}
+			if (tokens[i] == "try_files") {
+
+			}
+			if (tokens[i] == "error_pages") {
+
+			}
+			if (tokens[i] == "client_max_body_size") {
+
+			}
+		}
+	}
+}
+
+void	Configuration::fill_location_attributes(std::vector<std::string> tokens, Server &server) {
+	(void)	server;
+	size_t	i;
+
+	i = -1;
+	while (++i < tokens.size()) {
+		if (i == 0 || tokens[i - 1] == ";") {
+			if (tokens[i] == "methods") {
+				
+			}
+		}
+	}
+}
+
+int	Configuration::count_directive_arg(std::vector<std::string> tokens, size_t i) {
+	int	nbr_arg;
+
+	nbr_arg = i + 1;
+	while (++i < tokens.size())
+		if (tokens[i] == ";")
+			break;
+	nbr_arg = i - nbr_arg;
+	return (nbr_arg);
 }

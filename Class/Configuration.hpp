@@ -51,6 +51,10 @@ class Configuration {
 		void						verify_end_of_line(std::vector<std::string> tokenized_content, size_t &i, int  &line);
 		std::string					get_full_line(std::vector<std::string> tokenized_content, size_t& i);
 		void						create_server(server_block server_blocks);
+		void						fill_server_attributes(std::vector<std::string> server_block_tokens, Server &server);
+		void						fill_shared_attributes(std::vector<std::string> server_block_tokens, Server &server);
+		void						fill_location_attributes(std::vector<std::string> server_block_tokens, Server &server);
+		int							count_directive_arg(std::vector<std::string> tokens, size_t i);
 		// ***testing***
 		void						print_server_blocks(const std::vector<server_block>& servers);
 
