@@ -39,8 +39,6 @@ void	Configuration::create_directive_bank() {
 	directive_bank.insert(std::make_pair("client_max_body_size", 1));
 	directive_bank.insert(std::make_pair("error_page", 2));
 	directive_bank.insert(std::make_pair("try_files", -1));
-	directive_bank.insert(std::make_pair("location", 0));
-	directive_bank.insert(std::make_pair("\\n", 0));
 }
 
 // ***server_blocks testing
@@ -228,13 +226,13 @@ void	Configuration::validate_directive(std::vector<std::string> tokenized_conten
 			throw multile_directive_on_same_line(line, get_full_line(tokenized_content, i));
 	// verify if token is at directive position
 	if ((tokenized_content[i - 1] == "{" || tokenized_content[i - 1] == "\\n")
-		&& tokenized_content[i] != "{" && tokenized_content[i] != "\\n") {
+		&& tokenized_content[i] != "{" && tokenized_content[i] != "\\n"
+		&& tokenized_content[i] != "location") {
 		// validate that directive is valid
 		if (directive_bank.find(tokenized_content[i]) == directive_bank.end())
 			throw unknown_directive(line, tokenized_content[i]);
 		// validate directive nbr of arguments
 		if (directive_bank.find(tokenized_content[i]) != directive_bank.end()
-			&& tokenized_content[i] != "location"
 			&& directive_bank.find(tokenized_content[i])->second != -1
 			&& count_directive_args(tokenized_content, i) != directive_bank.find(tokenized_content[i])->second)
 			throw to_many_args(line, tokenized_content[i]);
