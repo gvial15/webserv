@@ -3,6 +3,7 @@
 #include <sys/stat.h>
 #include <string>
 #include <algorithm>
+#include <utility>
 #include <vector>
 
 // constructor
@@ -27,18 +28,19 @@ Configuration::Configuration(const std::string config_file_path)
 // destructor
 Configuration::~Configuration() {};
 
+// The value represent the number of allowed argument for the given directive
 void	Configuration::create_directive_bank() {
-	directive_bank.push_back("listen");
-	directive_bank.push_back("server_name");
-	directive_bank.push_back("return");
-	directive_bank.push_back("root");
-	directive_bank.push_back("index");
-	directive_bank.push_back("autoindex");
-	directive_bank.push_back("client_max_body_size");
-	directive_bank.push_back("error_page");
-	directive_bank.push_back("try_files");
-	directive_bank.push_back("location");
-	directive_bank.push_back("\\n");
+	directive_bank.insert(std::make_pair("listen", 1));
+	directive_bank.insert(std::make_pair("server_name", 1));
+	directive_bank.insert(std::make_pair("return", 1));
+	directive_bank.insert(std::make_pair("root", 1));
+	directive_bank.insert(std::make_pair("index", 1));
+	directive_bank.insert(std::make_pair("autoindex", 1));
+	directive_bank.insert(std::make_pair("client_max_body_size", 1));
+	directive_bank.insert(std::make_pair("error_page", 2));
+	directive_bank.insert(std::make_pair("try_files", -1));
+	directive_bank.insert(std::make_pair("location", 0));
+	directive_bank.insert(std::make_pair("\\n", 0));
 }
 
 // ***server_blocks testing
@@ -78,7 +80,7 @@ void	Configuration::parse(std::ifstream& config_file) {
 	// while (++i < tokenized_content.size())
 	// 	std::cout << tokenized_content[i] << "\n";
 	server_blocks = parse_server_blocks(tokenized_content);
-	print_server_blocks(server_blocks);
+	// print_server_blocks(server_blocks);
 	i = -1;
 	while (++i < server_blocks.size())
 		create_server(server_blocks[i]);
@@ -218,19 +220,36 @@ void	Configuration::is_valid_location_block(std::vector<std::string> tokenized_c
 	}
 }
 
-// verify that directives are valid and there is only one per line
+// verify that directives synthax
 void	Configuration::validate_directive(std::vector<std::string> tokenized_content, size_t &i, int  &line) {
 	// verify that there is only one directive per line
 	if (tokenized_content[i] == ";")
 		if (tokenized_content[i + 1] != "\\n" && tokenized_content[i + 1] != "}")
 			throw multile_directive_on_same_line(line, get_full_line(tokenized_content, i));
-	// verify that directive are valid
+	// verify if token is at directive position
 	if ((tokenized_content[i - 1] == "{" || tokenized_content[i - 1] == "\\n")
 		&& tokenized_content[i] != "{" && tokenized_content[i] != "\\n") {
-		if (std::find(directive_bank.begin(), directive_bank.end(), tokenized_content[i]) == directive_bank.end()) {
+		// validate that directive is valid
+		if (directive_bank.find(tokenized_content[i]) == directive_bank.end())
 			throw unknown_directive(line, tokenized_content[i]);
-		}
+		// validate directive nbr of arguments
+		if (directive_bank.find(tokenized_content[i]) != directive_bank.end()
+			&& tokenized_content[i] != "location"
+			&& directive_bank.find(tokenized_content[i])->second != -1
+			&& count_directive_args(tokenized_content, i) != directive_bank.find(tokenized_content[i])->second)
+			throw to_many_args(line, tokenized_content[i]);
 	}
+}
+
+int	Configuration::count_directive_args(std::vector<std::string> tokens, size_t i) {
+	int	nbr_arg;
+
+	nbr_arg = i + 1;
+	while (++i < tokens.size())
+		if (tokens[i] == ";")
+			break;
+	nbr_arg = i - nbr_arg;
+	return (nbr_arg);
 }
 
 // verify wether end of line is ';'
@@ -306,7 +325,7 @@ void	Configuration::fill_server_attributes(std::vector<std::string> tokens, Serv
 	while (++i < tokens.size()) {
 		if (i == 0 || tokens[i - 1] == ";") {
 			if (tokens[i] == "listen") {
-				std::cout << "arg: "<< count_directive_arg(tokens, i) << "\n";
+
 			}
 			if (tokens[i] == "server_name") {
 				
@@ -359,15 +378,4 @@ void	Configuration::fill_location_attributes(std::vector<std::string> tokens, Se
 			}
 		}
 	}
-}
-
-int	Configuration::count_directive_arg(std::vector<std::string> tokens, size_t i) {
-	int	nbr_arg;
-
-	nbr_arg = i + 1;
-	while (++i < tokens.size())
-		if (tokens[i] == ";")
-			break;
-	nbr_arg = i - nbr_arg;
-	return (nbr_arg);
 }

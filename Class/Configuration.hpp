@@ -54,13 +54,14 @@ class Configuration {
 		void						fill_server_attributes(std::vector<std::string> server_block_tokens, Server &server);
 		void						fill_shared_attributes(std::vector<std::string> server_block_tokens, Server &server);
 		void						fill_location_attributes(std::vector<std::string> server_block_tokens, Server &server);
-		int							count_directive_arg(std::vector<std::string> tokens, size_t i);
+		int							count_directive_args(std::vector<std::string> tokens, size_t i);
 		// ***testing***
 		void						print_server_blocks(const std::vector<server_block>& servers);
 
 		// private attributes
 		std::vector<Server> servers;
-		std::vector<std::string> directive_bank;
+		std::map<std::string, int> directive_bank;
+
 		// private exceptions
 		class parsing_exception : public std::exception {
 			public:
@@ -118,6 +119,12 @@ class Configuration {
 		public:
 			location_path_invalid(const int line, const std::string& token)
 				: parsing_exception("Location path invalid", line, token) {}
+		};
+
+		class to_many_args : public parsing_exception {
+		public:
+			to_many_args(const int line, const std::string& token)
+				: parsing_exception("To many arguments for directive", line, token) {}
 		};
 
 		class unable_to_open_file : public std::exception {
