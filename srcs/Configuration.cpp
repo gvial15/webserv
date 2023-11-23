@@ -175,6 +175,15 @@ Configuration::server_block	Configuration::create_server_block(std::vector<std::
 	return (server_block);
 }
 
+// verify if server {} block declaration is valid
+void	Configuration::is_valid_server_block(std::vector<std::string> tokenized_content, size_t &i, int  &line) {
+	while (tokenized_content[++i] != "{") {
+		count_line(tokenized_content, i, line);
+		if (tokenized_content[i] != "\\n" || i == tokenized_content.size() - 1)
+			throw unexpected_token(line, tokenized_content[i]);
+	}
+}
+
 // when a server {} block is encountered in config file, create a location_block struct and fill it with tokens
 Configuration::location_block	Configuration::create_location_block(std::vector<std::string> tokenized_content, size_t &i, int  &line) {
 	location_block	location_block;
@@ -189,15 +198,6 @@ Configuration::location_block	Configuration::create_location_block(std::vector<s
 			location_block.tokens.push_back(tokenized_content[i]);
 	}
 	return (location_block);
-}
-
-// verify if server {} block declaration is valid
-void	Configuration::is_valid_server_block(std::vector<std::string> tokenized_content, size_t &i, int  &line) {
-	while (tokenized_content[++i] != "{") {
-		count_line(tokenized_content, i, line);
-		if (tokenized_content[i] != "\\n" || i == tokenized_content.size() - 1)
-			throw unexpected_token(line, tokenized_content[i]);
-	}
 }
 
 // verify if location {} block declaration is valid
@@ -218,7 +218,7 @@ void	Configuration::is_valid_location_block(std::vector<std::string> tokenized_c
 	}
 }
 
-// verify that directives synthax
+// verify directives synthax
 void	Configuration::validate_directive(std::vector<std::string> tokenized_content, size_t &i, int  &line) {
 	// verify that there is only one directive per line
 	if (tokenized_content[i] == ";")
@@ -233,9 +233,12 @@ void	Configuration::validate_directive(std::vector<std::string> tokenized_conten
 			throw unknown_directive(line, tokenized_content[i]);
 		// validate directive nbr of arguments
 		if (directive_bank.find(tokenized_content[i]) != directive_bank.end()
-			&& directive_bank.find(tokenized_content[i])->second != -1
-			&& count_directive_args(tokenized_content, i) != directive_bank.find(tokenized_content[i])->second)
-			throw to_many_args(line, tokenized_content[i]);
+			&& directive_bank.find(tokenized_content[i])->second != -1) {
+			if (count_directive_args(tokenized_content, i) > directive_bank.find(tokenized_content[i])->second)
+				throw to_many_directive_args(line, tokenized_content[i]);
+			if (count_directive_args(tokenized_content, i) == 0)
+				throw no_directive_arg(line, tokenized_content[i]);
+		}
 	}
 }
 

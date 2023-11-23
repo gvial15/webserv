@@ -121,10 +121,16 @@ class Configuration {
 				: parsing_exception("Location path invalid", line, token) {}
 		};
 
-		class to_many_args : public parsing_exception {
+		class to_many_directive_args : public parsing_exception {
 		public:
-			to_many_args(const int line, const std::string& token)
+			to_many_directive_args(const int line, const std::string& token)
 				: parsing_exception("To many arguments for directive", line, token) {}
+		};
+
+		class no_directive_arg : public parsing_exception {
+		public:
+			no_directive_arg(const int line, const std::string& token)
+				: parsing_exception("No argument for directive", line, token) {}
 		};
 
 		class unable_to_open_file : public std::exception {
