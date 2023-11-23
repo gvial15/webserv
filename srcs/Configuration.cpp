@@ -238,7 +238,7 @@ void	Configuration::validate_directive(std::vector<std::string> tokenized_conten
 				&& directive_bank.find(tokenized_content[i])->second.second != -1)
 				throw to_many_directive_args(line, tokenized_content[i]);
 			if (count_directive_args(tokenized_content, i) < directive_bank.find(tokenized_content[i])->second.first)
-				throw to_many_directive_args(line, tokenized_content[i]);
+				throw not_enough_arguments_for_directive(line, tokenized_content[i]);
 		}
 	}
 }
