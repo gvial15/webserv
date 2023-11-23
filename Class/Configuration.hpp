@@ -59,8 +59,8 @@ class Configuration {
 		void						print_server_blocks(const std::vector<server_block>& servers);
 
 		// private attributes
-		std::vector<Server> servers;
-		std::map<std::string, int> directive_bank;
+		std::vector<Server>							servers;
+		std::map<std::string, std::pair<int, int> >	directive_bank;
 
 		// private exceptions
 		class parsing_exception : public std::exception {
@@ -109,9 +109,9 @@ class Configuration {
 				: parsing_exception("Directive must finish with semicolon", line, token) {}
 		};
 
-		class multile_directive_on_same_line : public parsing_exception {
+		class multiple_directive_on_same_line : public parsing_exception {
 		public:
-			multile_directive_on_same_line(const int line, const std::string& token)
+			multiple_directive_on_same_line(const int line, const std::string& token)
 				: parsing_exception("Multiple directives on same line", line, token) {}
 		};
 
@@ -121,16 +121,22 @@ class Configuration {
 				: parsing_exception("Location path invalid", line, token) {}
 		};
 
+		class no_directive_arg : public parsing_exception {
+		public:
+			no_directive_arg(const int line, const std::string& token)
+				: parsing_exception("No argument for directive", line, token) {}
+		};
+
 		class to_many_directive_args : public parsing_exception {
 		public:
 			to_many_directive_args(const int line, const std::string& token)
 				: parsing_exception("To many arguments for directive", line, token) {}
 		};
 
-		class no_directive_arg : public parsing_exception {
+		class not_enough_arguments_for_directive : public parsing_exception {
 		public:
-			no_directive_arg(const int line, const std::string& token)
-				: parsing_exception("No argument for directive", line, token) {}
+			not_enough_arguments_for_directive(const int line, const std::string& token)
+				: parsing_exception("Not enough arguments for directive", line, token) {}
 		};
 
 		class unable_to_open_file : public std::exception {

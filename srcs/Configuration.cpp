@@ -28,17 +28,17 @@ Configuration::Configuration(const std::string config_file_path)
 // destructor
 Configuration::~Configuration() {};
 
-// The value represent the number of allowed argument for the given directive
+// The pair represent the number of min and max allowed arguments for a directive; -1 = no maximum
 void	Configuration::create_directive_bank() {
-	directive_bank.insert(std::make_pair("listen", 1));
-	directive_bank.insert(std::make_pair("server_name", 1));
-	directive_bank.insert(std::make_pair("return", 1));
-	directive_bank.insert(std::make_pair("root", 1));
-	directive_bank.insert(std::make_pair("index", 1));
-	directive_bank.insert(std::make_pair("autoindex", 1));
-	directive_bank.insert(std::make_pair("client_max_body_size", 1));
-	directive_bank.insert(std::make_pair("error_page", 2));
-	directive_bank.insert(std::make_pair("try_files", -1));
+    directive_bank.insert(std::make_pair("listen", std::make_pair(1, 1)));
+    directive_bank.insert(std::make_pair("server_name", std::make_pair(1, -1)));
+	directive_bank.insert(std::make_pair("return", std::make_pair(2, 2)));
+	directive_bank.insert(std::make_pair("root", std::make_pair(1, 1)));
+	directive_bank.insert(std::make_pair("index", std::make_pair(1, -1)));
+	directive_bank.insert(std::make_pair("autoindex", std::make_pair(1, 1)));
+	directive_bank.insert(std::make_pair("client_max_body_size", std::make_pair(1, 1)));
+	directive_bank.insert(std::make_pair("error_page", std::make_pair(2, -1)));
+	directive_bank.insert(std::make_pair("try_files", std::make_pair(2, -1)));
 }
 
 // ***server_blocks testing
@@ -220,24 +220,25 @@ void	Configuration::is_valid_location_block(std::vector<std::string> tokenized_c
 
 // verify directives synthax
 void	Configuration::validate_directive(std::vector<std::string> tokenized_content, size_t &i, int  &line) {
-	// verify that there is only one directive per line
+	// verify if there is only one directive per line
 	if (tokenized_content[i] == ";")
 		if (tokenized_content[i + 1] != "\\n" && tokenized_content[i + 1] != "}")
-			throw multile_directive_on_same_line(line, get_full_line(tokenized_content, i));
+			throw multiple_directive_on_same_line(line, get_full_line(tokenized_content, i));
 	// verify if token is at directive position
 	if ((tokenized_content[i - 1] == "{" || tokenized_content[i - 1] == "\\n")
 		&& tokenized_content[i] != "{" && tokenized_content[i] != "\\n"
 		&& tokenized_content[i] != "location") {
-		// validate that directive is valid
+		// validate if directive is valid
 		if (directive_bank.find(tokenized_content[i]) == directive_bank.end())
 			throw unknown_directive(line, tokenized_content[i]);
-		// validate directive nbr of arguments
-		if (directive_bank.find(tokenized_content[i]) != directive_bank.end()
-			&& directive_bank.find(tokenized_content[i])->second != -1) {
-			if (count_directive_args(tokenized_content, i) > directive_bank.find(tokenized_content[i])->second)
-				throw to_many_directive_args(line, tokenized_content[i]);
+		else {
 			if (count_directive_args(tokenized_content, i) == 0)
 				throw no_directive_arg(line, tokenized_content[i]);
+			if (count_directive_args(tokenized_content, i) > directive_bank.find(tokenized_content[i])->second.second
+				&& directive_bank.find(tokenized_content[i])->second.second != -1)
+				throw to_many_directive_args(line, tokenized_content[i]);
+			if (count_directive_args(tokenized_content, i) < directive_bank.find(tokenized_content[i])->second.first)
+				throw to_many_directive_args(line, tokenized_content[i]);
 		}
 	}
 }
@@ -301,6 +302,7 @@ void	Configuration::count_line(std::vector<std::string> tokenized_content, size_
 // std::map<std::string, Location>		locations;
 // std::vector<std::string>				methods;
 
+// create server object, fill it's attributes while verifying the validity of directives arguments
 void	Configuration::create_server(server_block server_blocks) {
 	Server	server;
 	size_t	i;
@@ -326,7 +328,7 @@ void	Configuration::fill_server_attributes(std::vector<std::string> tokens, Serv
 	while (++i < tokens.size()) {
 		if (i == 0 || tokens[i - 1] == ";") {
 			if (tokens[i] == "listen") {
-
+				
 			}
 			if (tokens[i] == "server_name") {
 				
