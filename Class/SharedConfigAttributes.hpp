@@ -7,11 +7,13 @@ class SharedConfigAttributes {
 
 	public:
 		SharedConfigAttributes() :
-			root("/var/www/html"),
+			root("/html"),
 			index("index.html"),
 			autoindex(false),
 			client_max_body_size(1 << 20)
-		{}
+		{
+			error_pages["404"] = "/html/404_not_found.html";
+		}
 
 		// public methods
 

@@ -49,8 +49,8 @@ class Server : public SharedConfigAttributes {
 		void	set_server_fd(const int new_fd) { server_fd = new_fd; }
 		void	set_port(const int new_port) { port = new_port; }
 		void	set_ip(const std::string new_ip) { ip = new_ip; }
-		void	set_server_name(const std::vector<std::string> new_server_name) { server_name = new_server_name; }
-		void	set_locations(const std::map<std::string, Location> new_locations) { locations = new_locations; }
+		void	set_server_name(const std::string new_server_name) { server_name.push_back(new_server_name); }
+		void	set_locations(const std::pair<std::string, Location> new_location) { locations.insert(new_location); }
 
 		// public attributes
 

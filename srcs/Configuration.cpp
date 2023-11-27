@@ -7,8 +7,7 @@
 #include <vector>
 
 // constructor
-Configuration::Configuration(const std::string config_file_path)
-{
+Configuration::Configuration(const std::string config_file_path) {
 	std::ifstream config_file(config_file_path);
 
 	create_directive_bank();
@@ -54,7 +53,7 @@ void Configuration::print_server_blocks(const std::vector<server_block>& servers
         k = 0;
         while (k < server.location_blocks.size()) {
             const location_block& location = server.location_blocks[k];
-            std::cout << "  Location Block " << (k + 1) << ":\n";
+            std::cout << "  Location Block " << (k + 1) << ": " << server.location_blocks[k].path << "\n";
             l = 0;
             while (l < location.tokens.size()) {
                 std::cout << "    Token: " << location.tokens[l++] << '\n';
@@ -74,14 +73,16 @@ void	Configuration::parse(std::ifstream& config_file) {
 
 	space_out_symbols(file_content);
 	tokenized_content = tokenize(file_content);
-	// size_t	i = -1;
+	// i = -1;
 	// while (++i < tokenized_content.size())
 	// 	std::cout << tokenized_content[i] << "\n";
 	server_blocks = parse_server_blocks(tokenized_content);
-	print_server_blocks(server_blocks);
+	if (server_blocks.empty())
+		throw no_server_blocks();
+	// print_server_blocks(server_blocks);
 	i = -1;
 	while (++i < server_blocks.size())
-		create_server(server_blocks[i]);
+		servers.push_back(create_server(server_blocks[i]));
 }
 
 // space out special symbols } { ; \n
@@ -104,7 +105,6 @@ void Configuration::space_out_symbols(std::string& file_content) {
 }
 
 // tokenize string with white spaces as delimiter excluding "\n" for line # tracking in error messages
-// ***non-problematic but buggy behaviour: 5 newlines tokens instead of 3 at the end***
 std::vector<std::string>	Configuration::tokenize(std::string spaced_out_content) {
 	std::vector<std::string> tokenized_content;
 	std::string token;
@@ -137,7 +137,7 @@ std::vector<std::string>	Configuration::tokenize(std::string spaced_out_content)
 	return (tokenized_content);
 }
 
-// loop throught tokens, for each server {} blocks create a server_block with nested location_blocks
+// loop throught tokens, for each server {} blocks create a server_block struct with its nested location_blocks
 std::vector<Configuration::server_block>	Configuration::parse_server_blocks(std::vector<std::string> tokenized_content) {
 	std::vector<server_block>	server_blocks;
 	size_t						line;
@@ -186,11 +186,11 @@ void	Configuration::is_valid_server_block(std::vector<std::string> tokenized_con
 	}
 }
 
-// when a location {} block is encountered in config file, create a location_block struct and fill it with tokens
+// when a location {} block is encountered in a server {} block, create a location_block struct and fill it with tokens
 Configuration::location_block	Configuration::create_location_block(std::vector<std::string> tokenized_content, size_t &i, size_t &line) {
 	location_block	location_block;
 
-	is_valid_location_block(tokenized_content, i, line);
+	is_valid_location_block(location_block, tokenized_content, i, line);
 	while (tokenized_content[++i] != "}") {
 		validate_directive(tokenized_content, i, line);
 		verify_end_of_line(tokenized_content, i, line);
@@ -201,9 +201,9 @@ Configuration::location_block	Configuration::create_location_block(std::vector<s
 	return (location_block);
 }
 
-// verify if location {} block declaration is valid
-void	Configuration::is_valid_location_block(std::vector<std::string> tokenized_content, size_t &i, size_t &line) {
-	struct stat buffer;
+// verify if location {} block declaration is valid and fill the location_block path attribute
+void	Configuration::is_valid_location_block(Configuration::location_block &location_block, std::vector<std::string> tokenized_content, size_t &i, size_t &line) {
+	struct stat	buffer;
 	int	path_found;
 
 	path_found = 0;
@@ -212,8 +212,9 @@ void	Configuration::is_valid_location_block(std::vector<std::string> tokenized_c
 		if (tokenized_content[i] != "\\n" && path_found)
 			throw unexpected_token(line, tokenized_content[i]);
 		else if (tokenized_content[i] != "\\n") {
-			if (stat(tokenized_content[i].c_str(), &buffer) != 0) // TODO: verify from config path not this file
+			if (stat(tokenized_content[i].c_str(), &buffer) != 0)
 				throw location_path_invalid(line, tokenized_content[i]);
+			location_block.path = tokenized_content[i];
 			path_found = 1;
 		}
 	}
@@ -244,6 +245,7 @@ void	Configuration::validate_directive(std::vector<std::string> tokenized_conten
 	}
 }
 
+// count the number of arguments a directive has
 int	Configuration::count_directive_args(std::vector<std::string> tokens, size_t i) {
 	int	nbr_arg;
 
@@ -304,51 +306,41 @@ void	Configuration::count_line(std::vector<std::string> tokenized_content, size_
 // std::vector<std::string>				methods;
 
 // for each server_block create a Server object, fill it's attributes while validating the format of directives arguments
-void	Configuration::create_server(server_block server_blocks) {
+Server	Configuration::create_server(server_block server_blocks) {
 	Server	server;
 	size_t	i;
 
-	// fill server only attributes
+	// fill server attributes
 	fill_server_attributes(server_blocks.tokens, server);
-	// fill shared attributes between location and server objects
-	fill_shared_attributes(server_blocks.tokens, server);
-	// for each location block, fill location only attributes
 	i = -1;
+	// fill locations attributes
 	while (++i < server_blocks.location_blocks.size()) {
-		fill_shared_attributes(server_blocks.location_blocks[i].tokens, server);
-		fill_location_attributes(server_blocks.location_blocks[i].tokens, server);
+		Server::Location location;
+		server.set_locations(std::make_pair(server_blocks.location_blocks[i].path, location));
+		fill_server_attributes(server_blocks.location_blocks[i].tokens,
+		server.get_locations().find(server_blocks.location_blocks[i].path)->second);
 	}
-	servers.push_back(server);
+	return (server);
 }
 
-void	Configuration::fill_server_attributes(std::vector<std::string> tokens, Server &server) {
-	(void)	server;
-	size_t						i;
+template <typename T>
+void	Configuration::fill_server_attributes(std::vector<std::string> tokens, T &obj) {
+	(void)	obj;
 	std::vector<std::string>	arguments;
+	size_t	i;
 
 	i = -1;
 	while (++i < tokens.size()) {
 		if (i == 0 || tokens[i - 1] == ";") {
+			arguments = get_arguments(tokens, i);
 			if (tokens[i] == "listen") {
-				arguments = get_arguments(tokens, i);
 				// validate arguments format
-				// push in the appropriate server attribute
+				// push in the appropriate server/location attribute
 			}
 			else if (tokens[i] == "server_name") {
 				
 			}
-		}
-	}
-}
-
-void	Configuration::fill_shared_attributes(std::vector<std::string> tokens, Server &server) {
-	(void)	server;
-	size_t	i;
-
-	i = -1;
-	while (++i < tokens.size()) {
-		if (i == 0 || tokens[i - 1] == ";") {
-			if (tokens[i] == "root") {
+			else if (tokens[i] == "root") {
 
 			}
 			else if (tokens[i] == "index") {
@@ -369,28 +361,18 @@ void	Configuration::fill_shared_attributes(std::vector<std::string> tokens, Serv
 			else if (tokens[i] == "client_max_body_size") {
 
 			}
-		}
-	}
-}
-
-void	Configuration::fill_location_attributes(std::vector<std::string> tokens, Server &server) {
-	(void)	server;
-	size_t	i;
-
-	i = -1;
-	while (++i < tokens.size()) {
-		if (i == 0 || tokens[i - 1] == ";") {
-			if (tokens[i] == "methods") {
+			else if (tokens[i] == "methods") {
 				
 			}
+			arguments.clear();
 		}
 	}
 }
 
 std::vector<std::string>	Configuration::get_arguments(std::vector<std::string> tokens, size_t &i) {
-	(void)						i;
-	(void)						tokens;
 	std::vector<std::string>	arguments;
 
+	while (tokens[++i] != ";")
+		arguments.push_back(tokens[i]);
 	return (arguments);
 }

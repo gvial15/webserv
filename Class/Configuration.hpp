@@ -27,37 +27,40 @@ class Configuration {
 
 		// private data structures
 		struct location_block {
-			std::vector<std::string> tokens;
+			std::string					path;
+			std::vector<std::string>	tokens;
 		};
 
 		struct server_block {
-			std::vector<std::string> tokens;
-			std::vector<location_block> location_blocks;
+			std::vector<std::string>	tokens;
+			std::vector<location_block>	location_blocks;
 		};
 
 		// private methods
 
 		void						create_directive_bank();
+
+		// ***testing***
+		void						print_server_blocks(const std::vector<server_block>& servers);
+	
+
 		void						parse(std::ifstream& config_file);
 		void						space_out_symbols(std::string& file_content);
 		std::vector<std::string>	tokenize(std::string spaced_out_content);
 		std::vector<server_block>	parse_server_blocks(std::vector<std::string> tokenized_content);
-		void						count_line(std::vector<std::string> tokenized_content, size_t &i, size_t  &line);
 		server_block				create_server_block(std::vector<std::string> tokenized_content, size_t &i, size_t  &line);
 		void						is_valid_server_block(std::vector<std::string> tokenized_content, size_t &i, size_t  &line);
 		location_block				create_location_block(std::vector<std::string> tokenized_content, size_t &i, size_t  &line);
-		void						is_valid_location_block(std::vector<std::string> tokenized_content, size_t &i, size_t  &line);
+		void						is_valid_location_block(Configuration::location_block &location_block, std::vector<std::string> tokenized_content, size_t &i, size_t &line);
 		void						validate_directive(std::vector<std::string> tokenized_content, size_t &i, size_t  &line);
 		int							count_directive_args(std::vector<std::string> tokens, size_t i);
 		void						verify_end_of_line(std::vector<std::string> tokenized_content, size_t &i, size_t  &line);
 		std::string					get_full_line(std::vector<std::string> tokenized_content, size_t& i);
-		void						create_server(server_block server_blocks);
-		void						fill_server_attributes(std::vector<std::string> server_block_tokens, Server &server);
-		void						fill_shared_attributes(std::vector<std::string> server_block_tokens, Server &server);
-		void						fill_location_attributes(std::vector<std::string> server_block_tokens, Server &server);
+		void						count_line(std::vector<std::string> tokenized_content, size_t &i, size_t  &line);
+		Server						create_server(server_block server_blocks);
+		template <typename T> void	fill_server_attributes(std::vector<std::string> server_block_tokens, T &obj);
 		std::vector<std::string>	get_arguments(std::vector<std::string> tokens, size_t &i);
-		// ***testing***
-		void						print_server_blocks(const std::vector<server_block>& servers);
+
 
 		// private attributes
 		std::vector<Server>							servers;
@@ -143,6 +146,12 @@ class Configuration {
 		class unable_to_open_file : public std::exception {
 				virtual const char* what() const throw() {
 					return "Unable to open configuration file";
+				}
+		};
+
+		class no_server_blocks : public std::exception {
+				virtual const char* what() const throw() {
+					return "No server blocks in configuration file";
 				}
 		};
 };
