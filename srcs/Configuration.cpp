@@ -66,7 +66,6 @@ void Configuration::print_server_blocks(const std::vector<server_block>& servers
     }
 }
 // ***servers testing
-
 template <typename C>
 void	print_shared_attributes(const C &obj) {
 	size_t	i;
@@ -85,7 +84,6 @@ void	print_shared_attributes(const C &obj) {
     	std::cout << "error_pages: " << it->first << " " << it->second << "\n";
 	std::cout << "client_max_body_size: " << obj.get_client_max_body_size() << "\n";
 }
-
 void Configuration::print_servers(const std::vector<Server>& servers) {
 	size_t	i;
 	size_t	ii;
