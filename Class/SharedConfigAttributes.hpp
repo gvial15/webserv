@@ -1,4 +1,5 @@
 #include <string>
+#include <utility>
 #include <vector>
 #include <map>
 #include <cstddef>
@@ -12,7 +13,8 @@ class SharedConfigAttributes {
 			autoindex(false),
 			client_max_body_size(1 << 20)
 		{
-			error_pages["404"] = "/html/404_not_found.html";
+			try_files.push_back("$uri");
+			error_pages.insert(std::make_pair("404", "/html/404_not_found.html"));
 		}
 
 		// public methods

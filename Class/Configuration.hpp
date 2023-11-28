@@ -38,12 +38,11 @@ class Configuration {
 
 		// private methods
 
-		void						create_directive_bank();
-
 		// ***testing***
 		void						print_server_blocks(const std::vector<server_block>& servers);
-	
+		void						print_servers(const std::vector<Server>& servers);
 
+		void						create_directive_bank();
 		void						parse(std::ifstream& config_file);
 		void						space_out_symbols(std::string& file_content);
 		std::vector<std::string>	tokenize(std::string spaced_out_content);
@@ -58,7 +57,9 @@ class Configuration {
 		std::string					get_full_line(std::vector<std::string> tokenized_content, size_t& i);
 		void						count_line(std::vector<std::string> tokenized_content, size_t &i, size_t  &line);
 		Server						create_server(server_block server_blocks);
-		template <typename T> void	fill_server_attributes(std::vector<std::string> server_block_tokens, T &obj);
+		void						fill_server_attributes(std::vector<std::string> server_block_tokens, Server &server);
+		template <typename T> void	fill_shared_attributes(std::vector<std::string> server_block_tokens, T &obj);
+		void						fill_location_attributes(std::vector<std::string> server_block_tokens, Server::Location &location);
 		std::vector<std::string>	get_arguments(std::vector<std::string> tokens, size_t &i);
 
 

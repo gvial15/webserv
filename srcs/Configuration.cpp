@@ -1,5 +1,7 @@
 #include "../Class/Configuration.hpp"
 #include <cstddef>
+#include <iterator>
+#include <stddef.h>
 #include <sys/stat.h>
 #include <string>
 #include <algorithm>
@@ -63,6 +65,51 @@ void Configuration::print_server_blocks(const std::vector<server_block>& servers
         ++i;
     }
 }
+// ***servers testing
+
+template <typename C>
+void	print_shared_attributes(const C &obj) {
+	size_t	i;
+	std::map<std::string, std::string>				error_pages;
+	std::map<std::string, std::string>::iterator	it;
+
+	std::cout << "root: " << obj.get_root() << "\n";
+	std::cout << "index: " << obj.get_index() << "\n";
+	std::cout << "autoindex: " << obj.get_autoindex() << "\n";
+	std::cout << "redirection: " << obj.get_redirection() << "\n";
+	i = -1;
+	while (++i < obj.get_try_files().size())
+		std::cout << "tryfiles: " << obj.get_try_files()[i] << "\n";
+	error_pages = obj.get_error_pages();
+	for (it = error_pages.begin(); it != error_pages.end(); ++it)
+    	std::cout << "error_pages: " << it->first << " " << it->second << "\n";
+	std::cout << "client_max_body_size: " << obj.get_client_max_body_size() << "\n";
+}
+
+void Configuration::print_servers(const std::vector<Server>& servers) {
+	size_t	i;
+	size_t	ii;
+	std::map<std::string, Server::Location>	locations;
+	std::map<std::string, Server::Location>::iterator	it;
+
+	i = -1;
+	while (++i < servers.size()) {
+		std::cout << "\nServer:\n";
+		std::cout << "port: " << servers[i].get_port() << "\n";
+		std::cout << "ip: " << servers[i].get_ip() << "\n";
+		std::cout << "server_name: " << servers[i].get_server_name()[0] << "\n";
+		print_shared_attributes(servers[i]);
+		locations = servers[i].get_locations();
+		for (it = locations.begin(); it != locations.end(); ++it) {
+			std::cout << "\nLocation:\n";
+			print_shared_attributes(it->second);
+			ii = -1;
+			while (++ii < it->second.get_methods().size())
+				std::cout << "methods: " << it->second.get_methods()[ii] << "\n";
+			i++;
+		}
+	}
+}
 
 // *** parsing ***
 void	Configuration::parse(std::ifstream& config_file) {
@@ -83,6 +130,7 @@ void	Configuration::parse(std::ifstream& config_file) {
 	i = -1;
 	while (++i < server_blocks.size())
 		servers.push_back(create_server(server_blocks[i]));
+	print_servers(servers);
 }
 
 // space out special symbols } { ; \n
@@ -317,15 +365,16 @@ Server	Configuration::create_server(server_block server_blocks) {
 	while (++i < server_blocks.location_blocks.size()) {
 		Server::Location location;
 		server.set_locations(std::make_pair(server_blocks.location_blocks[i].path, location));
-		fill_server_attributes(server_blocks.location_blocks[i].tokens,
+		fill_shared_attributes(server_blocks.location_blocks[i].tokens,
+		server.get_locations().find(server_blocks.location_blocks[i].path)->second);
+		fill_location_attributes(server_blocks.location_blocks[i].tokens,
 		server.get_locations().find(server_blocks.location_blocks[i].path)->second);
 	}
 	return (server);
 }
 
-template <typename T>
-void	Configuration::fill_server_attributes(std::vector<std::string> tokens, T &obj) {
-	(void)	obj;
+void	Configuration::fill_server_attributes(std::vector<std::string> tokens, Server &server) {
+	(void) server;
 	std::vector<std::string>	arguments;
 	size_t	i;
 
@@ -340,7 +389,22 @@ void	Configuration::fill_server_attributes(std::vector<std::string> tokens, T &o
 			else if (tokens[i] == "server_name") {
 				
 			}
-			else if (tokens[i] == "root") {
+			arguments.clear();
+		}
+	}
+}
+
+template <typename T>
+void	Configuration::fill_shared_attributes(std::vector<std::string> tokens, T &obj) {
+	(void)	obj;
+	std::vector<std::string>	arguments;
+	size_t	i;
+
+	i = -1;
+	while (++i < tokens.size()) {
+		if (i == 0 || tokens[i - 1] == ";") {
+			arguments = get_arguments(tokens, i);
+			if (tokens[i] == "root") {
 
 			}
 			else if (tokens[i] == "index") {
@@ -362,6 +426,23 @@ void	Configuration::fill_server_attributes(std::vector<std::string> tokens, T &o
 
 			}
 			else if (tokens[i] == "methods") {
+				
+			}
+			arguments.clear();
+		}
+	}
+}
+
+void	Configuration::fill_location_attributes(std::vector<std::string> tokens, Server::Location &location) {
+	(void)	location;
+	std::vector<std::string>	arguments;
+	size_t	i;
+
+	i = -1;
+	while (++i < tokens.size()) {
+		if (i == 0 || tokens[i - 1] == ";") {
+			arguments = get_arguments(tokens, i);
+			if (tokens[i] == "methods") {
 				
 			}
 			arguments.clear();
