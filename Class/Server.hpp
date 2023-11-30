@@ -6,8 +6,8 @@
 #include <vector>
 
 
-// one for each server {} block, they each self initialize their own socket,
-// bind() them to their respective ip:port and make them listen().
+// one for each server {} block, they each self initialize their own socket
+// and bind() them to their respective ip:port and make them listen()
 class Server : public SharedConfigAttributes {
 	public:
 		Server();
@@ -42,14 +42,14 @@ class Server : public SharedConfigAttributes {
 		int								get_server_fd() const { return server_fd; }
 		int								get_port() const { return port; }
 		std::string						get_ip() const { return ip; }
-		std::vector<std::string>		get_server_name() const { return server_name; }
+		std::vector<std::string>		get_server_names() const { return server_names; }
 		std::map<std::string, Location>	get_locations() const { return locations; }
 
 		// setters
 		void	set_server_fd(const int new_fd) { server_fd = new_fd; }
 		void	set_port(const int new_port) { port = new_port; }
 		void	set_ip(const std::string new_ip) { ip = new_ip; }
-		void	set_server_name(const std::string new_server_name) { server_name.push_back(new_server_name); }
+		void	set_server_name(const std::string new_server_name) { server_names.push_back(new_server_name); }
 		void	set_locations(const std::pair<std::string, Location> new_location) { locations.insert(new_location); }
 
 		// public attributes
@@ -63,7 +63,7 @@ class Server : public SharedConfigAttributes {
 		int								server_fd;
 		int								port;
 		std::string						ip;
-		std::vector<std::string>		server_name;
+		std::vector<std::string>		server_names;
 		std::map<std::string, Location>	locations;
 
 		// private exceptions

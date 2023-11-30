@@ -60,7 +60,10 @@ class Configuration {
 		void						fill_server_attributes(std::vector<std::string> server_block_tokens, Server &server);
 		template <typename T> void	fill_shared_attributes(std::vector<std::string> server_block_tokens, T &obj);
 		void						fill_location_attributes(std::vector<std::string> server_block_tokens, Server::Location &location);
-		std::vector<std::string>	get_arguments(std::vector<std::string> tokens, size_t &i);
+		std::vector<std::string>	get_arguments(std::vector<std::string> tokens, size_t i);
+		bool						validate_listen_argument_format(std::vector<std::string> arguments);
+		bool						is_valid_ip_address(const std::string& ip_address);
+		std::vector<std::string>	split(const std::string &s, char delimiter);
 
 
 		// private attributes

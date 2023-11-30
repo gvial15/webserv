@@ -15,7 +15,8 @@ Configuration::Configuration(const std::string config_file_path) {
 	create_directive_bank();
 	if (config_file_path.empty()) {
 		std::cout << "Starting with default configuration...\n";
-		// generate_default_config();
+		Server	server;
+		servers.push_back(server);
 	}
 	else {
 		if (!config_file)
@@ -28,10 +29,10 @@ Configuration::Configuration(const std::string config_file_path) {
 // destructor
 Configuration::~Configuration() {};
 
-// The pairs represent the number of min and max allowed arguments for a given directive; -1 = no maximum
+// The pairs value represent the number of min and max allowed arguments for a given directive; -1 = no maximum
 void	Configuration::create_directive_bank() {
-    directive_bank.insert(std::make_pair("listen", std::make_pair(1, 1)));
-    directive_bank.insert(std::make_pair("server_name", std::make_pair(1, -1)));
+	directive_bank.insert(std::make_pair("listen", std::make_pair(1, 1)));
+	directive_bank.insert(std::make_pair("server_name", std::make_pair(1, -1)));
 	directive_bank.insert(std::make_pair("return", std::make_pair(2, 2)));
 	directive_bank.insert(std::make_pair("root", std::make_pair(1, 1)));
 	directive_bank.insert(std::make_pair("index", std::make_pair(1, -1)));
@@ -44,26 +45,26 @@ void	Configuration::create_directive_bank() {
 
 // ***server_blocks testing
 void Configuration::print_server_blocks(const std::vector<server_block>& servers) {
-    size_t i = 0, j, k, l;
-    while (i < servers.size()) {
-        const server_block& server = servers[i];
-        std::cout << "Server Block " << (i + 1) << ":\n";
-        j = 0;
-        while (j < server.tokens.size()) {
-            std::cout << "Token: " << server.tokens[j++] << '\n';
-        }
-        k = 0;
-        while (k < server.location_blocks.size()) {
-            const location_block& location = server.location_blocks[k];
-            std::cout << "  Location Block " << (k + 1) << ": " << server.location_blocks[k].path << "\n";
-            l = 0;
-            while (l < location.tokens.size()) {
-                std::cout << "    Token: " << location.tokens[l++] << '\n';
-            }
-            ++k;
-        }
-        ++i;
-    }
+	size_t i = 0, j, k, l;
+	while (i < servers.size()) {
+		const server_block& server = servers[i];
+		std::cout << "Server Block " << (i + 1) << ":\n";
+		j = 0;
+		while (j < server.tokens.size()) {
+			std::cout << "Token: " << server.tokens[j++] << '\n';
+		}
+		k = 0;
+		while (k < server.location_blocks.size()) {
+			const location_block& location = server.location_blocks[k];
+			std::cout << "  Location Block " << (k + 1) << ": " << server.location_blocks[k].path << "\n";
+			l = 0;
+			while (l < location.tokens.size()) {
+				std::cout << "    Token: " << location.tokens[l++] << '\n';
+			}
+			++k;
+		}
+		++i;
+	}
 }
 // ***servers testing
 template <typename C>
@@ -81,7 +82,7 @@ void	print_shared_attributes(const C &obj) {
 		std::cout << "tryfiles: " << obj.get_try_files()[i] << "\n";
 	error_pages = obj.get_error_pages();
 	for (it = error_pages.begin(); it != error_pages.end(); ++it)
-    	std::cout << "error_pages: " << it->first << " " << it->second << "\n";
+		std::cout << "error_pages: " << it->first << " " << it->second << "\n";
 	std::cout << "client_max_body_size: " << obj.get_client_max_body_size() << "\n";
 }
 void Configuration::print_servers(const std::vector<Server>& servers) {
@@ -95,7 +96,7 @@ void Configuration::print_servers(const std::vector<Server>& servers) {
 		std::cout << "\nServer:\n";
 		std::cout << "port: " << servers[i].get_port() << "\n";
 		std::cout << "ip: " << servers[i].get_ip() << "\n";
-		std::cout << "server_name: " << servers[i].get_server_name()[0] << "\n";
+		std::cout << "server_name: " << servers[i].get_server_names()[0] << "\n";
 		print_shared_attributes(servers[i]);
 		locations = servers[i].get_locations();
 		for (it = locations.begin(); it != locations.end(); ++it) {
@@ -133,21 +134,21 @@ void	Configuration::parse(std::ifstream& config_file) {
 
 // space out special symbols } { ; \n
 void Configuration::space_out_symbols(std::string& file_content) {
-    std::size_t i;
+	std::size_t i;
 
 	i = 0;
-    while (i < file_content.size()) {
-        char c = file_content[i];
+	while (i < file_content.size()) {
+		char c = file_content[i];
 		if (c == ';' || c == '{' || c == '}' || c == '\n' || c == '#') {
-            if (i > 0 && !isspace(file_content[i - 1]))
-                file_content.insert(i++, " ");
-            ++i;
-            if (i < file_content.size() && !isspace(file_content[i]))
-                file_content.insert(i++, " ");
-        }
+			if (i > 0 && !isspace(file_content[i - 1]))
+				file_content.insert(i++, " ");
+			++i;
+			if (i < file_content.size() && !isspace(file_content[i]))
+				file_content.insert(i++, " ");
+		}
 		else
-            ++i;
-    }
+			++i;
+	}
 }
 
 // tokenize string with white spaces as delimiter excluding "\n" for line # tracking in error messages
@@ -332,34 +333,13 @@ void	Configuration::count_line(std::vector<std::string> tokenized_content, size_
 		line++;
 }
 
-// *** server only ***
-// std::string							ip;
-// int									port;
-
-// *** shared
-// std::string 							root;
-// std::string 							index;
-// bool 								autoindex;
-// std::string							redirection;
-// std::vector<std::string> 			try_files;
-// std::map<std::string, std::string>	error_pages;
-// std::size_t							client_max_body_size;
-// int									server_fd;
-// std::string							server_name;
-
-// *** location only ***
-// std::map<std::string, Location>		locations;
-// std::vector<std::string>				methods;
-
 // for each server_block create a Server object, fill it's attributes while validating the format of directives arguments
 Server	Configuration::create_server(server_block server_blocks) {
 	Server	server;
 	size_t	i;
 
-	// fill server attributes
 	fill_server_attributes(server_blocks.tokens, server);
 	i = -1;
-	// fill locations attributes
 	while (++i < server_blocks.location_blocks.size()) {
 		Server::Location location;
 		server.set_locations(std::make_pair(server_blocks.location_blocks[i].path, location));
@@ -381,7 +361,7 @@ void	Configuration::fill_server_attributes(std::vector<std::string> tokens, Serv
 		if (i == 0 || tokens[i - 1] == ";") {
 			arguments = get_arguments(tokens, i);
 			if (tokens[i] == "listen") {
-				// validate arguments format
+				validate_listen_argument_format(arguments);
 				// push in the appropriate server/location attribute
 			}
 			else if (tokens[i] == "server_name") {
@@ -391,6 +371,36 @@ void	Configuration::fill_server_attributes(std::vector<std::string> tokens, Serv
 		}
 	}
 }
+
+// max port = 65535
+bool	Configuration::validate_listen_argument_format(std::vector<std::string> arguments) {
+	std::vector<std::string>	splitted_argument;
+
+	splitted_argument = split(arguments[0], ':');
+	if (!is_valid_ip_address(splitted_argument[0]))
+		;
+	if (splitted_argument.size() == 2)
+		;
+	return (true);
+}
+
+bool	Configuration::is_valid_ip_address(const std::string& ip_address) {
+	std::istringstream	ip(ip_address);
+	std::string			digit;
+	int					num;
+	int 				num_count;
+
+	num_count = 0;
+	while (std::getline(ip, digit, '.')) {
+		num = 0;
+		std::istringstream	digit_stream(digit);
+		if (!(digit_stream >> num) || num < 0 || num > 255)
+			return (false);
+		num_count++;
+	}
+	return (num_count == 4);
+}
+
 
 template <typename T>
 void	Configuration::fill_shared_attributes(std::vector<std::string> tokens, T &obj) {
@@ -423,9 +433,6 @@ void	Configuration::fill_shared_attributes(std::vector<std::string> tokens, T &o
 			else if (tokens[i] == "client_max_body_size") {
 
 			}
-			else if (tokens[i] == "methods") {
-				
-			}
 			arguments.clear();
 		}
 	}
@@ -448,10 +455,21 @@ void	Configuration::fill_location_attributes(std::vector<std::string> tokens, Se
 	}
 }
 
-std::vector<std::string>	Configuration::get_arguments(std::vector<std::string> tokens, size_t &i) {
+std::vector<std::string>	Configuration::get_arguments(std::vector<std::string> tokens, size_t i) {
 	std::vector<std::string>	arguments;
 
 	while (tokens[++i] != ";")
 		arguments.push_back(tokens[i]);
 	return (arguments);
+}
+
+std::vector<std::string>	Configuration::split(const std::string &s, char delimiter) {
+    std::vector<std::string> elements;
+    std::stringstream ss(s);
+    std::string element;
+
+    while (std::getline(ss, element, delimiter))
+        elements.push_back(element);
+
+    return (elements);
 }
