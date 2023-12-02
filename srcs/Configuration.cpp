@@ -1,5 +1,6 @@
 #include "../Class/Configuration.hpp"
 #include <cstddef>
+#include <iostream>
 #include <iterator>
 #include <stddef.h>
 #include <sys/stat.h>
@@ -51,7 +52,7 @@ void Configuration::print_server_blocks(const std::vector<server_block>& servers
 		std::cout << "Server Block " << (i + 1) << ":\n";
 		j = 0;
 		while (j < server.tokens.size()) {
-			std::cout << "Token: " << server.tokens[j++] << '\n';
+			std::cout << "Token: " << server.tokens[j++].content << '\n';
 		}
 		k = 0;
 		while (k < server.location_blocks.size()) {
@@ -59,7 +60,7 @@ void Configuration::print_server_blocks(const std::vector<server_block>& servers
 			std::cout << "  Location Block " << (k + 1) << ": " << server.location_blocks[k].path << "\n";
 			l = 0;
 			while (l < location.tokens.size()) {
-				std::cout << "    Token: " << location.tokens[l++] << '\n';
+				std::cout << "    Token: " << location.tokens[l++].content << '\n';
 			}
 			++k;
 		}
@@ -113,23 +114,25 @@ void Configuration::print_servers(const std::vector<Server>& servers) {
 // *** parsing ***
 void	Configuration::parse(std::ifstream& config_file) {
 	std::string					file_content((std::istreambuf_iterator<char>(config_file)), std::istreambuf_iterator<char>());
-	std::vector<std::string>	tokenized_content;
+	std::vector<token>			tokens;
 	std::vector<server_block>	server_blocks;
-	size_t						i;
 
 	space_out_symbols(file_content);
-	tokenized_content = tokenize(file_content);
-	// i = -1;
-	// while (++i < tokenized_content.size())
-	// 	std::cout << tokenized_content[i] << "\n";
-	server_blocks = parse_server_blocks(tokenized_content);
+	tokens = tokenize(file_content);
+	size_t	i;
+	i = -1;
+	while (++i < tokens.size()) {
+		std::cout << tokens[i].line << " " << tokens[i].content << "\n";
+	}
+	server_blocks = parse_server_blocks(tokens);
 	if (server_blocks.empty())
 		throw no_server_blocks();
-	// print_server_blocks(server_blocks);
-	i = -1;
-	while (++i < server_blocks.size())
-		servers.push_back(create_server(server_blocks[i]));
-	print_servers(servers);
+	print_server_blocks(server_blocks);
+	// size_t						i;
+	// i = -1;
+	// while (++i < server_blocks.size())
+	// 	servers.push_back(create_server(server_blocks[i]));
+	// print_servers(servers);
 }
 
 // space out special symbols } { ; \n
@@ -151,325 +154,318 @@ void Configuration::space_out_symbols(std::string& file_content) {
 	}
 }
 
-// tokenize string with white spaces as delimiter excluding "\n" for line # tracking in error messages
-std::vector<std::string>	Configuration::tokenize(std::string spaced_out_content) {
-	std::vector<std::string> tokenized_content;
-	std::string token;
-	int			i;
-
-	i = -1;
-	while (spaced_out_content[++i]) {
-		if (spaced_out_content[i] == '#') {
-			while (spaced_out_content[++i] != '\n');
-			tokenized_content.push_back("\\n");
-		}
-		else if (spaced_out_content[i] == '\n') {
-			if (!token.empty()) {
-				tokenized_content.push_back(token);
-				token.clear();
-			}
-			tokenized_content.push_back("\\n");
-		}
-		else if (isspace(spaced_out_content[i])) {
-			if (!token.empty()) {
-				tokenized_content.push_back(token);
-				token.clear();
-			}
-		}
-		else
-			token += spaced_out_content[i];
-	}
-	if (!token.empty())
-		tokenized_content.push_back(token);
-	return (tokenized_content);
-}
-
-// loop throught tokens, for each server {} blocks create a server_block struct with its nested location_blocks
-std::vector<Configuration::server_block>	Configuration::parse_server_blocks(std::vector<std::string> tokenized_content) {
-	std::vector<server_block>	server_blocks;
-	size_t						line;
-	size_t						i;
+// tokenize file
+std::vector<Configuration::token>	Configuration::tokenize(std::string spaced_out_content) {
+	std::vector<token>	tokens;
+	token				token;
+	size_t				line;
+	int					i;
 
 	line = 1;
 	i = -1;
-	while (++i < tokenized_content.size()) {
-		count_line(tokenized_content, i, line);
+	while (spaced_out_content[++i]) {
+		// if char is a comment
+		if (spaced_out_content[i] == '#') {
+			while (spaced_out_content[++i] != '\n');
+			line++;
+		}
+		// if char is a newline
+		else if (spaced_out_content[i] == '\n')
+			line++;
+		// if char is a white space
+		else if (isspace(spaced_out_content[i])) {
+			if (!token.content.empty()) {
+				token.line = line;
+				tokens.push_back(token);
+				token.content.clear();
+			}
+		}
+		// fill token.content with chars
+		else
+			token.content += spaced_out_content[i];
+	}
+	if (!token.content.empty()) {
+		token.line = line;
+		tokens.push_back(token);
+	}
+	return (tokens);
+}
+
+// loop throught tokens, for each server {} blocks create a server_block struct with its nested location_blocks
+// while validating the synthax
+std::vector<Configuration::server_block>	Configuration::parse_server_blocks(std::vector<token> tokens) {
+	std::vector<server_block>	server_blocks;
+	size_t						i;
+
+	i = -1;
+	while (++i < tokens.size()) {
 		// block types other than 'server {}' are not authorized in the main scope of file
-		if (tokenized_content[i] != "\\n" && tokenized_content[i] != "server")
-			throw unknown_block_type(line, tokenized_content[i]);
+		if (tokens[i].content != "server")
+			throw unknown_block_type(tokens[i].line, tokens[i].content);
 		// find server {} blocks start and create server_block struct
-		else if (tokenized_content[i] == "server")
-			server_blocks.push_back(create_server_block(tokenized_content, i, line));
+		else if (tokens[i].content == "server")
+			server_blocks.push_back(create_server_block(tokens, i));
 	}
 	return (server_blocks);
 }
 
 // when a server {} block is encountered in config file, create a server_block struct and fill it with tokens
-Configuration::server_block	Configuration::create_server_block(std::vector<std::string> tokenized_content, size_t &i, size_t  &line) {
+Configuration::server_block	Configuration::create_server_block(std::vector<token> tokens, size_t &i) {
 	server_block	server_block;
 
-	is_valid_server_block(tokenized_content, i, line);
-	while (tokenized_content[++i] != "}") {
-		if (tokenized_content[i] == "methods")
-			throw unknown_directive(line, tokenized_content[i]);
-		validate_directive(tokenized_content, i, line);
-		verify_end_of_line(tokenized_content, i, line);
-		count_line(tokenized_content, i, line);
+	is_valid_server_block(tokens, i);
+	while (tokens[++i].content != "}") {
+		if (tokens[i].content == "methods")
+			throw unknown_directive(tokens[i].line, tokens[i].content);
+		validate_directive(tokens, i);
+		verify_end_of_line(tokens, i);
 		// find location {} blocks start and create location_block struct
-		if (tokenized_content[i] == "location")
-			server_block.location_blocks.push_back(create_location_block(tokenized_content, i, line));
-		if (tokenized_content[i] != "\\n" && tokenized_content[i] != "}")
-			server_block.tokens.push_back(tokenized_content[i]);
+		if (tokens[i].content == "location")
+			server_block.location_blocks.push_back(create_location_block(tokens, i));
+		if (tokens[i].content != "}")
+			server_block.tokens.push_back(tokens[i]);
 	}
 	return (server_block);
 }
 
 // verify if server {} block declaration is valid
-void	Configuration::is_valid_server_block(std::vector<std::string> tokenized_content, size_t &i, size_t &line) {
-	while (tokenized_content[++i] != "{") {
-		count_line(tokenized_content, i, line);
-		if (tokenized_content[i] != "\\n" || i == tokenized_content.size() - 1)
-			throw unexpected_token(line, tokenized_content[i]);
-	}
+void	Configuration::is_valid_server_block(std::vector<token> tokens, size_t &i) {
+	if (tokens[i + 1].content != "{")
+		throw unexpected_token(tokens[i].line, tokens[i].content);
 }
 
 // when a location {} block is encountered in a server {} block, create a location_block struct and fill it with tokens
-Configuration::location_block	Configuration::create_location_block(std::vector<std::string> tokenized_content, size_t &i, size_t &line) {
+Configuration::location_block	Configuration::create_location_block(std::vector<token> tokens, size_t &i) {
 	location_block	location_block;
 
-	is_valid_location_block(location_block, tokenized_content, i, line);
-	while (tokenized_content[++i] != "}") {
-		validate_directive(tokenized_content, i, line);
-		verify_end_of_line(tokenized_content, i, line);
-		count_line(tokenized_content, i, line);
-		if (tokenized_content[i] != "\\n")
-			location_block.tokens.push_back(tokenized_content[i]);
+	is_valid_location_block(location_block, tokens, i);
+	while (tokens[++i].content != "}") {
+		validate_directive(tokens, i);
+		verify_end_of_line(tokens, i);
+		if (tokens[i].content != "\\n")
+			location_block.tokens.push_back(tokens[i]);
 	}
 	return (location_block);
 }
 
 // verify if location {} block declaration is valid and fill the location_block path attribute
-void	Configuration::is_valid_location_block(Configuration::location_block &location_block, std::vector<std::string> tokenized_content, size_t &i, size_t &line) {
+void	Configuration::is_valid_location_block(Configuration::location_block &location_block, std::vector<token> tokens, size_t &i) {
 	struct stat	buffer;
 	int	path_found;
 
 	path_found = 0;
-	while (tokenized_content[++i] != "{") {
-		count_line(tokenized_content, i, line);
-		if (tokenized_content[i] != "\\n" && path_found)
-			throw unexpected_token(line, tokenized_content[i]);
-		else if (tokenized_content[i] != "\\n") {
-			if (stat(tokenized_content[i].c_str(), &buffer) != 0)
-				throw location_path_invalid(line, tokenized_content[i]);
-			location_block.path = tokenized_content[i];
+	while (tokens[++i].content != "{") {
+		if (tokens[i].content != "\\n" && path_found)
+			throw unexpected_token(tokens[i].line, tokens[i].content);
+		else if (tokens[i].content != "\\n") {
+			if (stat(tokens[i].content.c_str(), &buffer) != 0)
+				throw location_path_invalid(tokens[i].line, tokens[i].content);
+			location_block.path = tokens[i].content;
 			path_found = 1;
 		}
 	}
 }
 
-// verify directives synthax
-void	Configuration::validate_directive(std::vector<std::string> tokenized_content, size_t &i, size_t &line) {
+// verify directives synthax // segault*************************************************************************
+void	Configuration::validate_directive(std::vector<token> tokens, size_t &i) {
 	// verify if there is only one directive per line
-	if (tokenized_content[i] == ";")
-		if (tokenized_content[i + 1] != "\\n" && tokenized_content[i + 1] != "}")
-			throw multiple_directive_on_same_line(line, get_full_line(tokenized_content, i));
+	if (tokens[i].content == ";")
+		if (tokens[i + 1].content != "\\n" && tokens[i + 1].content != "}")
+			throw multiple_directive_on_same_line(tokens[i].line, get_full_line(tokens, i));
 	// verify if token is at directive position
-	if ((tokenized_content[i - 1] == "{" || tokenized_content[i - 1] == "\\n")
-		&& tokenized_content[i] != "{" && tokenized_content[i] != "\\n"
-		&& tokenized_content[i] != "location") {
+	if ((tokens[i - 1].content == "{" || tokens[i - 1].content == "\\n")
+		&& tokens[i].content != "{" && tokens[i].content != "\\n"
+		&& tokens[i].content != "location") {
 		// validate if directive is valid
-		if (directive_bank.find(tokenized_content[i]) == directive_bank.end())
-			throw unknown_directive(line, tokenized_content[i]);
+		if (directive_bank.find(tokens[i].content) == directive_bank.end())
+			throw unknown_directive(tokens[i].line, tokens[i].content);
 		else {
-			if (count_directive_args(tokenized_content, i) == 0)
-				throw no_directive_arg(line, tokenized_content[i]);
-			if (count_directive_args(tokenized_content, i) > directive_bank.find(tokenized_content[i])->second.second
-				&& directive_bank.find(tokenized_content[i])->second.second != -1)
-				throw to_many_directive_args(line, tokenized_content[i]);
-			if (count_directive_args(tokenized_content, i) < directive_bank.find(tokenized_content[i])->second.first)
-				throw not_enough_arguments_for_directive(line, tokenized_content[i]);
+			if (count_directive_args(tokens, i) == 0)
+				throw no_directive_arg(tokens[i].line, tokens[i].content);
+			if (count_directive_args(tokens, i) > directive_bank.find(tokens[i].content)->second.second
+				&& directive_bank.find(tokens[i].content)->second.second != -1)
+				throw to_many_directive_args(tokens[i].line, tokens[i].content);
+			if (count_directive_args(tokens, i) < directive_bank.find(tokens[i].content)->second.first)
+				throw not_enough_arguments_for_directive(tokens[i].line, tokens[i].content);
 		}
 	}
 }
 
 // count the number of arguments a directive has
-int	Configuration::count_directive_args(std::vector<std::string> tokens, size_t i) {
+int	Configuration::count_directive_args(std::vector<token> tokens, size_t i) {
 	int	nbr_arg;
 
 	nbr_arg = i + 1;
 	while (++i < tokens.size())
-		if (tokens[i] == ";")
+		if (tokens[i].content == ";")
 			break;
 	nbr_arg = i - nbr_arg;
 	return (nbr_arg);
 }
 
 // verify wether end of line is ';'
-void	Configuration::verify_end_of_line(std::vector<std::string> tokenized_content, size_t &i, size_t &line) {
-	if (tokenized_content[i] == "\\n"
-		&& tokenized_content[i - 1] != "{" && tokenized_content[i - 1] != "}"
-		&& tokenized_content[i- 1] != "\\n" && tokenized_content[i - 1] != ";") {
-		throw end_of_line(line, get_full_line(tokenized_content, i));
+void	Configuration::verify_end_of_line(std::vector<token> tokens, size_t &i) {
+	if (tokens[i].content == "\\n"
+		&& tokens[i - 1].content != "{" && tokens[i - 1].content != "}"
+		&& tokens[i- 1].content != "\\n" && tokens[i - 1].content != ";") {
+		throw end_of_line(tokens[i].line, get_full_line(tokens, i));
 	}
 }
 
-std::string	Configuration::get_full_line(std::vector<std::string> tokenized_content, size_t &i) {
+// get the full line in which a token is
+std::string	Configuration::get_full_line(std::vector<token> tokens, size_t &i) {
 	std::string	line;
+	size_t		initial_line_number;
 
+	initial_line_number = tokens[i].line;
 	i--;
-	while (tokenized_content[i] != "\\n")
+	while (tokens[i].line == initial_line_number)
 		i--;
-	while (tokenized_content[++i] != "\\n") {
-		line.insert(line.size(), tokenized_content[i]);
-		if (tokenized_content[i] != ";")
+	while (tokens[++i].line == initial_line_number) {
+		line.insert(line.size(), tokens[i].content);
+		if (tokens[i].content != ";")
 			line.push_back(' ');
 	}
 	line.pop_back();
 	return (line);
 }
 
-void	Configuration::count_line(std::vector<std::string> tokenized_content, size_t &i, size_t &line) {
-	if (tokenized_content[i] == "\\n")
-		line++;
-}
+// // for each server_block create a Server object, fill it's attributes while validating the format of directives arguments
+// Server	Configuration::create_server(server_block server_blocks) {
+// 	Server	server;
+// 	size_t	i;
 
-// for each server_block create a Server object, fill it's attributes while validating the format of directives arguments
-Server	Configuration::create_server(server_block server_blocks) {
-	Server	server;
-	size_t	i;
+// 	fill_server_attributes(server_blocks.tokens, server);
+// 	i = -1;
+// 	while (++i < server_blocks.location_blocks.size()) {
+// 		Server::Location location;
+// 		server.set_locations(std::make_pair(server_blocks.location_blocks[i].path, location));
+// 		fill_shared_attributes(server_blocks.location_blocks[i].tokens,
+// 		server.get_locations().find(server_blocks.location_blocks[i].path)->second);
+// 		fill_location_attributes(server_blocks.location_blocks[i].tokens,
+// 		server.get_locations().find(server_blocks.location_blocks[i].path)->second);
+// 	}
+// 	return (server);
+// }
 
-	fill_server_attributes(server_blocks.tokens, server);
-	i = -1;
-	while (++i < server_blocks.location_blocks.size()) {
-		Server::Location location;
-		server.set_locations(std::make_pair(server_blocks.location_blocks[i].path, location));
-		fill_shared_attributes(server_blocks.location_blocks[i].tokens,
-		server.get_locations().find(server_blocks.location_blocks[i].path)->second);
-		fill_location_attributes(server_blocks.location_blocks[i].tokens,
-		server.get_locations().find(server_blocks.location_blocks[i].path)->second);
-	}
-	return (server);
-}
+// void	Configuration::fill_server_attributes(std::vector<std::string> tokens, Server &server) {
+// 	(void) server;
+// 	std::vector<std::string>	arguments;
+// 	size_t	i;
 
-void	Configuration::fill_server_attributes(std::vector<std::string> tokens, Server &server) {
-	(void) server;
-	std::vector<std::string>	arguments;
-	size_t	i;
-
-	i = -1;
-	while (++i < tokens.size()) {
-		if (i == 0 || tokens[i - 1] == ";") {
-			arguments = get_arguments(tokens, i);
-			if (tokens[i] == "listen") {
-				validate_listen_argument_format(arguments);
-				// push in the appropriate server/location attribute
-			}
-			else if (tokens[i] == "server_name") {
+// 	i = -1;
+// 	while (++i < tokens.size()) {
+// 		if (i == 0 || tokens[i - 1] == ";") {
+// 			arguments = get_arguments(tokens, i);
+// 			if (tokens[i] == "listen") {
+// 				validate_listen_argument_format(arguments);
+// 				// push in the appropriate server/location attribute
+// 			}
+// 			else if (tokens[i] == "server_name") {
 				
-			}
-			arguments.clear();
-		}
-	}
-}
+// 			}
+// 			arguments.clear();
+// 		}
+// 	}
+// }
 
-// max port = 65535
-bool	Configuration::validate_listen_argument_format(std::vector<std::string> arguments) {
-	std::vector<std::string>	splitted_argument;
+// // max port = 65535
+// bool	Configuration::validate_listen_argument_format(std::vector<std::string> arguments) {
+// 	std::vector<std::string>	splitted_argument;
 
-	splitted_argument = split(arguments[0], ':');
-	if (!is_valid_ip_address(splitted_argument[0]))
-		;
-	if (splitted_argument.size() == 2)
-		;
-	return (true);
-}
+// 	splitted_argument = split(arguments[0], ':');
+// 	if (!is_valid_ip_address(splitted_argument[0]))
+// 		;
+// 	if (splitted_argument.size() == 2)
+// 		;
+// 	return (true);
+// }
 
-bool	Configuration::is_valid_ip_address(const std::string& ip_address) {
-	std::istringstream	ip(ip_address);
-	std::string			digit;
-	int					num;
-	int 				num_count;
+// bool	Configuration::is_valid_ip_address(const std::string& ip_address) {
+// 	std::istringstream	ip(ip_address);
+// 	std::string			digit;
+// 	int					num;
+// 	int 				num_count;
 
-	num_count = 0;
-	while (std::getline(ip, digit, '.')) {
-		num = 0;
-		std::istringstream	digit_stream(digit);
-		if (!(digit_stream >> num) || num < 0 || num > 255)
-			return (false);
-		num_count++;
-	}
-	return (num_count == 4);
-}
+// 	num_count = 0;
+// 	while (std::getline(ip, digit, '.')) {
+// 		num = 0;
+// 		std::istringstream	digit_stream(digit);
+// 		if (!(digit_stream >> num) || num < 0 || num > 255)
+// 			return (false);
+// 		num_count++;
+// 	}
+// 	return (num_count == 4);
+// }
 
+// template <typename T>
+// void	Configuration::fill_shared_attributes(std::vector<std::string> tokens, T &obj) {
+// 	(void)	obj;
+// 	std::vector<std::string>	arguments;
+// 	size_t	i;
 
-template <typename T>
-void	Configuration::fill_shared_attributes(std::vector<std::string> tokens, T &obj) {
-	(void)	obj;
-	std::vector<std::string>	arguments;
-	size_t	i;
+// 	i = -1;
+// 	while (++i < tokens.size()) {
+// 		if (i == 0 || tokens[i - 1] == ";") {
+// 			arguments = get_arguments(tokens, i);
+// 			if (tokens[i] == "root") {
 
-	i = -1;
-	while (++i < tokens.size()) {
-		if (i == 0 || tokens[i - 1] == ";") {
-			arguments = get_arguments(tokens, i);
-			if (tokens[i] == "root") {
+// 			}
+// 			else if (tokens[i] == "index") {
 
-			}
-			else if (tokens[i] == "index") {
+// 			}
+// 			else if (tokens[i] == "autoindex") {
 
-			}
-			else if (tokens[i] == "autoindex") {
+// 			}
+// 			else if (tokens[i] == "redirection") {
 
-			}
-			else if (tokens[i] == "redirection") {
+// 			}
+// 			else if (tokens[i] == "try_files") {
 
-			}
-			else if (tokens[i] == "try_files") {
+// 			}
+// 			else if (tokens[i] == "error_pages") {
 
-			}
-			else if (tokens[i] == "error_pages") {
+// 			}
+// 			else if (tokens[i] == "client_max_body_size") {
 
-			}
-			else if (tokens[i] == "client_max_body_size") {
+// 			}
+// 			arguments.clear();
+// 		}
+// 	}
+// }
 
-			}
-			arguments.clear();
-		}
-	}
-}
+// void	Configuration::fill_location_attributes(std::vector<std::string> tokens, Server::Location &location) {
+// 	(void)	location;
+// 	std::vector<std::string>	arguments;
+// 	size_t	i;
 
-void	Configuration::fill_location_attributes(std::vector<std::string> tokens, Server::Location &location) {
-	(void)	location;
-	std::vector<std::string>	arguments;
-	size_t	i;
-
-	i = -1;
-	while (++i < tokens.size()) {
-		if (i == 0 || tokens[i - 1] == ";") {
-			arguments = get_arguments(tokens, i);
-			if (tokens[i] == "methods") {
+// 	i = -1;
+// 	while (++i < tokens.size()) {
+// 		if (i == 0 || tokens[i - 1] == ";") {
+// 			arguments = get_arguments(tokens, i);
+// 			if (tokens[i] == "methods") {
 				
-			}
-			arguments.clear();
-		}
-	}
-}
+// 			}
+// 			arguments.clear();
+// 		}
+// 	}
+// }
 
-std::vector<std::string>	Configuration::get_arguments(std::vector<std::string> tokens, size_t i) {
-	std::vector<std::string>	arguments;
+// std::vector<std::string>	Configuration::get_arguments(std::vector<std::string> tokens, size_t i) {
+// 	std::vector<std::string>	arguments;
 
-	while (tokens[++i] != ";")
-		arguments.push_back(tokens[i]);
-	return (arguments);
-}
+// 	while (tokens[++i] != ";")
+// 		arguments.push_back(tokens[i]);
+// 	return (arguments);
+// }
 
-std::vector<std::string>	Configuration::split(const std::string &s, char delimiter) {
-    std::vector<std::string> elements;
-    std::stringstream ss(s);
-    std::string element;
+// std::vector<std::string>	Configuration::split(std::string s, char delimiter) {
+//     std::vector<std::string> elements;
+//     std::stringstream ss(s);
+//     std::string element;
 
-    while (std::getline(ss, element, delimiter))
-        elements.push_back(element);
+//     while (std::getline(ss, element, delimiter))
+//         elements.push_back(element);
 
-    return (elements);
-}
+//     return (elements);
+// }
