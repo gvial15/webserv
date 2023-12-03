@@ -324,14 +324,21 @@ Server	Configuration::create_server(server_block server_blocks) {
 
 void	Configuration::fill_server_attributes(std::vector<token> tokens, Server &server) {
 	(void) server;
-	size_t	i;
+	size_t						i;
+	std::vector<std::string>	arguments;
 
 	i = -1;
 	while (++i < tokens.size()) {
 		if (i == 0 || tokens[i - 1].content == ";" || tokens[i - 1].content == "{") {
+			arguments = get_arguments(tokens, i);
 			if (tokens[i].content == "listen") {
-				validate_listen_arguments(tokens, i);
-				// push in the appropriate server/location attribute
+				validate_listen_arguments(tokens, i, arguments);
+				if (arguments.size() == 2) {
+					server.set_ip(arguments[0]);
+					server.set_port(std::stoi(arguments[1]));
+				}
+				else
+					server.set_port(std::stoi(arguments[0]));
 			}
 			else if (tokens[i].content == "server_name") {
 				
@@ -340,11 +347,9 @@ void	Configuration::fill_server_attributes(std::vector<token> tokens, Server &se
 	}
 }
 
-bool	Configuration::validate_listen_arguments(std::vector<token> tokens, size_t i) {
-	std::vector<std::string>	arguments;
+void	Configuration::validate_listen_arguments(std::vector<token> tokens, size_t i, std::vector<std::string> arguments) {
 	std::vector<std::string>	splitted_argument;
 
-	arguments = get_arguments(tokens, i);
 	splitted_argument = split(arguments[0], ':');
 	if (splitted_argument.size() == 2) {
 		if (!is_valid_ip(splitted_argument[0]))
@@ -360,7 +365,6 @@ bool	Configuration::validate_listen_arguments(std::vector<token> tokens, size_t 
 		if (std::stoi(splitted_argument[0]) < 0 || std::stoi(splitted_argument[0]) > 65535)
 			throw invalid_port(tokens[i].line, splitted_argument[0]);
 	}
-	return (true);
 }
 
 bool	Configuration::is_valid_ip(const std::string& ip_address) {
