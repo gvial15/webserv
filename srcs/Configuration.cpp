@@ -119,20 +119,20 @@ void	Configuration::parse(std::ifstream& config_file) {
 
 	space_out_symbols(file_content);
 	tokens = tokenize(file_content);
-	size_t	i;
-	i = -1;
-	while (++i < tokens.size())
-		std::cout << tokens[i].line << " " << tokens[i].content << "\n";
-	std::cout << "\n\n";
+	// size_t	i;
+	// i = -1;
+	// while (++i < tokens.size())
+	// 	std::cout << tokens[i].line << " " << tokens[i].content << "\n";
+	// std::cout << "\n\n";
 	server_blocks = parse_server_blocks(tokens);
 	if (server_blocks.empty())
 		throw no_server_blocks();
 	print_server_blocks(server_blocks);
-	// size_t	i;
-	// i = -1;
-	// while (++i < server_blocks.size())
-	// 	servers.push_back(create_server(server_blocks[i]));
-	// print_servers(servers);
+	size_t	i;
+	i = -1;
+	while (++i < server_blocks.size())
+		servers.push_back(create_server(server_blocks[i]));
+	print_servers(servers);
 }
 
 // space out special symbols } { ; \n
@@ -322,142 +322,142 @@ std::string	Configuration::get_full_line(std::vector<token> tokens, size_t &i) {
 	return (line);
 }
 
-// // for each server_block create a Server object, fill it's attributes while validating the format of directives arguments
-// Server	Configuration::create_server(server_block server_blocks) {
-// 	Server	server;
-// 	size_t	i;
+// for each server_block create a Server object, fill it's attributes while validating the format of directives arguments
+Server	Configuration::create_server(server_block server_blocks) {
+	Server	server;
+	size_t	i;
 
-// 	fill_server_attributes(server_blocks.tokens, server);
-// 	i = -1;
-// 	while (++i < server_blocks.location_blocks.size()) {
-// 		Server::Location location;
-// 		server.set_locations(std::make_pair(server_blocks.location_blocks[i].path, location));
-// 		fill_shared_attributes(server_blocks.location_blocks[i].tokens,
-// 		server.get_locations().find(server_blocks.location_blocks[i].path)->second);
-// 		fill_location_attributes(server_blocks.location_blocks[i].tokens,
-// 		server.get_locations().find(server_blocks.location_blocks[i].path)->second);
-// 	}
-// 	return (server);
-// }
+	fill_server_attributes(server_blocks.tokens, server);
+	i = -1;
+	while (++i < server_blocks.location_blocks.size()) {
+		Server::Location location;
+		server.set_locations(std::make_pair(server_blocks.location_blocks[i].path, location));
+		fill_shared_attributes(server_blocks.location_blocks[i].tokens,
+		server.get_locations().find(server_blocks.location_blocks[i].path)->second);
+		fill_location_attributes(server_blocks.location_blocks[i].tokens,
+		server.get_locations().find(server_blocks.location_blocks[i].path)->second);
+	}
+	return (server);
+}
 
-// void	Configuration::fill_server_attributes(std::vector<std::string> tokens, Server &server) {
-// 	(void) server;
-// 	std::vector<std::string>	arguments;
-// 	size_t	i;
+void	Configuration::fill_server_attributes(std::vector<token> tokens, Server &server) {
+	(void) server;
+	std::vector<std::string>	arguments;
+	size_t	i;
 
-// 	i = -1;
-// 	while (++i < tokens.size()) {
-// 		if (i == 0 || tokens[i - 1] == ";") {
-// 			arguments = get_arguments(tokens, i);
-// 			if (tokens[i] == "listen") {
-// 				validate_listen_argument_format(arguments);
-// 				// push in the appropriate server/location attribute
-// 			}
-// 			else if (tokens[i] == "server_name") {
+	i = -1;
+	while (++i < tokens.size()) {
+		if (i == 0 || tokens[i - 1].content == ";") {
+			arguments = get_arguments(tokens, i);
+			if (tokens[i].content == "listen") {
+				validate_listen_argument_format(arguments);
+				// push in the appropriate server/location attribute
+			}
+			else if (tokens[i].content == "server_name") {
 				
-// 			}
-// 			arguments.clear();
-// 		}
-// 	}
-// }
+			}
+			arguments.clear();
+		}
+	}
+}
 
-// // max port = 65535
-// bool	Configuration::validate_listen_argument_format(std::vector<std::string> arguments) {
-// 	std::vector<std::string>	splitted_argument;
+// max port = 65535
+bool	Configuration::validate_listen_argument_format(std::vector<std::string> arguments) {
+	std::vector<std::string>	splitted_argument;
 
-// 	splitted_argument = split(arguments[0], ':');
-// 	if (!is_valid_ip_address(splitted_argument[0]))
-// 		;
-// 	if (splitted_argument.size() == 2)
-// 		;
-// 	return (true);
-// }
+	splitted_argument = split(arguments[0], ':');
+	if (!is_valid_ip_address(splitted_argument[0]))
+		;
+	if (splitted_argument.size() == 2)
+		;
+	return (true);
+}
 
-// bool	Configuration::is_valid_ip_address(const std::string& ip_address) {
-// 	std::istringstream	ip(ip_address);
-// 	std::string			digit;
-// 	int					num;
-// 	int 				num_count;
+bool	Configuration::is_valid_ip_address(const std::string& ip_address) {
+	std::istringstream	ip(ip_address);
+	std::string			digit;
+	int					num;
+	int 				num_count;
 
-// 	num_count = 0;
-// 	while (std::getline(ip, digit, '.')) {
-// 		num = 0;
-// 		std::istringstream	digit_stream(digit);
-// 		if (!(digit_stream >> num) || num < 0 || num > 255)
-// 			return (false);
-// 		num_count++;
-// 	}
-// 	return (num_count == 4);
-// }
+	num_count = 0;
+	while (std::getline(ip, digit, '.')) {
+		num = 0;
+		std::istringstream	digit_stream(digit);
+		if (!(digit_stream >> num) || num < 0 || num > 255)
+			return (false);
+		num_count++;
+	}
+	return (num_count == 4);
+}
 
-// template <typename T>
-// void	Configuration::fill_shared_attributes(std::vector<std::string> tokens, T &obj) {
-// 	(void)	obj;
-// 	std::vector<std::string>	arguments;
-// 	size_t	i;
+template <typename T>
+void	Configuration::fill_shared_attributes(std::vector<token> tokens, T &obj) {
+	(void)	obj;
+	std::vector<std::string>	arguments;
+	size_t	i;
 
-// 	i = -1;
-// 	while (++i < tokens.size()) {
-// 		if (i == 0 || tokens[i - 1] == ";") {
-// 			arguments = get_arguments(tokens, i);
-// 			if (tokens[i] == "root") {
+	i = -1;
+	while (++i < tokens.size()) {
+		if (i == 0 || tokens[i - 1].content == ";") {
+			arguments = get_arguments(tokens, i);
+			if (tokens[i].content == "root") {
 
-// 			}
-// 			else if (tokens[i] == "index") {
+			}
+			else if (tokens[i].content == "index") {
 
-// 			}
-// 			else if (tokens[i] == "autoindex") {
+			}
+			else if (tokens[i].content == "autoindex") {
 
-// 			}
-// 			else if (tokens[i] == "redirection") {
+			}
+			else if (tokens[i].content == "redirection") {
 
-// 			}
-// 			else if (tokens[i] == "try_files") {
+			}
+			else if (tokens[i].content == "try_files") {
 
-// 			}
-// 			else if (tokens[i] == "error_pages") {
+			}
+			else if (tokens[i].content == "error_pages") {
 
-// 			}
-// 			else if (tokens[i] == "client_max_body_size") {
+			}
+			else if (tokens[i].content == "client_max_body_size") {
 
-// 			}
-// 			arguments.clear();
-// 		}
-// 	}
-// }
+			}
+			arguments.clear();
+		}
+	}
+}
 
-// void	Configuration::fill_location_attributes(std::vector<std::string> tokens, Server::Location &location) {
-// 	(void)	location;
-// 	std::vector<std::string>	arguments;
-// 	size_t	i;
+void	Configuration::fill_location_attributes(std::vector<token> tokens, Server::Location &location) {
+	(void)	location;
+	std::vector<std::string>	arguments;
+	size_t	i;
 
-// 	i = -1;
-// 	while (++i < tokens.size()) {
-// 		if (i == 0 || tokens[i - 1] == ";") {
-// 			arguments = get_arguments(tokens, i);
-// 			if (tokens[i] == "methods") {
+	i = -1;
+	while (++i < tokens.size()) {
+		if (i == 0 || tokens[i - 1].content == ";") {
+			arguments = get_arguments(tokens, i);
+			if (tokens[i].content == "methods") {
 				
-// 			}
-// 			arguments.clear();
-// 		}
-// 	}
-// }
+			}
+			arguments.clear();
+		}
+	}
+}
 
-// std::vector<std::string>	Configuration::get_arguments(std::vector<std::string> tokens, size_t i) {
-// 	std::vector<std::string>	arguments;
+std::vector<std::string>	Configuration::get_arguments(std::vector<token> tokens, size_t i) {
+	std::vector<std::string>	arguments;
 
-// 	while (tokens[++i] != ";")
-// 		arguments.push_back(tokens[i]);
-// 	return (arguments);
-// }
+	while (tokens[++i].content != ";")
+		arguments.push_back(tokens[i].content);
+	return (arguments);
+}
 
-// std::vector<std::string>	Configuration::split(std::string s, char delimiter) {
-//     std::vector<std::string> elements;
-//     std::stringstream ss(s);
-//     std::string element;
+std::vector<std::string>	Configuration::split(std::string s, char delimiter) {
+    std::vector<std::string> elements;
+    std::stringstream ss(s);
+    std::string element;
 
-//     while (std::getline(ss, element, delimiter))
-//         elements.push_back(element);
+    while (std::getline(ss, element, delimiter))
+        elements.push_back(element);
 
-//     return (elements);
-// }
+    return (elements);
+}
