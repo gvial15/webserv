@@ -111,6 +111,9 @@ void Configuration::print_servers(const std::vector<Server>& servers) {
 	}
 }
 
+//	***********COMMIT****************
+//	added Configuration::tokens struct and changed tokens container from a std::vector<std::string> to a std::vector<Configuration::tokens> for clearer, more efficient parsing
+
 // *** parsing ***
 void	Configuration::parse(std::ifstream& config_file) {
 	std::string					file_content((std::istreambuf_iterator<char>(config_file)), std::istreambuf_iterator<char>());
@@ -121,14 +124,14 @@ void	Configuration::parse(std::ifstream& config_file) {
 	tokens = tokenize(file_content);
 	size_t	i;
 	i = -1;
-	while (++i < tokens.size()) {
+	while (++i < tokens.size())
 		std::cout << tokens[i].line << " " << tokens[i].content << "\n";
-	}
+	std::cout << "\n\n";
 	server_blocks = parse_server_blocks(tokens);
 	if (server_blocks.empty())
 		throw no_server_blocks();
 	print_server_blocks(server_blocks);
-	// size_t						i;
+	// size_t	i;
 	// i = -1;
 	// while (++i < server_blocks.size())
 	// 	servers.push_back(create_server(server_blocks[i]));
@@ -191,8 +194,7 @@ std::vector<Configuration::token>	Configuration::tokenize(std::string spaced_out
 	return (tokens);
 }
 
-// loop throught tokens, for each server {} blocks create a server_block struct with its nested location_blocks
-// while validating the synthax
+// loop throught tokens, for each server {} blocks create a server_block struct
 std::vector<Configuration::server_block>	Configuration::parse_server_blocks(std::vector<token> tokens) {
 	std::vector<server_block>	server_blocks;
 	size_t						i;
@@ -209,7 +211,7 @@ std::vector<Configuration::server_block>	Configuration::parse_server_blocks(std:
 	return (server_blocks);
 }
 
-// when a server {} block is encountered in config file, create a server_block struct and fill it with tokens
+// create a server_block struct while validating the synthax
 Configuration::server_block	Configuration::create_server_block(std::vector<token> tokens, size_t &i) {
 	server_block	server_block;
 
@@ -217,13 +219,12 @@ Configuration::server_block	Configuration::create_server_block(std::vector<token
 	while (tokens[++i].content != "}") {
 		if (tokens[i].content == "methods")
 			throw unknown_directive(tokens[i].line, tokens[i].content);
-		validate_directive(tokens, i);
 		verify_end_of_line(tokens, i);
+		validate_directive(tokens, i);
 		// find location {} blocks start and create location_block struct
 		if (tokens[i].content == "location")
 			server_block.location_blocks.push_back(create_location_block(tokens, i));
-		if (tokens[i].content != "}")
-			server_block.tokens.push_back(tokens[i]);
+		server_block.tokens.push_back(tokens[i]);
 	}
 	return (server_block);
 }
@@ -240,10 +241,9 @@ Configuration::location_block	Configuration::create_location_block(std::vector<t
 
 	is_valid_location_block(location_block, tokens, i);
 	while (tokens[++i].content != "}") {
-		validate_directive(tokens, i);
 		verify_end_of_line(tokens, i);
-		if (tokens[i].content != "\\n")
-			location_block.tokens.push_back(tokens[i]);
+		validate_directive(tokens, i);
+		location_block.tokens.push_back(tokens[i]);
 	}
 	return (location_block);
 }
@@ -255,26 +255,24 @@ void	Configuration::is_valid_location_block(Configuration::location_block &locat
 
 	path_found = 0;
 	while (tokens[++i].content != "{") {
-		if (tokens[i].content != "\\n" && path_found)
+		if (path_found)
 			throw unexpected_token(tokens[i].line, tokens[i].content);
-		else if (tokens[i].content != "\\n") {
-			if (stat(tokens[i].content.c_str(), &buffer) != 0)
-				throw location_path_invalid(tokens[i].line, tokens[i].content);
-			location_block.path = tokens[i].content;
-			path_found = 1;
-		}
+		if (stat(tokens[i].content.c_str(), &buffer) != 0)
+			throw location_path_invalid(tokens[i].line, tokens[i].content);
+		path_found = 1;
+		location_block.path = tokens[i].content;
 	}
+	if (!path_found)
+		throw no_location_path(tokens[i].line, get_full_line(tokens, i));
 }
 
-// verify directives synthax // segault*************************************************************************
+// verify directives synthax
 void	Configuration::validate_directive(std::vector<token> tokens, size_t &i) {
 	// verify if there is only one directive per line
-	if (tokens[i].content == ";")
-		if (tokens[i + 1].content != "\\n" && tokens[i + 1].content != "}")
-			throw multiple_directive_on_same_line(tokens[i].line, get_full_line(tokens, i));
+	if (tokens[i].content == ";" && tokens[i + 1].line == tokens[i].line && tokens[i + 1].content != "}")
+		throw multiple_directive_on_same_line(tokens[i].line, get_full_line(tokens, i));
 	// verify if token is at directive position
-	if ((tokens[i - 1].content == "{" || tokens[i - 1].content == "\\n")
-		&& tokens[i].content != "{" && tokens[i].content != "\\n"
+	if ((tokens[i - 1].content == "{" || tokens[i - 1].content == ";")
 		&& tokens[i].content != "location") {
 		// validate if directive is valid
 		if (directive_bank.find(tokens[i].content) == directive_bank.end())
@@ -297,7 +295,7 @@ int	Configuration::count_directive_args(std::vector<token> tokens, size_t i) {
 
 	nbr_arg = i + 1;
 	while (++i < tokens.size())
-		if (tokens[i].content == ";")
+		if (tokens[i].content == ";" || tokens[i].line != tokens[i - 1].line)
 			break;
 	nbr_arg = i - nbr_arg;
 	return (nbr_arg);
@@ -305,11 +303,8 @@ int	Configuration::count_directive_args(std::vector<token> tokens, size_t i) {
 
 // verify wether end of line is ';'
 void	Configuration::verify_end_of_line(std::vector<token> tokens, size_t &i) {
-	if (tokens[i].content == "\\n"
-		&& tokens[i - 1].content != "{" && tokens[i - 1].content != "}"
-		&& tokens[i- 1].content != "\\n" && tokens[i - 1].content != ";") {
+	if (tokens[i].line != tokens[i + 1].line && tokens[i].content != "{" && tokens[i].content != ";")
 		throw end_of_line(tokens[i].line, get_full_line(tokens, i));
-	}
 }
 
 // get the full line in which a token is
@@ -323,10 +318,10 @@ std::string	Configuration::get_full_line(std::vector<token> tokens, size_t &i) {
 		i--;
 	while (tokens[++i].line == initial_line_number) {
 		line.insert(line.size(), tokens[i].content);
-		if (tokens[i].content != ";")
+		if (tokens[i].line == tokens[i + 1].line)
 			line.push_back(' ');
 	}
-	line.pop_back();
+	std::cout << line << "\n";
 	return (line);
 }
 

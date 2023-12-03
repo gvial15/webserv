@@ -121,7 +121,7 @@ class Configuration {
 		class end_of_line : public parsing_exception {
 		public:
 			end_of_line(const size_t line, const std::string& token)
-				: parsing_exception("Directive must finish with semicolon", line, token) {}
+				: parsing_exception("Line must finish with semicolon", line, token) {}
 		};
 
 		class multiple_directive_on_same_line : public parsing_exception {
@@ -134,6 +134,12 @@ class Configuration {
 		public:
 			location_path_invalid(const size_t line, const std::string& token)
 				: parsing_exception("Location path invalid", line, token) {}
+		};
+
+		class no_location_path : public parsing_exception {
+		public:
+			no_location_path(const size_t line, const std::string& token)
+				: parsing_exception("No path for location", line, token) {}
 		};
 
 		class no_directive_arg : public parsing_exception {
