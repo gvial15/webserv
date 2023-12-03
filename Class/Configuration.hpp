@@ -68,9 +68,10 @@ class Configuration {
 		template <typename T> void	fill_shared_attributes(std::vector<token> server_block_tokens, T &obj);
 		void						fill_location_attributes(std::vector<token> server_block_tokens, Server::Location &location);
 		std::vector<std::string>	get_arguments(std::vector<token> tokens, size_t i);
-		bool						validate_listen_argument_format(std::vector<std::string> arguments);
-		bool						is_valid_ip_address(const std::string& ip_address);
+		bool						validate_listen_arguments(std::vector<token> tokens, size_t i);
+		bool						is_valid_ip(const std::string& ip_address);
 		std::vector<std::string>	split(std::string s, char delimiter);
+		bool 						is_integer(const std::string& str);
 
 
 		// private attributes
@@ -158,6 +159,18 @@ class Configuration {
 		public:
 			not_enough_arguments_for_directive(const size_t line, const std::string& token)
 				: parsing_exception("Not enough arguments for directive", line, token) {}
+		};
+
+		class invalid_ip : public parsing_exception {
+		public:
+			invalid_ip(const size_t line, const std::string& token)
+				: parsing_exception("Invalid IP address", line, token) {}
+		};
+
+		class invalid_port : public parsing_exception {
+		public:
+			invalid_port(const size_t line, const std::string& token)
+				: parsing_exception("Invalid port", line, token) {}
 		};
 
 		class unable_to_open_file : public std::exception {

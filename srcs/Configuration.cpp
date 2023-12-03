@@ -127,12 +127,12 @@ void	Configuration::parse(std::ifstream& config_file) {
 	server_blocks = parse_server_blocks(tokens);
 	if (server_blocks.empty())
 		throw no_server_blocks();
-	print_server_blocks(server_blocks);
+	// print_server_blocks(server_blocks);
 	size_t	i;
 	i = -1;
 	while (++i < server_blocks.size())
 		servers.push_back(create_server(server_blocks[i]));
-	print_servers(servers);
+	// print_servers(servers);
 }
 
 // space out special symbols } { ; \n
@@ -304,24 +304,6 @@ void	Configuration::verify_end_of_line(std::vector<token> tokens, size_t &i) {
 		throw end_of_line(tokens[i].line, get_full_line(tokens, i));
 }
 
-// get the full line in which a token is
-std::string	Configuration::get_full_line(std::vector<token> tokens, size_t &i) {
-	std::string	line;
-	size_t		initial_line_number;
-
-	initial_line_number = tokens[i].line;
-	i--;
-	while (tokens[i].line == initial_line_number)
-		i--;
-	while (tokens[++i].line == initial_line_number) {
-		line.insert(line.size(), tokens[i].content);
-		if (tokens[i].line == tokens[i + 1].line)
-			line.push_back(' ');
-	}
-	std::cout << line << "\n";
-	return (line);
-}
-
 // for each server_block create a Server object, fill it's attributes while validating the format of directives arguments
 Server	Configuration::create_server(server_block server_blocks) {
 	Server	server;
@@ -342,38 +324,46 @@ Server	Configuration::create_server(server_block server_blocks) {
 
 void	Configuration::fill_server_attributes(std::vector<token> tokens, Server &server) {
 	(void) server;
-	std::vector<std::string>	arguments;
 	size_t	i;
 
 	i = -1;
 	while (++i < tokens.size()) {
-		if (i == 0 || tokens[i - 1].content == ";") {
-			arguments = get_arguments(tokens, i);
+		if (i == 0 || tokens[i - 1].content == ";" || tokens[i - 1].content == "{") {
 			if (tokens[i].content == "listen") {
-				validate_listen_argument_format(arguments);
+				validate_listen_arguments(tokens, i);
 				// push in the appropriate server/location attribute
 			}
 			else if (tokens[i].content == "server_name") {
 				
 			}
-			arguments.clear();
 		}
 	}
 }
 
-// max port = 65535
-bool	Configuration::validate_listen_argument_format(std::vector<std::string> arguments) {
+bool	Configuration::validate_listen_arguments(std::vector<token> tokens, size_t i) {
+	std::vector<std::string>	arguments;
 	std::vector<std::string>	splitted_argument;
 
+	arguments = get_arguments(tokens, i);
 	splitted_argument = split(arguments[0], ':');
-	if (!is_valid_ip_address(splitted_argument[0]))
-		;
-	if (splitted_argument.size() == 2)
-		;
+	if (splitted_argument.size() == 2) {
+		if (!is_valid_ip(splitted_argument[0]))
+			throw invalid_ip(tokens[i].line, splitted_argument[0]);
+		if (!is_integer(splitted_argument[1]))
+			throw invalid_port(tokens[i].line, splitted_argument[1]);
+		if (std::stoi(splitted_argument[1]) < 0 || std::stoi(splitted_argument[1]) > 65535)
+			throw invalid_port(tokens[i].line, splitted_argument[1]);
+	}
+	else {
+		if (!is_integer(splitted_argument[0]))
+			throw invalid_port(tokens[i].line, splitted_argument[0]);
+		if (std::stoi(splitted_argument[0]) < 0 || std::stoi(splitted_argument[0]) > 65535)
+			throw invalid_port(tokens[i].line, splitted_argument[0]);
+	}
 	return (true);
 }
 
-bool	Configuration::is_valid_ip_address(const std::string& ip_address) {
+bool	Configuration::is_valid_ip(const std::string& ip_address) {
 	std::istringstream	ip(ip_address);
 	std::string			digit;
 	int					num;
@@ -443,6 +433,24 @@ void	Configuration::fill_location_attributes(std::vector<token> tokens, Server::
 	}
 }
 
+// get the full line in which a token is
+std::string	Configuration::get_full_line(std::vector<token> tokens, size_t &i) {
+	std::string	line;
+	size_t		initial_line_number;
+
+	initial_line_number = tokens[i].line;
+	i--;
+	while (tokens[i].line == initial_line_number)
+		i--;
+	while (tokens[++i].line == initial_line_number) {
+		line.insert(line.size(), tokens[i].content);
+		if (tokens[i].line == tokens[i + 1].line && tokens[i + 1].content != ";")
+			line.push_back(' ');
+	}
+	std::cout << line << "\n";
+	return (line);
+}
+
 std::vector<std::string>	Configuration::get_arguments(std::vector<token> tokens, size_t i) {
 	std::vector<std::string>	arguments;
 
@@ -460,4 +468,11 @@ std::vector<std::string>	Configuration::split(std::string s, char delimiter) {
         elements.push_back(element);
 
     return (elements);
+}
+
+bool Configuration::is_integer(const std::string& str) {
+    std::istringstream ss(str);
+    int num;
+    ss >> num;
+    return !ss.fail() && ss.eof();
 }
