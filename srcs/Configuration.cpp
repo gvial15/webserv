@@ -132,7 +132,7 @@ void	Configuration::parse(std::ifstream& config_file) {
 	i = -1;
 	while (++i < server_blocks.size())
 		servers.push_back(create_server(server_blocks[i]));
-	// print_servers(servers);
+	print_servers(servers);
 }
 
 // space out special symbols } { ; \n
@@ -326,6 +326,7 @@ void	Configuration::fill_server_attributes(std::vector<token> tokens, Server &se
 	(void) server;
 	size_t						i;
 	std::vector<std::string>	arguments;
+	std::vector<std::string>	split_arg;
 
 	i = -1;
 	while (++i < tokens.size()) {
@@ -333,12 +334,13 @@ void	Configuration::fill_server_attributes(std::vector<token> tokens, Server &se
 			arguments = get_arguments(tokens, i);
 			if (tokens[i].content == "listen") {
 				validate_listen_arguments(tokens, i, arguments);
-				if (arguments.size() == 2) {
-					server.set_ip(arguments[0]);
-					server.set_port(std::stoi(arguments[1]));
+				split_arg = split(arguments[0], ':');
+				if (split_arg.size() == 2) {
+					server.set_ip(split_arg[0]);
+					server.set_port(std::stoi(split_arg[1]));
 				}
 				else
-					server.set_port(std::stoi(arguments[0]));
+					server.set_port(std::stoi(split_arg[0]));
 			}
 			else if (tokens[i].content == "server_name") {
 				
@@ -348,22 +350,22 @@ void	Configuration::fill_server_attributes(std::vector<token> tokens, Server &se
 }
 
 void	Configuration::validate_listen_arguments(std::vector<token> tokens, size_t i, std::vector<std::string> arguments) {
-	std::vector<std::string>	splitted_argument;
+	std::vector<std::string>	split_arg;
 
-	splitted_argument = split(arguments[0], ':');
-	if (splitted_argument.size() == 2) {
-		if (!is_valid_ip(splitted_argument[0]))
-			throw invalid_ip(tokens[i].line, splitted_argument[0]);
-		if (!is_integer(splitted_argument[1]))
-			throw invalid_port(tokens[i].line, splitted_argument[1]);
-		if (std::stoi(splitted_argument[1]) < 0 || std::stoi(splitted_argument[1]) > 65535)
-			throw invalid_port(tokens[i].line, splitted_argument[1]);
+	split_arg = split(arguments[0], ':');
+	if (split_arg.size() == 2) {
+		if (!is_valid_ip(split_arg[0]))
+			throw invalid_ip(tokens[i].line, split_arg[0]);
+		if (!is_integer(split_arg[1]))
+			throw invalid_port(tokens[i].line, split_arg[1]);
+		if (std::stoi(split_arg[1]) < 0 || std::stoi(split_arg[1]) > 65535)
+			throw invalid_port(tokens[i].line, split_arg[1]);
 	}
 	else {
-		if (!is_integer(splitted_argument[0]))
-			throw invalid_port(tokens[i].line, splitted_argument[0]);
-		if (std::stoi(splitted_argument[0]) < 0 || std::stoi(splitted_argument[0]) > 65535)
-			throw invalid_port(tokens[i].line, splitted_argument[0]);
+		if (!is_integer(split_arg[0]))
+			throw invalid_port(tokens[i].line, split_arg[0]);
+		if (std::stoi(split_arg[0]) < 0 || std::stoi(split_arg[0]) > 65535)
+			throw invalid_port(tokens[i].line, split_arg[0]);
 	}
 }
 
