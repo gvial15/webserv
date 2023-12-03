@@ -111,9 +111,6 @@ void Configuration::print_servers(const std::vector<Server>& servers) {
 	}
 }
 
-//	***********COMMIT****************
-//	added Configuration::tokens struct and changed tokens container from a std::vector<std::string> to a std::vector<Configuration::tokens> for clearer, more efficient parsing
-
 // *** parsing ***
 void	Configuration::parse(std::ifstream& config_file) {
 	std::string					file_content((std::istreambuf_iterator<char>(config_file)), std::istreambuf_iterator<char>());
