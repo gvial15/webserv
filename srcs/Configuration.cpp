@@ -67,6 +67,7 @@ void Configuration::print_server_blocks(const std::vector<server_block>& servers
 		++i;
 	}
 }
+
 // ***servers testing
 template <typename C>
 void	print_shared_attributes(const C &obj) {
@@ -86,6 +87,7 @@ void	print_shared_attributes(const C &obj) {
 		std::cout << "error_pages: " << it->first << " " << it->second << "\n";
 	std::cout << "client_max_body_size: " << obj.get_client_max_body_size() << "\n";
 }
+
 void Configuration::print_servers(const std::vector<Server>& servers) {
 	size_t	i;
 	size_t	ii;
@@ -97,15 +99,20 @@ void Configuration::print_servers(const std::vector<Server>& servers) {
 		std::cout << "\nServer:\n";
 		std::cout << "port: " << servers[i].get_port() << "\n";
 		std::cout << "ip: " << servers[i].get_ip() << "\n";
-		std::cout << "server_name: " << servers[i].get_server_names()[0] << "\n";
+		std::cout << "server_name: ";
+		for (int s = 0; s < servers[i].get_server_names().size(); ++s)
+			std::cout << servers[i].get_server_names()[s] << " ";
+		std::cout << "\n";
 		print_shared_attributes(servers[i]);
 		locations = servers[i].get_locations();
 		for (it = locations.begin(); it != locations.end(); ++it) {
 			std::cout << "\nLocation:\n";
 			print_shared_attributes(it->second);
+			std::cout << "methods: ";
 			ii = -1;
 			while (++ii < it->second.get_methods().size())
-				std::cout << "methods: " << it->second.get_methods()[ii] << "\n";
+				std::cout << it->second.get_methods()[ii] << " ";
+			std::cout << "\n";
 			i++;
 		}
 	}
@@ -322,6 +329,7 @@ Server	Configuration::create_server(server_block server_blocks) {
 	return (server);
 }
 
+// fill server only attributes
 void	Configuration::fill_server_attributes(std::vector<token> tokens, Server &server) {
 	(void) server;
 	size_t						i;
@@ -342,13 +350,15 @@ void	Configuration::fill_server_attributes(std::vector<token> tokens, Server &se
 				else
 					server.set_port(std::stoi(split_arg[0]));
 			}
-			else if (tokens[i].content == "server_name") {
-				
-			}
+			else if (tokens[i].content == "server_name")
+				for (int ii = 0; ii < arguments.size(); ++ii)
+					server.set_server_name(arguments[ii]);
+			arguments.clear();
 		}
 	}
 }
 
+// verify format of listen directive arguments
 void	Configuration::validate_listen_arguments(std::vector<token> tokens, size_t i, std::vector<std::string> arguments) {
 	std::vector<std::string>	split_arg;
 
@@ -369,6 +379,7 @@ void	Configuration::validate_listen_arguments(std::vector<token> tokens, size_t 
 	}
 }
 
+// verify ip format
 bool	Configuration::is_valid_ip(const std::string& ip_address) {
 	std::istringstream	ip(ip_address);
 	std::string			digit;
@@ -386,6 +397,7 @@ bool	Configuration::is_valid_ip(const std::string& ip_address) {
 	return (num_count == 4);
 }
 
+// fill attributes shared by server and location
 template <typename T>
 void	Configuration::fill_shared_attributes(std::vector<token> tokens, T &obj) {
 	(void)	obj;
@@ -422,6 +434,7 @@ void	Configuration::fill_shared_attributes(std::vector<token> tokens, T &obj) {
 	}
 }
 
+// fill location only attributes
 void	Configuration::fill_location_attributes(std::vector<token> tokens, Server::Location &location) {
 	(void)	location;
 	std::vector<std::string>	arguments;
@@ -453,10 +466,10 @@ std::string	Configuration::get_full_line(std::vector<token> tokens, size_t &i) {
 		if (tokens[i].line == tokens[i + 1].line && tokens[i + 1].content != ";")
 			line.push_back(' ');
 	}
-	std::cout << line << "\n";
 	return (line);
 }
 
+// get directive arguments
 std::vector<std::string>	Configuration::get_arguments(std::vector<token> tokens, size_t i) {
 	std::vector<std::string>	arguments;
 
@@ -465,9 +478,10 @@ std::vector<std::string>	Configuration::get_arguments(std::vector<token> tokens,
 	return (arguments);
 }
 
-std::vector<std::string>	Configuration::split(std::string s, char delimiter) {
+// split a string by a delimiter
+std::vector<std::string>	Configuration::split(std::string string, char delimiter) {
     std::vector<std::string> elements;
-    std::stringstream ss(s);
+    std::stringstream ss(string);
     std::string element;
 
     while (std::getline(ss, element, delimiter))
@@ -476,8 +490,9 @@ std::vector<std::string>	Configuration::split(std::string s, char delimiter) {
     return (elements);
 }
 
-bool Configuration::is_integer(const std::string& str) {
-    std::istringstream ss(str);
+// is_integer
+bool Configuration::is_integer(const std::string& string) {
+    std::istringstream ss(string);
     int num;
     ss >> num;
     return !ss.fail() && ss.eof();
