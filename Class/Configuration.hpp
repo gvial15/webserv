@@ -31,7 +31,6 @@ class Configuration {
 		struct	token {
 			std::string	content;
 			size_t		line;
-
 		};
 
 		struct location_block {
@@ -172,6 +171,12 @@ class Configuration {
 		public:
 			invalid_port(const size_t line, const std::string& token)
 				: parsing_exception("Invalid port", line, token) {}
+		};
+
+		class invalid_root_path : public parsing_exception {
+		public:
+			invalid_root_path(const size_t line, const std::string& token)
+				: parsing_exception("Invalid root path", line, token) {}
 		};
 
 		class unable_to_open_file : public std::exception {

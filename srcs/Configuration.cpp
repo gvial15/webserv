@@ -1,5 +1,6 @@
 #include "../Class/Configuration.hpp"
 #include <cstddef>
+#include <cstdlib>
 #include <iostream>
 #include <iterator>
 #include <stddef.h>
@@ -317,21 +318,19 @@ Server	Configuration::create_server(server_block server_blocks) {
 	size_t	i;
 
 	fill_server_attributes(server_blocks.tokens, server);
+	fill_shared_attributes(server_blocks.tokens, server);
 	i = -1;
 	while (++i < server_blocks.location_blocks.size()) {
 		Server::Location location;
+		fill_shared_attributes(server_blocks.location_blocks[i].tokens, location);
+		fill_location_attributes(server_blocks.location_blocks[i].tokens, location);
 		server.set_locations(std::make_pair(server_blocks.location_blocks[i].path, location));
-		fill_shared_attributes(server_blocks.location_blocks[i].tokens,
-		server.get_locations().find(server_blocks.location_blocks[i].path)->second);
-		fill_location_attributes(server_blocks.location_blocks[i].tokens,
-		server.get_locations().find(server_blocks.location_blocks[i].path)->second);
 	}
 	return (server);
 }
 
 // fill server only attributes
 void	Configuration::fill_server_attributes(std::vector<token> tokens, Server &server) {
-	(void) server;
 	size_t						i;
 	std::vector<std::string>	arguments;
 	std::vector<std::string>	split_arg;
@@ -360,7 +359,7 @@ void	Configuration::fill_server_attributes(std::vector<token> tokens, Server &se
 	}
 }
 
-// verify format of listen directive arguments
+// validate format of listen directive arguments
 void	Configuration::validate_listen_arguments(std::vector<token> tokens, size_t i, std::vector<std::string> arguments) {
 	std::vector<std::string>	split_arg;
 
@@ -381,7 +380,7 @@ void	Configuration::validate_listen_arguments(std::vector<token> tokens, size_t 
 	}
 }
 
-// verify ip format
+// validate ip format
 bool	Configuration::is_valid_ip(const std::string& ip_address) {
 	std::istringstream	ip(ip_address);
 	std::string			digit;
@@ -402,19 +401,21 @@ bool	Configuration::is_valid_ip(const std::string& ip_address) {
 // fill attributes shared by server and location
 template <typename T>
 void	Configuration::fill_shared_attributes(std::vector<token> tokens, T &obj) {
-	(void)	obj;
+	struct stat					buffer;
 	std::vector<std::string>	arguments;
-	size_t	i;
+	size_t						i;
 
 	i = -1;
 	while (++i < tokens.size()) {
 		if (i == 0 || tokens[i - 1].content == ";") {
 			arguments = get_arguments(tokens, i);
 			if (tokens[i].content == "root") {
-
+				if (stat(arguments[0].c_str(), &buffer) != 0)
+					throw invalid_root_path(tokens[i].line, arguments[0]);
+				obj.set_root(arguments[0]);
 			}
 			else if (tokens[i].content == "index") {
-
+				
 			}
 			else if (tokens[i].content == "autoindex") {
 
