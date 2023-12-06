@@ -350,9 +350,11 @@ void	Configuration::fill_server_attributes(std::vector<token> tokens, Server &se
 				else
 					server.set_port(std::stoi(split_arg[0]));
 			}
-			else if (tokens[i].content == "server_name")
+			else if (tokens[i].content == "server_name") {
+				server.clear_server_name();
 				for (int ii = 0; ii < arguments.size(); ++ii)
 					server.set_server_name(arguments[ii]);
+			}
 			arguments.clear();
 		}
 	}

@@ -52,6 +52,8 @@ class Server : public SharedConfigAttributes {
 		void	set_server_name(const std::string new_server_name) { server_names.push_back(new_server_name); }
 		void	set_locations(const std::pair<std::string, Location> new_location) { locations.insert(new_location); }
 
+		void	clear_server_name() { server_names.clear(); };
+
 		// public attributes
 
 	private:
