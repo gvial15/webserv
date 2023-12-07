@@ -30,7 +30,7 @@ class Server : public SharedConfigAttributes {
 				std::vector<std::string>	get_methods() const { return methods; }
 
 				// setters
-				void	set_methods(std::vector<std::string> new_methods) { methods = new_methods; }
+				void	set_methods(std::string new_methods) { methods.push_back(new_methods); }
 
 			private:
 				std::vector<std::string>	methods;

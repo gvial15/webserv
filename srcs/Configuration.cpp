@@ -424,9 +424,8 @@ void	Configuration::fill_shared_attributes(std::vector<token> tokens, T &obj) {
 			else if (tokens[i].content == "index") {
 				obj.clear_index();
 				ii = -1;
-				while (++ii < arguments.size()) {
+				while (++ii < arguments.size())
 					obj.set_index(arguments[ii]);
-				}
 			}
 			else if (tokens[i].content == "autoindex") {
 				if (arguments[0] == "on")
