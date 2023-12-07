@@ -71,7 +71,9 @@ class Configuration {
 		std::vector<std::string>	get_arguments(std::vector<token> tokens, size_t i);
 		bool						is_valid_ip(const std::string& ip_address);
 		std::vector<std::string>	split(std::string string, char delimiter);
-		bool 						string_is_integer(const std::string& string);
+		bool 						is_string_integer(const std::string &string);
+		bool 						is_string_size_t(const std::string &string);
+		size_t 						string_to_size_t(const std::string &string);
 
 
 		// private attributes
@@ -189,6 +191,18 @@ class Configuration {
 		public:
 			invalid_redirection_argument(const size_t line, const std::string& token)
 				: parsing_exception("Invalid redirection argument", line, token) {}
+		};
+
+		class invalid_error_page_argument : public parsing_exception {
+		public:
+			invalid_error_page_argument(const size_t line, const std::string& token)
+				: parsing_exception("Invalid error page argument", line, token) {}
+		};
+
+		class invalid_client_max_body_size_argument : public parsing_exception {
+		public:
+			invalid_client_max_body_size_argument(const size_t line, const std::string& token)
+				: parsing_exception("Invalid client max body size argument", line, token) {}
 		};
 
 		class unable_to_open_file : public std::exception {

@@ -14,7 +14,6 @@
 Configuration::Configuration(const std::string config_file_path) {
 	std::ifstream config_file(config_file_path);
 
-	create_directive_bank();
 	if (config_file_path.empty()) {
 		std::cout << "Starting with default configuration...\n";
 		Server	server;
@@ -40,12 +39,13 @@ void	Configuration::create_directive_bank() {
 	directive_bank.insert(std::make_pair("index", std::make_pair(1, -1)));
 	directive_bank.insert(std::make_pair("autoindex", std::make_pair(1, 1)));
 	directive_bank.insert(std::make_pair("client_max_body_size", std::make_pair(1, 1)));
-	directive_bank.insert(std::make_pair("error_page", std::make_pair(2, -1)));
+	directive_bank.insert(std::make_pair("error_page", std::make_pair(2, 2)));
 	directive_bank.insert(std::make_pair("try_files", std::make_pair(2, -1)));
 	directive_bank.insert(std::make_pair("methods", std::make_pair(1, 3)));
 }
 
-// ***server_blocks testing
+//                      ************ PARSING TESTING ************
+
 void Configuration::print_server_blocks(const std::vector<server_block>& servers) {
 	size_t i = 0, j, k, l;
 	while (i < servers.size()) {
@@ -69,7 +69,6 @@ void Configuration::print_server_blocks(const std::vector<server_block>& servers
 	}
 }
 
-// ***servers testing
 template <typename C>
 void	print_shared_attributes(const C &obj) {
 	size_t	i;
@@ -84,9 +83,11 @@ void	print_shared_attributes(const C &obj) {
 	std::cout << "\n";
 	std::cout << "autoindex: " << obj.get_autoindex() << "\n";
 	std::cout << "redirection: " << obj.get_redirection().first << " " << obj.get_redirection().second << "\n";
+	std::cout << "try_files: ";
 	i = -1;
 	while (++i < obj.get_try_files().size())
-		std::cout << "tryfiles: " << obj.get_try_files()[i] << "\n";
+		std::cout << obj.get_try_files()[i] << " ";
+	std::cout << "\n";
 	error_pages = obj.get_error_pages();
 	for (it = error_pages.begin(); it != error_pages.end(); ++it)
 		std::cout << "error_pages: " << it->first << " " << it->second << "\n";
@@ -111,7 +112,7 @@ void Configuration::print_servers(const std::vector<Server>& servers) {
 		print_shared_attributes(servers[i]);
 		locations = servers[i].get_locations();
 		for (it = locations.begin(); it != locations.end(); ++it) {
-			std::cout << "\nLocation: " << it->first << "\n";
+			std::cout << "\nLocation " << it->first << "\n";
 			print_shared_attributes(it->second);
 			std::cout << "methods: ";
 			ii = -1;
@@ -123,12 +124,14 @@ void Configuration::print_servers(const std::vector<Server>& servers) {
 	}
 }
 
-// *** parsing ***
+
+// main parsing function
 void	Configuration::parse(std::ifstream& config_file) {
 	std::string					file_content((std::istreambuf_iterator<char>(config_file)), std::istreambuf_iterator<char>());
 	std::vector<token>			tokens;
 	std::vector<server_block>	server_blocks;
 
+	create_directive_bank();
 	space_out_symbols(file_content);
 	tokens = tokenize(file_content);
 	// size_t	i;
@@ -371,13 +374,13 @@ void	Configuration::validate_listen_arguments(std::vector<token> tokens, size_t 
 	if (split_arg.size() == 2) {
 		if (!is_valid_ip(split_arg[0]))
 			throw invalid_ip(tokens[i].line, split_arg[0]);
-		if (!string_is_integer(split_arg[1]))
+		if (!is_string_integer(split_arg[1]))
 			throw invalid_port(tokens[i].line, split_arg[1]);
 		if (std::stoi(split_arg[1]) < 0 || std::stoi(split_arg[1]) > 65535)
 			throw invalid_port(tokens[i].line, split_arg[1]);
 	}
 	else {
-		if (!string_is_integer(split_arg[0]))
+		if (!is_string_integer(split_arg[0]))
 			throw invalid_port(tokens[i].line, split_arg[0]);
 		if (std::stoi(split_arg[0]) < 0 || std::stoi(split_arg[0]) > 65535)
 			throw invalid_port(tokens[i].line, split_arg[0]);
@@ -402,15 +405,12 @@ bool	Configuration::is_valid_ip(const std::string& ip_address) {
 	return (num_count == 4);
 }
 
-// COMMIT: Configuration::invalid_redirection_argument, Configuration::invalid_autoindex_argument(), Configuration::create_server() index autoindex redirection
-
 // fill attributes shared by server and location
 template <typename T>
 void	Configuration::fill_shared_attributes(std::vector<token> tokens, T &obj) {
 	struct stat					buffer;
 	std::vector<std::string>	arguments;
 	size_t						i;
-	size_t						ii;
 
 	i = -1;
 	while (++i < tokens.size()) {
@@ -423,8 +423,7 @@ void	Configuration::fill_shared_attributes(std::vector<token> tokens, T &obj) {
 			}
 			else if (tokens[i].content == "index") {
 				obj.clear_index();
-				ii = -1;
-				while (++ii < arguments.size())
+				for (int ii = 0; ii < arguments.size(); ++ii)
 					obj.set_index(arguments[ii]);
 			}
 			else if (tokens[i].content == "autoindex") {
@@ -437,19 +436,27 @@ void	Configuration::fill_shared_attributes(std::vector<token> tokens, T &obj) {
 			}
 			else if (tokens[i].content == "redirection") {
 				if (obj.get_redirection().first.empty() && obj.get_redirection().second.empty()) {
-					if (!string_is_integer(arguments[0]))
+					if (!is_string_integer(arguments[0]))
 						throw invalid_redirection_argument(tokens[i].line, arguments[0]);
 					obj.set_redirection(std::make_pair(arguments[0], arguments[1]));
 				}
 			}
 			else if (tokens[i].content == "try_files") {
-
+				obj.clear_try_files();
+				for (int ii = 0; ii < arguments.size(); ++ii)
+					obj.set_try_files(arguments[ii]);
 			}
-			else if (tokens[i].content == "error_pages") {
-
+			else if (tokens[i].content == "error_page") {
+				if (!is_string_integer(arguments[0]))
+					throw invalid_error_page_argument(tokens[i].line, arguments[0]);
+				if (obj.get_error_pages().find(arguments[0]) != obj.get_error_pages().end())
+					obj.erase_error_page(arguments[0]);
+				obj.set_error_page(std::make_pair(arguments[0], arguments[1]));
 			}
 			else if (tokens[i].content == "client_max_body_size") {
-
+				if (!is_string_size_t(arguments[0]))
+					throw invalid_client_max_body_size_argument(tokens[i].line, arguments[0]);
+				obj.set_client_max_body_size(string_to_size_t(arguments[0]));
 			}
 			arguments.clear();
 		}
@@ -512,10 +519,29 @@ std::vector<std::string>	Configuration::split(std::string string, char delimiter
     return (elements);
 }
 
-// is_integer
-bool Configuration::string_is_integer(const std::string& string) {
+// is string integer
+bool Configuration::is_string_integer(const std::string &string) {
     std::istringstream ss(string);
     int num;
+
     ss >> num;
-    return !ss.fail() && ss.eof();
+    return (!ss.fail() && ss.eof());
+}
+
+// is string size_t
+bool Configuration::is_string_size_t(const std::string &string) {
+    std::istringstream iss(string);
+    size_t num;
+
+    iss >> num;
+    return (!iss.fail() && iss.eof());
+}
+
+// string to size_t
+size_t Configuration::string_to_size_t(const std::string &string) {
+    std::istringstream iss(string);
+    size_t num;
+
+    iss >> num;
+    return (num);
 }
