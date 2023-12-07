@@ -35,7 +35,7 @@ Configuration::~Configuration() {};
 void	Configuration::create_directive_bank() {
 	directive_bank.insert(std::make_pair("listen", std::make_pair(1, 1)));
 	directive_bank.insert(std::make_pair("server_name", std::make_pair(1, -1)));
-	directive_bank.insert(std::make_pair("return", std::make_pair(2, 2)));
+	directive_bank.insert(std::make_pair("redirection", std::make_pair(2, 2)));
 	directive_bank.insert(std::make_pair("root", std::make_pair(1, 1)));
 	directive_bank.insert(std::make_pair("index", std::make_pair(1, -1)));
 	directive_bank.insert(std::make_pair("autoindex", std::make_pair(1, 1)));
@@ -77,9 +77,13 @@ void	print_shared_attributes(const C &obj) {
 	std::map<std::string, std::string>::iterator	it;
 
 	std::cout << "root: " << obj.get_root() << "\n";
-	std::cout << "index: " << obj.get_index() << "\n";
+	i = -1;
+	std::cout << "index: ";
+	while (++i < obj.get_index().size())
+		std::cout << obj.get_index()[i] << " ";
+	std::cout << "\n";
 	std::cout << "autoindex: " << obj.get_autoindex() << "\n";
-	std::cout << "redirection: " << obj.get_redirection() << "\n";
+	std::cout << "redirection: " << obj.get_redirection().first << " " << obj.get_redirection().second << "\n";
 	i = -1;
 	while (++i < obj.get_try_files().size())
 		std::cout << "tryfiles: " << obj.get_try_files()[i] << "\n";
@@ -107,7 +111,7 @@ void Configuration::print_servers(const std::vector<Server>& servers) {
 		print_shared_attributes(servers[i]);
 		locations = servers[i].get_locations();
 		for (it = locations.begin(); it != locations.end(); ++it) {
-			std::cout << "\nLocation:\n";
+			std::cout << "\nLocation: " << it->first << "\n";
 			print_shared_attributes(it->second);
 			std::cout << "methods: ";
 			ii = -1;
@@ -367,13 +371,13 @@ void	Configuration::validate_listen_arguments(std::vector<token> tokens, size_t 
 	if (split_arg.size() == 2) {
 		if (!is_valid_ip(split_arg[0]))
 			throw invalid_ip(tokens[i].line, split_arg[0]);
-		if (!is_integer(split_arg[1]))
+		if (!string_is_integer(split_arg[1]))
 			throw invalid_port(tokens[i].line, split_arg[1]);
 		if (std::stoi(split_arg[1]) < 0 || std::stoi(split_arg[1]) > 65535)
 			throw invalid_port(tokens[i].line, split_arg[1]);
 	}
 	else {
-		if (!is_integer(split_arg[0]))
+		if (!string_is_integer(split_arg[0]))
 			throw invalid_port(tokens[i].line, split_arg[0]);
 		if (std::stoi(split_arg[0]) < 0 || std::stoi(split_arg[0]) > 65535)
 			throw invalid_port(tokens[i].line, split_arg[0]);
@@ -398,12 +402,15 @@ bool	Configuration::is_valid_ip(const std::string& ip_address) {
 	return (num_count == 4);
 }
 
+// COMMIT: Configuration::invalid_redirection_argument, Configuration::invalid_autoindex_argument(), Configuration::create_server() index autoindex redirection
+
 // fill attributes shared by server and location
 template <typename T>
 void	Configuration::fill_shared_attributes(std::vector<token> tokens, T &obj) {
 	struct stat					buffer;
 	std::vector<std::string>	arguments;
 	size_t						i;
+	size_t						ii;
 
 	i = -1;
 	while (++i < tokens.size()) {
@@ -415,13 +422,26 @@ void	Configuration::fill_shared_attributes(std::vector<token> tokens, T &obj) {
 				obj.set_root(arguments[0]);
 			}
 			else if (tokens[i].content == "index") {
-				
+				obj.clear_index();
+				ii = -1;
+				while (++ii < arguments.size()) {
+					obj.set_index(arguments[ii]);
+				}
 			}
 			else if (tokens[i].content == "autoindex") {
-
+				if (arguments[0] == "on")
+					obj.set_autoindex(true);
+				else if (arguments[0] == "off")
+					obj.set_autoindex(false);
+				else
+				 	throw invalid_autoindex_argument(tokens[i].line, arguments[0]);
 			}
 			else if (tokens[i].content == "redirection") {
-
+				if (obj.get_redirection().first.empty() && obj.get_redirection().second.empty()) {
+					if (!string_is_integer(arguments[0]))
+						throw invalid_redirection_argument(tokens[i].line, arguments[0]);
+					obj.set_redirection(std::make_pair(arguments[0], arguments[1]));
+				}
 			}
 			else if (tokens[i].content == "try_files") {
 
@@ -494,7 +514,7 @@ std::vector<std::string>	Configuration::split(std::string string, char delimiter
 }
 
 // is_integer
-bool Configuration::is_integer(const std::string& string) {
+bool Configuration::string_is_integer(const std::string& string) {
     std::istringstream ss(string);
     int num;
     ss >> num;

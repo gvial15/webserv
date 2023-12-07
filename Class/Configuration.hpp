@@ -71,7 +71,7 @@ class Configuration {
 		std::vector<std::string>	get_arguments(std::vector<token> tokens, size_t i);
 		bool						is_valid_ip(const std::string& ip_address);
 		std::vector<std::string>	split(std::string string, char delimiter);
-		bool 						is_integer(const std::string& string);
+		bool 						string_is_integer(const std::string& string);
 
 
 		// private attributes
@@ -177,6 +177,18 @@ class Configuration {
 		public:
 			invalid_root_path(const size_t line, const std::string& token)
 				: parsing_exception("Invalid root path", line, token) {}
+		};
+
+		class invalid_autoindex_argument : public parsing_exception {
+		public:
+			invalid_autoindex_argument(const size_t line, const std::string& token)
+				: parsing_exception("Invalid autoindex argument", line, token) {}
+		};
+
+		class invalid_redirection_argument : public parsing_exception {
+		public:
+			invalid_redirection_argument(const size_t line, const std::string& token)
+				: parsing_exception("Invalid redirection argument", line, token) {}
 		};
 
 		class unable_to_open_file : public std::exception {
