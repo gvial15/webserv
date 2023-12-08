@@ -8,7 +8,7 @@
 #include <string>
 #include <algorithm>
 #include <utility>
-#include <vector>
+#include <vector> 
 
 // constructor
 Configuration::Configuration(const std::string config_file_path) {
@@ -343,7 +343,7 @@ void	Configuration::fill_server_attributes(std::vector<token> tokens, Server &se
 	std::vector<std::string>	split_arg;
 
 	i = -1;
-	while (++i < tokens.size()) {
+	while (++i < tokens.size() && tokens[i].content != "}") {
 		if (i == 0 || tokens[i - 1].content == ";" || tokens[i - 1].content == "{") {
 			arguments = get_arguments(tokens, i);
 			if (tokens[i].content == "listen") {
@@ -413,7 +413,7 @@ void	Configuration::fill_shared_attributes(std::vector<token> tokens, T &obj) {
 	size_t						i;
 
 	i = -1;
-	while (++i < tokens.size()) {
+	while (++i < tokens.size() && tokens[i].content != "}") {
 		if (i == 0 || tokens[i - 1].content == ";") {
 			arguments = get_arguments(tokens, i);
 			if (tokens[i].content == "root") {
@@ -476,7 +476,7 @@ void	Configuration::fill_location_attributes(std::vector<token> tokens, Server::
 			if (tokens[i].content == "methods") {
 				location.clear_methods();
 				for (int ii = 0; ii < arguments.size(); ++ii) {
-					if (arguments[ii] != "POST" || arguments[ii] != "GET" || arguments[ii] != "DELETE")
+					if (arguments[ii] != "POST" && arguments[ii] != "GET" && arguments[ii] != "DELETE")
 						throw invalid_method_argument(tokens[i].line, arguments[ii]);
 					location.set_methods(arguments[ii]);
 				}
