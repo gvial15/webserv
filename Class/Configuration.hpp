@@ -74,6 +74,7 @@ class Configuration {
 		bool 						is_string_integer(const std::string &string);
 		bool 						is_string_size_t(const std::string &string);
 		size_t 						string_to_size_t(const std::string &string);
+		bool						is_valid_path(std::string path);
 
 
 		// private attributes

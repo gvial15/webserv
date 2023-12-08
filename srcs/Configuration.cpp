@@ -262,14 +262,13 @@ Configuration::location_block	Configuration::create_location_block(std::vector<t
 
 // verify if location {} block declaration is valid and fill the location_block path attribute
 void	Configuration::is_valid_location_block(Configuration::location_block &location_block, std::vector<token> tokens, size_t &i) {
-	struct stat	buffer;
 	int	path_found;
 
 	path_found = 0;
 	while (tokens[++i].content != "{") {
 		if (path_found)
 			throw unexpected_token(tokens[i].line, tokens[i].content);
-		if (stat(tokens[i].content.c_str(), &buffer) != 0)
+		if (!is_valid_path(tokens[i].content))
 			throw location_path_invalid(tokens[i].line, tokens[i].content);
 		path_found = 1;
 		location_block.path = tokens[i].content;
@@ -408,7 +407,6 @@ bool	Configuration::is_valid_ip(const std::string& ip_address) {
 // fill attributes shared by both Server and Location
 template <typename T>
 void	Configuration::fill_shared_attributes(std::vector<token> tokens, T &obj) {
-	struct stat					buffer;
 	std::vector<std::string>	arguments;
 	size_t						i;
 
@@ -417,7 +415,7 @@ void	Configuration::fill_shared_attributes(std::vector<token> tokens, T &obj) {
 		if (i == 0 || tokens[i - 1].content == ";") {
 			arguments = get_arguments(tokens, i);
 			if (tokens[i].content == "root") {
-				if (stat(arguments[0].c_str(), &buffer) != 0)
+				if (!is_valid_path(arguments[0]))
 					throw invalid_root_path(tokens[i].line, arguments[0]);
 				obj.set_root(arguments[0]);
 			}
@@ -449,6 +447,8 @@ void	Configuration::fill_shared_attributes(std::vector<token> tokens, T &obj) {
 			else if (tokens[i].content == "error_page") {
 				if (!is_string_integer(arguments[0]))
 					throw invalid_error_page_argument(tokens[i].line, arguments[0]);
+				if (!is_valid_path(arguments[1]))
+					throw invalid_error_page_argument(tokens[i].line, arguments[1]);
 				if (obj.get_error_pages().find(arguments[0]) != obj.get_error_pages().end())
 					obj.erase_error_page(arguments[0]);
 				obj.set_error_page(std::make_pair(arguments[0], arguments[1]));
@@ -549,4 +549,12 @@ size_t Configuration::string_to_size_t(const std::string &string) {
 
     iss >> num;
     return (num);
+}
+
+// verify if path exist
+bool	Configuration::is_valid_path(std::string path) {
+	struct stat	buffer;
+	if (stat(path.c_str(), &buffer) != 0)
+		return (false);
+	return (true);
 }
