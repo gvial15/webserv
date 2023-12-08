@@ -45,7 +45,7 @@ void	Configuration::create_directive_bank() {
 }
 
 // testing function
-void Configuration::print_server_blocks(const std::vector<server_block>& servers) {
+void Configuration::print_server_blocks(const std::vector<server_block> &servers) {
 	size_t i = 0, j, k, l;
 	while (i < servers.size()) {
 		const server_block& server = servers[i];
@@ -95,7 +95,7 @@ void	print_shared_attributes(const C &obj) {
 }
 
 // testing function
-void Configuration::print_servers(const std::vector<Server>& servers) {
+void Configuration::print_servers(const std::vector<Server> &servers) {
 	size_t	i;
 	size_t	ii;
 	std::map<std::string, Server::Location>	locations;
@@ -120,7 +120,6 @@ void Configuration::print_servers(const std::vector<Server>& servers) {
 			while (++ii < it->second.get_methods().size())
 				std::cout << it->second.get_methods()[ii] << " ";
 			std::cout << "\n";
-			i++;
 		}
 	}
 }
