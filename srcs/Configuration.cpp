@@ -30,7 +30,7 @@ Configuration::Configuration(const std::string config_file_path) {
 // destructor
 Configuration::~Configuration() {};
 
-// The pairs value represent the number of min and max allowed arguments for a given directive; -1 = no maximum
+// The pairs values represent the number of min and max allowed arguments for a given directive; -1 = no maximum
 void	Configuration::create_directive_bank() {
 	directive_bank.insert(std::make_pair("listen", std::make_pair(1, 1)));
 	directive_bank.insert(std::make_pair("server_name", std::make_pair(1, -1)));
@@ -44,8 +44,7 @@ void	Configuration::create_directive_bank() {
 	directive_bank.insert(std::make_pair("methods", std::make_pair(1, 3)));
 }
 
-//                      ************ PARSING TESTING ************
-
+// testing function
 void Configuration::print_server_blocks(const std::vector<server_block>& servers) {
 	size_t i = 0, j, k, l;
 	while (i < servers.size()) {
@@ -69,6 +68,7 @@ void Configuration::print_server_blocks(const std::vector<server_block>& servers
 	}
 }
 
+// testing function
 template <typename C>
 void	print_shared_attributes(const C &obj) {
 	size_t	i;
@@ -94,6 +94,7 @@ void	print_shared_attributes(const C &obj) {
 	std::cout << "client_max_body_size: " << obj.get_client_max_body_size() << "\n";
 }
 
+// testing function
 void Configuration::print_servers(const std::vector<Server>& servers) {
 	size_t	i;
 	size_t	ii;
@@ -123,7 +124,6 @@ void Configuration::print_servers(const std::vector<Server>& servers) {
 		}
 	}
 }
-
 
 // main parsing function
 void	Configuration::parse(std::ifstream& config_file) {
@@ -336,7 +336,7 @@ Server	Configuration::create_server(server_block server_blocks) {
 	return (server);
 }
 
-// fill server only attributes
+// fill Server only attributes
 void	Configuration::fill_server_attributes(std::vector<token> tokens, Server &server) {
 	size_t						i;
 	std::vector<std::string>	arguments;
@@ -387,7 +387,7 @@ void	Configuration::validate_listen_arguments(std::vector<token> tokens, size_t 
 	}
 }
 
-// validate ip format
+// is string an ip
 bool	Configuration::is_valid_ip(const std::string& ip_address) {
 	std::istringstream	ip(ip_address);
 	std::string			digit;
@@ -405,7 +405,7 @@ bool	Configuration::is_valid_ip(const std::string& ip_address) {
 	return (num_count == 4);
 }
 
-// fill attributes shared by server and location
+// fill attributes shared by both Server and Location
 template <typename T>
 void	Configuration::fill_shared_attributes(std::vector<token> tokens, T &obj) {
 	struct stat					buffer;
@@ -463,7 +463,7 @@ void	Configuration::fill_shared_attributes(std::vector<token> tokens, T &obj) {
 	}
 }
 
-// fill location only attributes
+// fill Location only attributes
 void	Configuration::fill_location_attributes(std::vector<token> tokens, Server::Location &location) {
 	(void)	location;
 	std::vector<std::string>	arguments;
@@ -474,7 +474,12 @@ void	Configuration::fill_location_attributes(std::vector<token> tokens, Server::
 		if (i == 0 || tokens[i - 1].content == ";") {
 			arguments = get_arguments(tokens, i);
 			if (tokens[i].content == "methods") {
-				
+				location.clear_methods();
+				for (int ii = 0; ii < arguments.size(); ++ii) {
+					if (arguments[ii] != "POST" || arguments[ii] != "GET" || arguments[ii] != "DELETE")
+						throw invalid_method_argument(tokens[i].line, arguments[ii]);
+					location.set_methods(arguments[ii]);
+				}
 			}
 			arguments.clear();
 		}

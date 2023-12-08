@@ -32,6 +32,8 @@ class Server : public SharedConfigAttributes {
 				// setters
 				void	set_methods(std::string new_methods) { methods.push_back(new_methods); }
 
+				void	clear_methods() { methods.clear(); };
+
 			private:
 				std::vector<std::string>	methods;
 		};
