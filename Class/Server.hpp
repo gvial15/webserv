@@ -1,5 +1,5 @@
 #pragma once
-#include "SharedConfigAttributes.hpp"
+#include "SharedServerAttributes.hpp"
 #include <cstddef>
 #include <map>
 #include <string>
@@ -39,6 +39,7 @@ class Server : public SharedConfigAttributes {
 		};
 
 		// public methods
+		void	init();
 
 		// getters
 		int								get_server_fd() const { return server_fd; }
@@ -59,9 +60,6 @@ class Server : public SharedConfigAttributes {
 		// public attributes
 
 	private:
-
-		// private methods
-		void	init_socket();
 
 		// private attributes
 		int								server_fd;

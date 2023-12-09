@@ -7,10 +7,7 @@
 Server::Server() :
 port(8080),
 ip("127.0.0.1")
-{
-	server_names.push_back("webserv");
-	init_socket();
-}
+{}
 
 // destructor
 Server::~Server() {
@@ -18,7 +15,7 @@ Server::~Server() {
 }
 
 // create socket, make it non-blocking, bind() and listen()
-void	Server::init_socket()
+void	Server::init()
 {
 	struct sockaddr_in address;
 	int flags;
