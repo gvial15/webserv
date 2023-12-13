@@ -12,7 +12,7 @@ servers(servers)
 	instance = this;
 	// init servers
 	for (int i = 0; i < servers.size(); ++i)
-		servers[i].init();
+		this->servers[i].init();
 	create_pollfds();
 	run();
 }
