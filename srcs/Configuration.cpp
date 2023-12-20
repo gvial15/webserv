@@ -146,7 +146,7 @@ void	Configuration::parse(std::ifstream& config_file) {
 	i = -1;
 	while (++i < server_blocks.size())
 		servers.push_back(create_server(server_blocks[i]));
-	print_servers(servers);
+	// print_servers(servers);
 }
 
 // space out special symbols } { ; \n
