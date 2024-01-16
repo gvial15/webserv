@@ -19,6 +19,7 @@ servers(servers) {
 // destructor
 Webserv::~Webserv() {
 	instance = nullptr;
+	close_all_fds();
 };
 
 void	Webserv::signal_handler(int signum) {
@@ -69,7 +70,10 @@ void	Webserv::run() {
 					}
 					else {
 						buffer[bytes_read] = '\0';
+						// print clients request
 						std::cout << buffer << std::endl;
+						// write back to client
+						write(pollfd_vec[i].fd, "Message received\n", 17);
 					}
 				}
 				// Clear the revents field for the next poll call
