@@ -18,8 +18,12 @@
 //		object that fills a vector of pollfd with all the Server(s)
 // 		socket and runs the poll() loop.
 
-// 4. 	then in the poll() loop all the accept() of connections and
-//		processing of request from clients is managed.
+// 4. 	then in the poll() loop all the accept() of connections and manage the deconnections as well
+
+// 5.	A class requestResponse will take in resquests and their targeted server object (config),
+//      parse them and build the answer.
+
+// 6.	A class CGI will execute the program and return the result for requests that require it.
 
 int	main(int argc, char **argv)
 {
@@ -37,34 +41,3 @@ int	main(int argc, char **argv)
 		std::cerr << ex.what() << std::endl;
 	}
 }
-
-// Server Sockets:
-// Each server instance would have its own listening socket,
-// which is used to accept incoming client connections.
-
-// pollfd Structure:
-// A pollfd structure would be created for each server socket,
-// and these structures would be collected together in an array or vector.
-// Each pollfd structure specifies which events to monitor
-// on its associated socket (e.g., POLLIN for incoming data).
-
-// Polling Loop:
-// A single polling loop would call poll() to wait for events
-// on any of the server sockets. The -1 timeout value in the poll()
-// call means it will wait indefinitely for an event to occur.
-
-// Event Handling:
-// When poll() returns, the loop iterates through the pollfd array/vector
-// to check which sockets have events. For each socket with an event,
-// the appropriate action is taken, such as accepting a new client connection,
-// reading incoming data, or handling disconnections.
-
-// Client Sockets:
-// When a new client connection is accepted on a server socket,
-// a new pollfd structure is created for the client socket,
-// and this structure is added to the pollfd array/vector,
-// so that poll() will also monitor this client socket for events.
-
-// Continued Monitoring:
-// The polling loop continues monitoring all server and client sockets for events,
-// and handling those events as they occur.
