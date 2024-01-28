@@ -2,6 +2,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <signal.h>
+#include <utility>
 
 Webserv* Webserv::instance = nullptr;
 
@@ -31,7 +32,7 @@ void    Webserv::create_pollfds() {
 	std::vector<Server>::iterator it = servers.begin();
 
 	while (it != servers.end()) {
-		struct pollfd fds;  // +1 for the server socket
+		struct pollfd fds;
 		memset(&fds, 0, sizeof(fds));
 		fds.fd = it->get_server_fd();
 		fds.events = POLLIN;
@@ -46,7 +47,7 @@ void	Webserv::run() {
 
 	while (true) {
 		size_t i = 0;
-		int new_socket;
+		int client_socket;
 		struct sockaddr_in address;
 		socklen_t addrlen = sizeof(address);
 		int ret = poll(&pollfd_vec[0], pollfd_vec.size(), -1);
@@ -56,17 +57,22 @@ void	Webserv::run() {
 		while (i < pollfd_vec.size()) {
 			if (pollfd_vec[i].revents & POLLIN) { // Event on the socket
 				if (i < servers.size()) { // Is a new client
-					if ((new_socket = accept(pollfd_vec[i].fd, (struct sockaddr *)&address, &addrlen)) < 0)
+					if ((client_socket = accept(pollfd_vec[i].fd, (struct sockaddr *)&address, &addrlen)) < 0)
 						throw AcceptException();
-					display_socket_infos(new_socket);
-					create_and_add_new_client(new_socket);
+					create_and_add_new_client(client_socket);
+					fd_to_server_map.insert(std::make_pair(client_socket, &servers[i]));
+					display_new_client_infos(client_socket, servers[i].get_port());
 				}
 				else { // Input from an existing client
 					char buffer[1024];
 					int bytes_read = read(pollfd_vec[i].fd, buffer, 1024);
+
+					std::cout << "Input from client " << pollfd_vec[i].fd << " on port " << fd_to_server_map.find(pollfd_vec[i].fd)->second->get_port() << "\n";
 					if (bytes_read <= 0) { // Connection with client closed or error
-						close(pollfd_vec[i].fd);
-						pollfd_vec[i].fd = 0;  // Mark as available
+						std::cout << "closing communication with client "<< pollfd_vec[i].fd << "\n\n";
+						close(pollfd_vec[i].fd); // close fd
+						fd_to_server_map.erase(pollfd_vec[i].fd); // delete fd->server mapping 
+						pollfd_vec[i].fd = 0;  // Mark fd as available
 					}
 					else {
 						buffer[bytes_read] = '\0';
@@ -84,15 +90,15 @@ void	Webserv::run() {
 	}
 }
 
-void    Webserv::create_and_add_new_client(int new_socket) {
+void    Webserv::create_and_add_new_client(int client_socket) {
 	struct pollfd client_pfd;
 	memset(&client_pfd, 0, sizeof(client_pfd));
-	client_pfd.fd = new_socket;
+	client_pfd.fd = client_socket;
 	client_pfd.events = POLLIN;
 	pollfd_vec.push_back(client_pfd);
 }
 
-void    Webserv::display_socket_infos(int client_socket) {
+void    Webserv::display_new_client_infos(int client_socket, int port) {
 	struct sockaddr_in sender_address;
 	socklen_t sender_addrlen = sizeof(sender_address);
 
@@ -100,7 +106,7 @@ void    Webserv::display_socket_infos(int client_socket) {
 		char client_ip[INET_ADDRSTRLEN];
 
 		if (inet_ntop(AF_INET, &sender_address.sin_addr, client_ip, INET_ADDRSTRLEN))
-			std::cout << "Connection from: " << client_ip << std::endl;
+			std::cout << "New client (" << client_socket << ") connection from: " << client_ip << " on port " << port << "\n\n";
 		else 
 			perror("inet_ntop() failed in display_socket_infos");
 	}

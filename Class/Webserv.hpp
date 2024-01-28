@@ -25,12 +25,13 @@ class Webserv {
 		void	    close_all_fds();
 		void        create_pollfds();
 		static void signal_handler(int signum);
-		void        display_socket_infos(int new_socket);
-		void        create_and_add_new_client(int new_socket);
+		void        display_new_client_infos(int client_socket, int port);
+		void        create_and_add_new_client(int client_socket);
 			
 		// private attributes
-		std::vector<pollfd> pollfd_vec;
-		std::vector<Server> servers;
+		std::vector<Server> 	servers;
+		std::vector<pollfd>		pollfd_vec;
+		std::map<int, Server*>	fd_to_server_map;
 
 		// private exceptions
 		class PollException : public std::exception {
