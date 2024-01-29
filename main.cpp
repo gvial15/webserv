@@ -5,20 +5,20 @@
 #include "Class/Configuration.hpp"
 
 
-// 1. 	In the main() i create a Config object that takes
-//		my config file as a string
+// 1. 	DONE In the main() i create a Config object that takes
+//		my config file as a string.
 
-// 2. 	inside the Config object i fill a vector of Server object,
+// 2. 	DONE inside the Config object i fill a vector of Server object,
 //		one for each server {} block in the config, that each self
 //		initialize there own socket, and bind them to there
 // 		respective ip:port and make them listen() at creation.
 
-// 3.	Then once the Server vector is created and all the servers
+// 3.	DONE Then once the Server vector is created and all the servers
 //		fds are binded and listen(), i pass the server vector to a Webserv
 //		object that fills a vector of pollfd with all the Server(s)
 // 		socket and runs the poll() loop.
 
-// 4. 	then in the poll() loop all the accept() of connections and manage the deconnections as well
+// 4. 	DONE then in the poll() loop all the accept() of connections and manage the deconnections as well
 
 // 5.	A class requestResponse will take in resquests and their targeted server object (config),
 //      parse them and build the answer.
