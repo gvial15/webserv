@@ -1,5 +1,7 @@
 #include "../Class/Webserv.hpp"
+#include "../Class/CGI.hpp"
 #include <arpa/inet.h>
+#include <string>
 #include <unistd.h>
 #include <signal.h>
 #include <utility>
@@ -55,29 +57,34 @@ void	Webserv::run() {
 		if (ret < 0)
 			throw PollException();
 		while (i < pollfd_vec.size()) {
-			if (pollfd_vec[i].revents & POLLIN) { // Event on the socket
-				if (i < servers.size()) { // Is a new client
+			// Event on the socket
+			if (pollfd_vec[i].revents & POLLIN) {
+				// Is a new client
+				if (i < servers.size()) {
 					if ((client_socket = accept(pollfd_vec[i].fd, (struct sockaddr *)&address, &addrlen)) < 0)
 						throw AcceptException();
 					create_and_add_new_client(client_socket);
 					fd_to_server_map.insert(std::make_pair(client_socket, &servers[i]));
 					display_new_client_infos(client_socket, servers[i].get_port());
 				}
-				else { // Input from an existing client
+				// Input from an existing client
+				else {
 					char buffer[1024];
 					int bytes_read = read(pollfd_vec[i].fd, buffer, 1024);
 
 					std::cout << "Input from client " << pollfd_vec[i].fd << " on port " << fd_to_server_map.find(pollfd_vec[i].fd)->second->get_port() << "\n";
-					if (bytes_read <= 0) { // Connection with client closed or error
+					// Connection with client closed or error
+					if (bytes_read <= 0) {
 						std::cout << "closing communication with client "<< pollfd_vec[i].fd << "\n\n";
 						close(pollfd_vec[i].fd); // close fd
 						fd_to_server_map.erase(pollfd_vec[i].fd); // delete fd->server mapping 
 						pollfd_vec[i].fd = 0;  // Mark fd as available
 					}
+					// process request
 					else {
 						buffer[bytes_read] = '\0';
 						// print clients request
-						std::cout << buffer << std::endl;
+						std::cout << "request: " << buffer << std::endl;
 						// write back to client
 						write(pollfd_vec[i].fd, "Message received\n", 17);
 					}
