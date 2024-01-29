@@ -11,7 +11,8 @@ CGI::CGI(std::string path, std::vector<std::string> params, int output_fd) {
 
     if (pid == -1)
 		throw ForkException();
-    if (pid == 0) {	// Child process
+	// Child process
+    if (pid == 0) {
         dup2(output_fd, STDOUT_FILENO);
         // Prepare argv[] for execve
 		argv[0] = path.c_str();

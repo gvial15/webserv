@@ -6,11 +6,7 @@ class CGI {
 		CGI(std::string path, std::vector<std::string> params, int output_fd);
 		~CGI() {};
 
-		// public methods
-
 	private:
-
-		// private attribute
 
 		// private class
 		class ExecveException : public std::exception {

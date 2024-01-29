@@ -9,16 +9,19 @@
 // All the accept() and the processing queue happen in this loop as well
 class Webserv {
 	public:
+
 		Webserv(std::vector<Server> servers);
 		~Webserv();
-
-		// public methods
 
 		// public attributes
 		static Webserv* instance;
 
-
 	private:
+
+		// private attributes
+		std::vector<Server> 	servers;
+		std::vector<pollfd>		pollfd_vec;
+		std::map<int, Server*>	fd_to_server_map;
 
 		// private methods
 		void        run();
@@ -27,11 +30,6 @@ class Webserv {
 		static void signal_handler(int signum);
 		void        display_new_client_infos(int client_socket, int port);
 		void        create_and_add_new_client(int client_socket);
-			
-		// private attributes
-		std::vector<Server> 	servers;
-		std::vector<pollfd>		pollfd_vec;
-		std::map<int, Server*>	fd_to_server_map;
 
 		// private exceptions
 		class PollException : public std::exception {
@@ -47,5 +45,4 @@ class Webserv {
 				return "accept() failed";
 			}
 		};
-
 };

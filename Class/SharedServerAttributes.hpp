@@ -8,7 +8,19 @@
 // Class from which Server and Location inherit containing all their shared attributes
 class SharedConfigAttributes {
 
+	protected:
+
+		// protected attributes
+		std::string 						root;
+		std::vector<std::string> 			index;
+		bool 								autoindex;
+		std::pair<std::string, std::string>	redirection;
+		std::vector<std::string>			try_files;
+		std::map<std::string, std::string>	error_pages;
+		std::size_t							client_max_body_size;
+
 	public:
+
 		SharedConfigAttributes() :
 			root("/html"),
 			autoindex(false),
@@ -22,8 +34,6 @@ class SharedConfigAttributes {
 			error_pages.insert(std::make_pair("503", "/html/503_service_unavailable.html"));
 			error_pages.insert(std::make_pair("504", "/html/504_gateway_timeout.html"));
 		}
-
-		// public methods
 
 		// getters
 		std::string 						get_root() const { return root; }
@@ -47,12 +57,4 @@ class SharedConfigAttributes {
 		void	clear_try_files() { try_files.clear(); }
 		void	erase_error_page(std::string key) { error_pages.erase(key); }
 
-	protected:
-		std::string 						root;
-		std::vector<std::string> 			index;
-		bool 								autoindex;
-		std::pair<std::string, std::string>	redirection;
-		std::vector<std::string>			try_files;
-		std::map<std::string, std::string>	error_pages;
-		std::size_t							client_max_body_size;
 };

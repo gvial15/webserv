@@ -17,17 +17,16 @@ class Configuration {
 		Configuration(const std::string config_file_path);
 		~Configuration();
 
-		// public methods
-
 		// getters
 		std::vector<Server> get_servers() const { return servers; }
 
-		// public attributes
-
 	private:
 
-		// private data structures
+		// private attributes
+		std::vector<Server>							servers;
+		std::map<std::string, std::pair<int, int> >	directive_bank;
 
+		// private data structures
 		struct	token {
 			std::string	content;
 			size_t		line;
@@ -44,11 +43,6 @@ class Configuration {
 		};
 
 		// private methods
-
-		// ***testing***
-		void						print_server_blocks(const std::vector<server_block>& servers);
-		void						print_servers(const std::vector<Server>& servers);
-
 		void						create_directive_bank();
 		void						parse(std::ifstream& config_file);
 		void						space_out_symbols(std::string& file_content);
@@ -75,11 +69,9 @@ class Configuration {
 		bool 						is_string_size_t(const std::string &string);
 		size_t 						string_to_size_t(const std::string &string);
 		bool						is_valid_path(std::string path);
-
-
-		// private attributes
-		std::vector<Server>							servers;
-		std::map<std::string, std::pair<int, int> >	directive_bank;
+		// ***testing***
+		void						print_server_blocks(const std::vector<server_block>& servers);
+		void						print_servers(const std::vector<Server>& servers);
 
 		// private exceptions
 		class parsing_exception : public std::exception {
