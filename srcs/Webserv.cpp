@@ -103,6 +103,7 @@ void	Webserv::manage_client_request(int pollfd) {
 		buffer[bytes_read] = '\0';
 		// print clients request *** testing ***
 		std::cout << "request: " << buffer << std::endl;
+		// std::cout << fd_to_server_map.find(pollfd)->second->get_client_max_body_size() << "\n";
 		// write back to client *** testing ***
 		write(pollfd, "Message received\n", 17);
 	}
