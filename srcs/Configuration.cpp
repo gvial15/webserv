@@ -44,86 +44,6 @@ void	Configuration::create_directive_bank() {
 	directive_bank.insert(std::make_pair("methods", std::make_pair(1, 3)));
 }
 
-// testing function
-void Configuration::print_server_blocks(const std::vector<server_block> &servers) {
-	size_t i = 0, j, k, l;
-	while (i < servers.size()) {
-		const server_block& server = servers[i];
-		std::cout << "Server Block " << (i + 1) << ":\n";
-		j = 0;
-		while (j < server.tokens.size()) {
-			std::cout << "Token: " << server.tokens[j++].content << '\n';
-		}
-		k = 0;
-		while (k < server.location_blocks.size()) {
-			const location_block& location = server.location_blocks[k];
-			std::cout << "  Location Block " << (k + 1) << ": " << server.location_blocks[k].path << "\n";
-			l = 0;
-			while (l < location.tokens.size()) {
-				std::cout << "    Token: " << location.tokens[l++].content << '\n';
-			}
-			++k;
-		}
-		++i;
-	}
-}
-
-// testing function
-template <typename C>
-void	print_shared_attributes(const C &obj) {
-	size_t	i;
-	std::map<std::string, std::string>				error_pages;
-	std::map<std::string, std::string>::iterator	it;
-
-	std::cout << "root: " << obj.get_root() << "\n";
-	i = -1;
-	std::cout << "index: ";
-	while (++i < obj.get_index().size())
-		std::cout << obj.get_index()[i] << " ";
-	std::cout << "\n";
-	std::cout << "autoindex: " << obj.get_autoindex() << "\n";
-	std::cout << "redirection: " << obj.get_redirection().first << " " << obj.get_redirection().second << "\n";
-	std::cout << "try_files: ";
-	i = -1;
-	while (++i < obj.get_try_files().size())
-		std::cout << obj.get_try_files()[i] << " ";
-	std::cout << "\n";
-	error_pages = obj.get_error_pages();
-	for (it = error_pages.begin(); it != error_pages.end(); ++it)
-		std::cout << "error_pages: " << it->first << " " << it->second << "\n";
-	std::cout << "client_max_body_size: " << obj.get_client_max_body_size() << "\n";
-}
-
-// testing function
-void Configuration::print_servers(const std::vector<Server> &servers) {
-	size_t	i;
-	size_t	ii;
-	std::map<std::string, Server::Location>	locations;
-	std::map<std::string, Server::Location>::iterator	it;
-
-	i = -1;
-	while (++i < servers.size()) {
-		std::cout << "\nServer:\n";
-		std::cout << "port: " << servers[i].get_port() << "\n";
-		std::cout << "ip: " << servers[i].get_ip() << "\n";
-		std::cout << "server_name: ";
-		for (int s = 0; s < servers[i].get_server_names().size(); ++s)
-			std::cout << servers[i].get_server_names()[s] << " ";
-		std::cout << "\n";
-		print_shared_attributes(servers[i]);
-		locations = servers[i].get_locations();
-		for (it = locations.begin(); it != locations.end(); ++it) {
-			std::cout << "\nLocation " << it->first << "\n";
-			print_shared_attributes(it->second);
-			std::cout << "methods: ";
-			ii = -1;
-			while (++ii < it->second.get_methods().size())
-				std::cout << it->second.get_methods()[ii] << " ";
-			std::cout << "\n";
-		}
-	}
-}
-
 // main parsing function
 void	Configuration::parse(std::ifstream& config_file) {
 	std::string					file_content((std::istreambuf_iterator<char>(config_file)), std::istreambuf_iterator<char>());
@@ -556,4 +476,82 @@ bool	Configuration::is_valid_path(std::string path) {
 	if (stat(path.c_str(), &buffer) != 0)
 		return (false);
 	return (true);
+}
+
+// *********** testing functions ***********
+void Configuration::print_server_blocks(const std::vector<server_block> &servers) {
+	size_t i = 0, j, k, l;
+	while (i < servers.size()) {
+		const server_block& server = servers[i];
+		std::cout << "Server Block " << (i + 1) << ":\n";
+		j = 0;
+		while (j < server.tokens.size()) {
+			std::cout << "Token: " << server.tokens[j++].content << '\n';
+		}
+		k = 0;
+		while (k < server.location_blocks.size()) {
+			const location_block& location = server.location_blocks[k];
+			std::cout << "  Location Block " << (k + 1) << ": " << server.location_blocks[k].path << "\n";
+			l = 0;
+			while (l < location.tokens.size()) {
+				std::cout << "    Token: " << location.tokens[l++].content << '\n';
+			}
+			++k;
+		}
+		++i;
+	}
+}
+
+template <typename C>
+void	print_shared_attributes(const C &obj) {
+	size_t	i;
+	std::map<std::string, std::string>				error_pages;
+	std::map<std::string, std::string>::iterator	it;
+
+	std::cout << "root: " << obj.get_root() << "\n";
+	i = -1;
+	std::cout << "index: ";
+	while (++i < obj.get_index().size())
+		std::cout << obj.get_index()[i] << " ";
+	std::cout << "\n";
+	std::cout << "autoindex: " << obj.get_autoindex() << "\n";
+	std::cout << "redirection: " << obj.get_redirection().first << " " << obj.get_redirection().second << "\n";
+	std::cout << "try_files: ";
+	i = -1;
+	while (++i < obj.get_try_files().size())
+		std::cout << obj.get_try_files()[i] << " ";
+	std::cout << "\n";
+	error_pages = obj.get_error_pages();
+	for (it = error_pages.begin(); it != error_pages.end(); ++it)
+		std::cout << "error_pages: " << it->first << " " << it->second << "\n";
+	std::cout << "client_max_body_size: " << obj.get_client_max_body_size() << "\n";
+}
+
+void Configuration::print_servers(const std::vector<Server> &servers) {
+	size_t	i;
+	size_t	ii;
+	std::map<std::string, Server::Location>	locations;
+	std::map<std::string, Server::Location>::iterator	it;
+
+	i = -1;
+	while (++i < servers.size()) {
+		std::cout << "\nServer:\n";
+		std::cout << "port: " << servers[i].get_port() << "\n";
+		std::cout << "ip: " << servers[i].get_ip() << "\n";
+		std::cout << "server_name: ";
+		for (int s = 0; s < servers[i].get_server_names().size(); ++s)
+			std::cout << servers[i].get_server_names()[s] << " ";
+		std::cout << "\n";
+		print_shared_attributes(servers[i]);
+		locations = servers[i].get_locations();
+		for (it = locations.begin(); it != locations.end(); ++it) {
+			std::cout << "\nLocation " << it->first << "\n";
+			print_shared_attributes(it->second);
+			std::cout << "methods: ";
+			ii = -1;
+			while (++ii < it->second.get_methods().size())
+				std::cout << it->second.get_methods()[ii] << " ";
+			std::cout << "\n";
+		}
+	}
 }

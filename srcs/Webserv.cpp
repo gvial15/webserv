@@ -43,52 +43,24 @@ void    Webserv::create_pollfds() {
 	}
 }
 
+// main server loop
 void	Webserv::run() {
 	signal(SIGINT, signal_handler);
 	signal(SIGTERM, signal_handler);
 
 	while (true) {
 		size_t i = 0;
-		int client_socket;
-		struct sockaddr_in address;
-		socklen_t addrlen = sizeof(address);
-		int ret = poll(&pollfd_vec[0], pollfd_vec.size(), -1);
+		int ret;
 	
+		ret = poll(&pollfd_vec[0], pollfd_vec.size(), -1);
 		if (ret < 0)
 			throw PollException();
 		while (i < pollfd_vec.size()) {
-			// Event on the socket
-			if (pollfd_vec[i].revents & POLLIN) {
-				// Is a new client
-				if (i < servers.size()) {
-					if ((client_socket = accept(pollfd_vec[i].fd, (struct sockaddr *)&address, &addrlen)) < 0)
-						throw AcceptException();
-					create_and_add_new_client(client_socket);
-					fd_to_server_map.insert(std::make_pair(client_socket, &servers[i]));
-					display_new_client_infos(client_socket, servers[i].get_port());
-				}
-				// Input from an existing client
-				else {
-					char buffer[1024];
-					int bytes_read = read(pollfd_vec[i].fd, buffer, 1024);
-
-					std::cout << "Input from client " << pollfd_vec[i].fd << " on port " << fd_to_server_map.find(pollfd_vec[i].fd)->second->get_port() << "\n";
-					// Connection with client closed or error
-					if (bytes_read <= 0) {
-						std::cout << "closing communication with client "<< pollfd_vec[i].fd << "\n\n";
-						close(pollfd_vec[i].fd); // close fd
-						fd_to_server_map.erase(pollfd_vec[i].fd); // delete fd->server mapping 
-						pollfd_vec[i].fd = 0;  // Mark fd as available
-					}
-					// process request
-					else {
-						buffer[bytes_read] = '\0';
-						// print clients request
-						std::cout << "request: " << buffer << std::endl;
-						// write back to client
-						write(pollfd_vec[i].fd, "Message received\n", 17);
-					}
-				}
+			if (pollfd_vec[i].revents & POLLIN) { // Event on a socket
+				if (i < servers.size()) // Input from new client
+					add_new_client(pollfd_vec[i].fd, servers[i]);
+				else // Input from existing client
+					manage_client_request(pollfd_vec[i].fd);
 				// Clear the revents field for the next poll call
 				pollfd_vec[i].revents = 0;
 			}
@@ -97,14 +69,57 @@ void	Webserv::run() {
 	}
 }
 
-void    Webserv::create_and_add_new_client(int client_socket) {
+// accept connection, create and add pollfd to pollfd_vec, map the fd with corresponding server/config
+void	Webserv::add_new_client(int pollfd, Server &server) {
+	int client_socket;
 	struct pollfd client_pfd;
+	struct sockaddr_in address;
+	socklen_t addrlen = sizeof(address);
+
+	if ((client_socket = accept(pollfd, (struct sockaddr *)&address, &addrlen)) < 0)
+		throw AcceptException();
 	memset(&client_pfd, 0, sizeof(client_pfd));
 	client_pfd.fd = client_socket;
 	client_pfd.events = POLLIN;
 	pollfd_vec.push_back(client_pfd);
+	fd_to_server_map.insert(std::make_pair(client_socket, &server));
+	// *** testing ***
+	display_new_client_infos(client_socket, server.get_port());
 }
 
+// read client input, send it to processing
+void	Webserv::manage_client_request(int pollfd) {
+	char buffer[1024];
+	int bytes_read = read(pollfd, buffer, 1024);
+
+	std::cout << "Input from client " << pollfd << " on port " << fd_to_server_map.find(pollfd)->second->get_port() << "\n";
+	if (bytes_read <= 0) { // Connection with client closed or error
+		std::cout << "closing communication with client "<< pollfd << "\n\n";
+		close(pollfd);
+		fd_to_server_map.erase(pollfd);
+		pollfd = 0;
+	}
+	else { // TODO: process request (parsing, response , cgi)
+		buffer[bytes_read] = '\0';
+		// print clients request *** testing ***
+		std::cout << "request: " << buffer << std::endl;
+		// write back to client *** testing ***
+		write(pollfd, "Message received\n", 17);
+	}
+}
+
+void	Webserv::close_all_fds() {
+	size_t i = -1;
+
+	while (++i < pollfd_vec.size()) {
+		if (pollfd_vec[i].fd >= 0) {
+			close(pollfd_vec[i].fd);
+			pollfd_vec[i].fd = -1;
+		}
+	}
+}
+
+// *********** testing functions ***********
 void    Webserv::display_new_client_infos(int client_socket, int port) {
 	struct sockaddr_in sender_address;
 	socklen_t sender_addrlen = sizeof(sender_address);
@@ -119,15 +134,4 @@ void    Webserv::display_new_client_infos(int client_socket, int port) {
 	}
 	else
 		perror("getpeername failed");
-}
-
-void	Webserv::close_all_fds() {
-	size_t i = -1;
-
-	while (++i < pollfd_vec.size()) {
-		if (pollfd_vec[i].fd >= 0) {
-			close(pollfd_vec[i].fd);
-			pollfd_vec[i].fd = -1;
-		}
-	}
 }

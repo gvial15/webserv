@@ -27,9 +27,11 @@ class Webserv {
 		void        run();
 		void	    close_all_fds();
 		void        create_pollfds();
-		static void signal_handler(int signum);
+		static void	signal_handler(int signum);
+		void		add_new_client(int fd, Server &server);
+		void		manage_client_request(int pollfd);
+		// *********** testing functions ***********
 		void        display_new_client_infos(int client_socket, int port);
-		void        create_and_add_new_client(int client_socket);
 
 		// private exceptions
 		class PollException : public std::exception {

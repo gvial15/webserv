@@ -2,13 +2,13 @@
 #include <unistd.h>
 #include <iostream>
 
+// execute CGI and write return into the client fd
 CGI::CGI(std::string path, std::vector<std::string> params, int output_fd) {
     const char	*argv[params.size() + 2];
 	pid_t		pid;
 	int			i;
 
 	pid = fork();
-
     if (pid == -1)
 		throw ForkException();
 	// Child process

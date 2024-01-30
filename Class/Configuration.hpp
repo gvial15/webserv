@@ -69,7 +69,7 @@ class Configuration {
 		bool 						is_string_size_t(const std::string &string);
 		size_t 						string_to_size_t(const std::string &string);
 		bool						is_valid_path(std::string path);
-		// ***testing***
+		// *********** testing functions ***********
 		void						print_server_blocks(const std::vector<server_block>& servers);
 		void						print_servers(const std::vector<Server>& servers);
 
