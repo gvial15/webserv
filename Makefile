@@ -1,5 +1,10 @@
 SRCS =	main.cpp \
-		srcs/Webserv.cpp srcs/Configuration.cpp srcs/Server.cpp srcs/CGI.cpp srcs/Request.cpp\
+		srcs/Webserv.cpp \
+		srcs/Configuration.cpp \
+		srcs/Server.cpp \
+		srcs/CGI.cpp \
+		srcs/Request.cpp \
+		srcs/Response.cpp \
 		# srcs/HTTPRequest.cpp srcs/HTTPResponse.cpp
 
 OBJDIR = obj

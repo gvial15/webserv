@@ -1,23 +1,22 @@
 #pragma once
 #include <map>
-// #include "../Class/Request.hpp"
+#include "../Class/Request.hpp"
 #include "../Class/Configuration.hpp"
-
-class Request;
+#include "../Class/Server.hpp"
 
 class Response {
 	public:
 		Response();
 		~Response();
 
-		void			call(Request & request, Configuration & conf);
+		void			call(Request & request, Server & server );
 
-		void			getMethod(Request & request, Configuration & conf);
-		void			postMethod(Request & request, Configuration & conf);
-		void			deleteMethod(Request & request, Configuration & conf);
+		void			getMethod(Request & request, Server & server );
+		void			postMethod(Request & request, Server & server );
+		void			deleteMethod(Request & request, Server & server );
 
 	private:
 
-		static std::map<std::string, void (Response::*)(Request &, Configuration &)>	_method;
-		static std::map<std::string, void (Response::*)(Request &, Configuration &)>	initMethods();
+		static std::map<std::string, void (Response::*)(Request &, Server &)>	_method;
+		static std::map<std::string, void (Response::*)(Request &, Server &)>	initMethods();
 };
