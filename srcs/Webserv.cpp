@@ -1,5 +1,6 @@
 #include "../Class/Webserv.hpp"
 #include "../Class/CGI.hpp"
+#include "../Class/Request.hpp"
 #include <arpa/inet.h>
 #include <string>
 #include <unistd.h>
@@ -103,9 +104,10 @@ void	Webserv::manage_client_request(int pollfd) {
 		buffer[bytes_read] = '\0';
 		// print clients request *** testing ***
 		std::cout << "request: " << buffer << std::endl;
+		Request	req(buffer);
 		// std::cout << fd_to_server_map.find(pollfd)->second->get_client_max_body_size() << "\n";
 		// write back to client *** testing ***
-		write(pollfd, "Message received\n", 17);
+		send(pollfd, "Message received\n", 17, 0);
 	}
 }
 

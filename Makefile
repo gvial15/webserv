@@ -1,5 +1,5 @@
 SRCS =	main.cpp \
-		srcs/Webserv.cpp srcs/Configuration.cpp srcs/Server.cpp srcs/CGI.cpp \
+		srcs/Webserv.cpp srcs/Configuration.cpp srcs/Server.cpp srcs/CGI.cpp srcs/Request.cpp\
 		# srcs/HTTPRequest.cpp srcs/HTTPResponse.cpp
 
 OBJDIR = obj
@@ -8,6 +8,7 @@ OBJS = $(SRCS:%.cpp=$(OBJDIR)/%.o)
 NAME = webserv
 
 # CFLAGS = -Wall -Wextra -Werror -std=c++98
+CFLAGS = -std=c++98
 
 CC = g++
 
