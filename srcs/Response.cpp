@@ -1,4 +1,5 @@
 #include "../Class/Response.hpp"
+#include "../Class/ResponseHeader.hpp"
 
 
 // Static Assets
@@ -57,11 +58,8 @@ void			Response::getMethod(Request & request, Server & server ) {
 
 	// SET RESPONSE
 	this->_response = buffer.str();
-	//tmp
-	std::stringstream ss2;
-	ss2 << "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: " << this->_response.size() << "\n\n" << this->_response;
-	this->_response = ss2.str();
-	//tmp--
+	ResponseHeader	respHead(200, path.c_str(), this->_response.size(), ".html");
+	this->_response = respHead.getResponseHeader() + this->_response;
 	// std::cout << this->_response << std::endl; //debug
 }
 

@@ -15,7 +15,6 @@ class Response {
 		void			postMethod( Request & request, Server & server );
 		void			deleteMethod( Request & request, Server & server );
 
-		std::string		write( Request & request, Server & server );
 		std::string		getResponse();
 
 	private:
