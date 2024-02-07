@@ -111,6 +111,8 @@ void	Webserv::manage_client_request(int pollfd) {
 		// std::cout << fd_to_server_map.find(pollfd)->second->get_client_max_body_size() << "\n";
 		// write back to client *** testing ***
 		// send(pollfd, "Message received\n", 17, 0);
+		std::string rep = response.getResponse();
+		send(pollfd, rep.c_str(), rep.size(), 0);
 	}
 }
 
