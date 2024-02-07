@@ -5,6 +5,7 @@ SRCS =	main.cpp \
 		srcs/CGI.cpp \
 		srcs/Request.cpp \
 		srcs/Response.cpp \
+		srcs/ResponseHeader.cpp \
 		# srcs/HTTPRequest.cpp srcs/HTTPResponse.cpp
 
 OBJDIR = obj
