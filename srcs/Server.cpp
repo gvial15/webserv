@@ -18,17 +18,22 @@ Server::~Server() {
 void	Server::init()
 {
 	struct sockaddr_in address;
-	int flags;
+	// int flags;
 
 	// Creating socket file descriptor
 	if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
 		throw SocketException();
 
+		// /!\ SELON LE SUJET: (aucun problème à simplement enlever ce qui à étét commenté à priori ?)
+			// Toutefois, vous ne pouvez utiliser fcntl() que de la façon suivante :
+			// fcntl(fd, F_SETFL, O_NONBLOCK, FD_CLOEXEC);
+			// Tout autre flag est interdit.
+
 	// Set the socket to non-blocking mode
-	flags = fcntl(server_fd, F_GETFL, 0);
-	if (flags == -1)
-		throw fcntl_F_GETFL_Exception();
-	if (fcntl(server_fd, F_SETFL, flags | O_NONBLOCK) == -1)
+	// flags = fcntl(server_fd, F_GETFL, O_NONBLOCK, FD_CLOEXEC);
+	// if (flags == -1)
+		// throw fcntl_F_GETFL_Exception();
+	if (fcntl(server_fd, F_SETFL, O_NONBLOCK, FD_CLOEXEC) == -1)
 		throw fcntl_F_SETFL_O_NONBLOCK_Exception();
 
 	// setup sockaddr_in

@@ -1,6 +1,7 @@
 #include "../Class/Webserv.hpp"
 #include "../Class/CGI.hpp"
 #include "../Class/Request.hpp"
+#include "../Class/RequestConfig.hpp"
 #include "../Class/Response.hpp"
 #include "../Class/ResponseHeader.hpp"
 #include <arpa/inet.h>
@@ -107,7 +108,8 @@ void	Webserv::manage_client_request(int pollfd) {
 		// print clients request *** testing ***
 		Request	req(buffer);
 		Response response;
-		response.call( req, * fd_to_server_map.find(pollfd)->second );
+		RequestConfig requestConfig( req, fd_to_server_map.find(pollfd)->second );
+		response.call( req, requestConfig );
 		// write back to client *** testing ***
 		std::string rep = response.getResponse();
 		send(pollfd, rep.c_str(), rep.size(), 0);

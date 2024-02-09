@@ -4,6 +4,7 @@ SRCS =	main.cpp \
 		srcs/Server.cpp \
 		srcs/CGI.cpp \
 		srcs/Request.cpp \
+		srcs/RequestConfig.cpp \
 		srcs/Response.cpp \
 		srcs/ResponseHeader.cpp \
 		# srcs/HTTPRequest.cpp srcs/HTTPResponse.cpp
