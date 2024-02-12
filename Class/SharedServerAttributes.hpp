@@ -1,3 +1,4 @@
+#pragma once
 #include <iostream>
 #include <string>
 #include <utility>
@@ -33,6 +34,18 @@ class SharedConfigAttributes {
 			error_pages.insert(std::make_pair("502", "/html/502_bad_gateway.html"));
 			error_pages.insert(std::make_pair("503", "/html/503_service_unavailable.html"));
 			error_pages.insert(std::make_pair("504", "/html/504_gateway_timeout.html"));
+		}
+		SharedConfigAttributes( SharedConfigAttributes const & src ) { *this = src; }
+
+		SharedConfigAttributes &	operator=( SharedConfigAttributes const & src ) {
+			root = src.root;
+			index = src.index;
+			autoindex = src.autoindex;
+			redirection = src.redirection;
+			try_files = src.try_files;
+			error_pages = src.error_pages;
+			client_max_body_size = src.client_max_body_size;
+			return *this;
 		}
 
 		// getters

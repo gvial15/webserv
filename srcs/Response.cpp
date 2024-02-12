@@ -21,6 +21,9 @@ std::map<std::string, void (Response::*)(Request &, RequestConfig &)> Response::
 
 void			Response::call(Request & request, RequestConfig & requestConfig) {
 	std::map<std::string, std::string> elems = request.getRequestElem();
+	if ( _method.find(elems["method"]) == _method.end() ) {
+		std::cerr << "\033[0;31mUnknown method: \'" << elems["method"] << "\'!!\n\033[0;0m";
+	}
 	(this->*Response::_method[elems["method"]])(request, requestConfig);
 }
 
