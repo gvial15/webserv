@@ -9,6 +9,7 @@
 // one for each server {} block, they each self initialize their own socket
 // and bind() them to their respective ip:port and make them listen()
 class Server : public SharedConfigAttributes {
+
 	public:
 		Server();
 		~Server();
@@ -22,8 +23,8 @@ class Server : public SharedConfigAttributes {
 					methods.push_back("POST");
 					methods.push_back("DELETE");
 				};
-				~Location() {};
-			
+				~Location() {}
+
 			public:
 
 				// getters
@@ -34,11 +35,22 @@ class Server : public SharedConfigAttributes {
 
 				void	clear_methods() { methods.clear(); };
 
-			private:
+			protected:
 
-				// private attributes
+				// protected attributes
 				std::vector<std::string>	methods;
 		};
+
+	protected:
+
+		// protected attributes
+		int								server_fd;
+		int								port;
+		std::string						ip;
+		std::vector<std::string>		server_names;
+		std::map<std::string, Location>	locations;
+
+	public:
 
 		// public methods
 		void	init();
@@ -59,13 +71,6 @@ class Server : public SharedConfigAttributes {
 		void	clear_server_name() { server_names.clear(); };
 
 	private:
-
-		// private attributes
-		int								server_fd;
-		int								port;
-		std::string						ip;
-		std::vector<std::string>		server_names;
-		std::map<std::string, Location>	locations;
 
 		// private exceptions
 		class SocketException : public std::exception {
