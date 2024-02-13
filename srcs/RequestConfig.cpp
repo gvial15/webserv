@@ -101,6 +101,7 @@ void	RequestConfig::copyLocationConfig( Server * server ) {
 	if ( _location->second.get_client_max_body_size() )
 		set_client_max_body_size( _location->second.get_client_max_body_size() );
 	// set cgi_pass
+	// set allowed_method
 
 // TEST
 	// std::cout << "location name: " << _location->first << std::endl;
