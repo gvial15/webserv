@@ -18,6 +18,8 @@ class Response {
 		std::string		getResponse();
 
 	private:
+		std::string	_body;
+		std::string	_header;
 		std::string	_response;
 		int			_code;
 

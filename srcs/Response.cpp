@@ -38,21 +38,32 @@ void			Response::getMethod(Request & request, RequestConfig & requestConfig ) {
 	std::stringstream	buffer;
 
 	file.open(path.c_str(), std::ifstream::in);
-	if (file.is_open() == false) {
-		std::cerr << "open() failed";
+	if ( file.is_open() ) {
+		_code = 200;
+		buffer << file.rdbuf();
+		file.close();
+	} else {
+		std::cerr << "open() failed" << std::endl;
 		_code = 404;
 		// this->_response = errorMap[404];
-		return;
+		file.open(requestConfig.get_error_pages().find( "404" )->second, std::ifstream::in);
+		std::cerr << "Trying to open file at: " << requestConfig.get_error_pages().find( std::to_string( _code ) )->second << std::endl;
+		if ( file.is_open() ) {
+			buffer << file.rdbuf();
+			file.close();
+		std::cerr << "buffer:" << buffer.str() << std::endl;
+		} else {
+			std::cerr << " Open Error File Failed !!!!!!" << std::endl;
+			return;
+		}
 	}
-	buffer << file.rdbuf();
-	file.close();
 
 
 	// SET RESPONSE
-	_code = 200;
-	this->_response = buffer.str();
-	ResponseHeader	respHead(_code, path.c_str(), this->_response.size(), ".html");
-	this->_response = respHead.getResponseHeader() + this->_response;
+	_body = buffer.str();
+	ResponseHeader	respHead( _code, path.c_str(), _body.size(), ".html" );
+	this->_header.append( respHead.getResponseHeader() );
+	this->_response = _header + _body;
 	// std::cout << this->_response << std::endl; //debug
 }
 
@@ -64,7 +75,7 @@ void			Response::deleteMethod(Request & request, RequestConfig & requestConfig) 
 	std::cout << "-- Call DELETE --\n";
 }
 
-std::string		Response::getResponse() { return this->_response; }
+std::string		Response::getResponse() { return _response; }
 
 // -structors
 

@@ -112,7 +112,7 @@ void	Webserv::manage_client_request(int pollfd) {
 		response.call( req, requestConfig );
 		// write back to client *** testing ***
 		std::string rep = response.getResponse();
-		send(pollfd, rep.c_str(), rep.size(), 0);
+		send( pollfd, rep.c_str(), rep.size(), 0 );
 	}
 }
 
