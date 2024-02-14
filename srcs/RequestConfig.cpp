@@ -13,7 +13,7 @@ struct both_slashes {
 
 RequestConfig::RequestConfig() {}
 
-RequestConfig::RequestConfig( Request & request, Server * server ) : SharedConfigAttributes( *server ) {
+RequestConfig::RequestConfig( Request & request, Server * server ) : SharedConfigDirectives( *server ) {
 	// insert path if not exist in copied server
 	error_pages.insert(std::make_pair("401", "/html/401AHAH_unauthorized.html"));
 	error_pages.insert(std::make_pair("404", "/html/404_not_found.html"));

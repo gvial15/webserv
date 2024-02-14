@@ -7,7 +7,7 @@
 #include <cstddef>
 
 // Class from which Server and Location inherit containing all their shared attributes
-class SharedConfigAttributes {
+class SharedConfigDirectives {
 
 	protected:
 
@@ -22,7 +22,7 @@ class SharedConfigAttributes {
 
 	public:
 
-		SharedConfigAttributes() :
+		SharedConfigDirectives() :
 			root("/html"),
 			autoindex(false),
 			client_max_body_size(1 << 20)
@@ -38,9 +38,9 @@ class SharedConfigAttributes {
 			// error_pages.insert(std::make_pair("503", "/html/503_service_unavailable.html"));
 			// error_pages.insert(std::make_pair("504", "/html/504_gateway_timeout.html"));
 		}
-		SharedConfigAttributes( SharedConfigAttributes const & src ) { *this = src; }
+		SharedConfigDirectives( SharedConfigDirectives const & src ) { *this = src; }
 
-		SharedConfigAttributes &	operator=( SharedConfigAttributes const & src ) {
+		SharedConfigDirectives &	operator=( SharedConfigDirectives const & src ) {
 			root = src.root;
 			index = src.index;
 			methods = src.methods;

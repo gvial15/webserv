@@ -1,5 +1,5 @@
 #pragma once
-#include "SharedServerAttributes.hpp"
+#include "SharedServerDirectives.hpp"
 #include <cstddef>
 #include <map>
 #include <string>
@@ -8,14 +8,14 @@
 
 // one for each server {} block, they each self initialize their own socket
 // and bind() them to their respective ip:port and make them listen()
-class Server : public SharedConfigAttributes {
+class Server : public SharedConfigDirectives {
 
 	public:
 		Server();
 		~Server();
 
 		// public classes
-		class Location : public SharedConfigAttributes {
+		class Location : public SharedConfigDirectives {
 			public:
 				Location() {};
 				~Location() {}
