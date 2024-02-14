@@ -1,5 +1,5 @@
 #pragma once
-#include "SharedServerAttributes.hpp"
+#include "SharedServerDirectives.hpp"
 #include <cstddef>
 #include <map>
 #include <string>
@@ -8,37 +8,17 @@
 
 // one for each server {} block, they each self initialize their own socket
 // and bind() them to their respective ip:port and make them listen()
-class Server : public SharedConfigAttributes {
+class Server : public SharedConfigDirectives {
 
 	public:
 		Server();
 		~Server();
 
 		// public classes
-		class Location : public SharedConfigAttributes {
+		class Location : public SharedConfigDirectives {
 			public:
-				Location() {
-					// default authorized methods
-					methods.push_back("GET");
-					methods.push_back("POST");
-					methods.push_back("DELETE");
-				};
+				Location() {};
 				~Location() {}
-
-			public:
-
-				// getters
-				std::vector<std::string>	get_methods() const { return methods; }
-
-				// setters
-				void	set_methods(std::string new_methods) { methods.push_back(new_methods); }
-
-				void	clear_methods() { methods.clear(); };
-
-			protected:
-
-				// protected attributes
-				std::vector<std::string>	methods;
 		};
 
 	protected:
