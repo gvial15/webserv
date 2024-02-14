@@ -15,6 +15,7 @@ class SharedConfigDirectives {
 		std::string 						root;
 		std::vector<std::string> 			index;
 		std::vector<std::string>			methods;
+		std::string 						post_path;
 		bool 								autoindex;
 		std::pair<std::string, std::string>	redirection;
 		std::map<std::string, std::string>	error_pages;
@@ -24,6 +25,7 @@ class SharedConfigDirectives {
 
 		SharedConfigDirectives() :
 			root("/html"),
+			post_path("/default/path"), // to be changed
 			autoindex(false),
 			client_max_body_size(1 << 20)
 		{
@@ -44,6 +46,7 @@ class SharedConfigDirectives {
 			root = src.root;
 			index = src.index;
 			methods = src.methods;
+			post_path = src.post_path;
 			autoindex = src.autoindex;
 			redirection = src.redirection;
 			error_pages = src.error_pages;
@@ -56,6 +59,7 @@ class SharedConfigDirectives {
 		std::string 						get_root() const { return root; }
 		std::vector<std::string> 			get_index() const { return index; }
 		std::vector<std::string>			get_methods() const { return methods; }
+		std::string							get_post_path() const { return post_path; }
 		bool								get_autoindex() const { return autoindex; }
 		std::pair<std::string, std::string>	get_redirection() const { return redirection; }
 		std::map<std::string, std::string>	get_error_pages() const { return error_pages; }
@@ -66,6 +70,7 @@ class SharedConfigDirectives {
 		void 	set_index(const std::string new_index) { index.push_back(new_index); }
 		void	set_autoindex(const bool new_autoindex) { autoindex = new_autoindex; }
 		void	set_methods(std::string new_methods) { methods.push_back(new_methods); }
+		void	set_post_path(std::string new_post_path) { post_path = new_post_path; }
 		void 	set_redirection(const std::pair<std::string, std::string> new_redirection) { redirection = new_redirection; }
 		void 	set_error_page(const std::pair<std::string, std::string> new_error_pages) { error_pages.insert(new_error_pages); }
 		void 	set_client_max_body_size(const std::size_t new_client_max_body_size) { client_max_body_size = new_client_max_body_size; }

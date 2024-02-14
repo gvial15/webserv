@@ -203,6 +203,12 @@ class Configuration {
 				: parsing_exception("Invalid method argument", line, token) {}
 		};
 
+		class invalid_post_path_argument : public parsing_exception {
+		public:
+			invalid_post_path_argument(const size_t line, const std::string& token)
+				: parsing_exception("Invalid post_path argument", line, token) {}
+		};
+
 		class unable_to_open_file : public std::exception {
 				virtual const char* what() const throw() {
 					return "Unable to open configuration file";

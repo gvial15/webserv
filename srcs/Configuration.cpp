@@ -41,6 +41,7 @@ void	Configuration::create_directive_bank() {
 	directive_bank.insert(std::make_pair("client_max_body_size", std::make_pair(1, 1)));
 	directive_bank.insert(std::make_pair("error_page", std::make_pair(2, 2)));
 	directive_bank.insert(std::make_pair("methods", std::make_pair(1, 3)));
+	directive_bank.insert(std::make_pair("post_path", std::make_pair(1, 1)));
 }
 
 // main parsing function
@@ -247,7 +248,6 @@ Server	Configuration::create_server(server_block server_blocks) {
 		fill_shared_attributes(server_blocks.location_blocks[i].tokens, location);
 		server.set_locations(std::make_pair(server_blocks.location_blocks[i].path, location));
 	}
-	std::cout << server.get_methods()[0] << "\n";
 	return (server);
 }
 
@@ -377,6 +377,11 @@ void	Configuration::fill_shared_attributes(std::vector<token> tokens, T &obj) {
 					obj.set_methods(arguments[ii]);
 				}
 			}
+			else if (tokens[i].content == "post_path") {
+				if (!is_valid_path(arguments[0]))
+					throw invalid_post_path_argument(tokens[i].line, arguments[0]);
+				obj.set_post_path(arguments[0]);
+			}
 			arguments.clear();
 		}
 	}
@@ -491,16 +496,18 @@ void	print_shared_attributes(const C &obj) {
 	while (++i < obj.get_index().size())
 		std::cout << obj.get_index()[i] << " ";
 	std::cout << "\n";
+	std::cout << "methods: ";
+	i = -1;
+	while (++i < obj.get_methods().size())
+		std::cout << obj.get_methods()[i] << " ";
+	std::cout << "\n";
+	std::cout << "post_path: " << obj.get_post_path() << "\n";
 	std::cout << "autoindex: " << obj.get_autoindex() << "\n";
 	std::cout << "redirection: " << obj.get_redirection().first << " " << obj.get_redirection().second << "\n";
 	error_pages = obj.get_error_pages();
 	for (it = error_pages.begin(); it != error_pages.end(); ++it)
 		std::cout << "error_pages: " << it->first << " " << it->second << "\n";
 	std::cout << "client_max_body_size: " << obj.get_client_max_body_size() << "\n";
-	std::cout << "methods: ";
-	i = -1;
-	while (++i < obj.get_methods().size())
-		std::cout << obj.get_methods()[i] << " ";
 }
 
 void Configuration::print_servers(const std::vector<Server> &servers) {
