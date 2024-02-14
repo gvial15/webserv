@@ -32,7 +32,6 @@ RequestConfig::RequestConfig( Request & request, Server * server ) : SharedConfi
 	this->copyLocationConfig( server );
 	this->pathRouting();
 
-	// tryfiles ?
 	// check body size
 	// is method allowed
 	// need redirection ?
@@ -88,8 +87,6 @@ void	RequestConfig::copyLocationConfig( Server * server ) {
 		set_autoindex( _location->second.get_autoindex() );
 	if ( _location->second.get_redirection().first != "" )
 		set_redirection( _location->second.get_redirection() );
-	if ( _location->second.get_try_files().size() > 0 )
-		try_files = _location->second.get_try_files();
 
 	std::map<std::string, std::string> location_error_pages = _location->second.get_error_pages();
 	std::map<std::string, std::string>::iterator it;
@@ -108,7 +105,6 @@ void	RequestConfig::copyLocationConfig( Server * server ) {
 	// std::cout << "location index size: " << _location->second.get_index().size() << std::endl;
 	// std::cout << "location autoindex: " << _location->second.get_autoindex() << std::endl;
 	// std::cout << "location redirection 1: " << _location->second.get_redirection().first << std::endl;
-	// std::cout << "location get_try_files().size(): " << _location->second.get_try_files().size() << std::endl;
 	// std::cout << "location get_error_pages().size(): " << _location->second.get_error_pages().begin()->second << std::endl; // SEGFAULT TBD
 	// std::cout << "location get_client_max_body_size(): " << _location->second.get_cl/ient_max_body_size() << std::endl;
 // TEST--

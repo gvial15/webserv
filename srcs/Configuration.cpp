@@ -40,7 +40,6 @@ void	Configuration::create_directive_bank() {
 	directive_bank.insert(std::make_pair("autoindex", std::make_pair(1, 1)));
 	directive_bank.insert(std::make_pair("client_max_body_size", std::make_pair(1, 1)));
 	directive_bank.insert(std::make_pair("error_page", std::make_pair(2, 2)));
-	directive_bank.insert(std::make_pair("try_files", std::make_pair(2, -1)));
 	directive_bank.insert(std::make_pair("methods", std::make_pair(1, 3)));
 }
 
@@ -66,7 +65,7 @@ void	Configuration::parse(std::ifstream& config_file) {
 	i = -1;
 	while (++i < server_blocks.size())
 		servers.push_back(create_server(server_blocks[i]));
-	// print_servers(servers);
+	print_servers(servers);
 }
 
 // space out special symbols } { ; \n
@@ -148,8 +147,6 @@ Configuration::server_block	Configuration::create_server_block(std::vector<token
 
 	is_valid_server_block(tokens, i);
 	while (tokens[++i].content != "}") {
-		if (tokens[i].content == "methods")
-			throw unknown_directive(tokens[i].line, tokens[i].content);
 		verify_end_of_line(tokens, i);
 		validate_directive(tokens, i);
 		// find location {} blocks start and create location_block struct
@@ -248,9 +245,9 @@ Server	Configuration::create_server(server_block server_blocks) {
 	while (++i < server_blocks.location_blocks.size()) {
 		Server::Location location;
 		fill_shared_attributes(server_blocks.location_blocks[i].tokens, location);
-		fill_location_attributes(server_blocks.location_blocks[i].tokens, location);
 		server.set_locations(std::make_pair(server_blocks.location_blocks[i].path, location));
 	}
+	std::cout << server.get_methods()[0] << "\n";
 	return (server);
 }
 
@@ -358,11 +355,6 @@ void	Configuration::fill_shared_attributes(std::vector<token> tokens, T &obj) {
 					obj.set_redirection(std::make_pair(arguments[0], arguments[1]));
 				}
 			}
-			else if (tokens[i].content == "try_files") {
-				obj.clear_try_files();
-				for (int ii = 0; ii < arguments.size(); ++ii)
-					obj.set_try_files(arguments[ii]);
-			}
 			else if (tokens[i].content == "error_page") {
 				if (!is_string_integer(arguments[0]))
 					throw invalid_error_page_argument(tokens[i].line, arguments[0]);
@@ -377,27 +369,12 @@ void	Configuration::fill_shared_attributes(std::vector<token> tokens, T &obj) {
 					throw invalid_client_max_body_size_argument(tokens[i].line, arguments[0]);
 				obj.set_client_max_body_size(string_to_size_t(arguments[0]));
 			}
-			arguments.clear();
-		}
-	}
-}
-
-// fill Location only attributes
-void	Configuration::fill_location_attributes(std::vector<token> tokens, Server::Location &location) {
-	(void)	location;
-	std::vector<std::string>	arguments;
-	size_t	i;
-
-	i = -1;
-	while (++i < tokens.size()) {
-		if (i == 0 || tokens[i - 1].content == ";") {
-			arguments = get_arguments(tokens, i);
-			if (tokens[i].content == "methods") {
-				location.clear_methods();
+			else if (tokens[i].content == "methods") {
+				obj.clear_methods();
 				for (int ii = 0; ii < arguments.size(); ++ii) {
 					if (arguments[ii] != "POST" && arguments[ii] != "GET" && arguments[ii] != "DELETE")
 						throw invalid_method_argument(tokens[i].line, arguments[ii]);
-					location.set_methods(arguments[ii]);
+					obj.set_methods(arguments[ii]);
 				}
 			}
 			arguments.clear();
@@ -516,15 +493,14 @@ void	print_shared_attributes(const C &obj) {
 	std::cout << "\n";
 	std::cout << "autoindex: " << obj.get_autoindex() << "\n";
 	std::cout << "redirection: " << obj.get_redirection().first << " " << obj.get_redirection().second << "\n";
-	std::cout << "try_files: ";
-	i = -1;
-	while (++i < obj.get_try_files().size())
-		std::cout << obj.get_try_files()[i] << " ";
-	std::cout << "\n";
 	error_pages = obj.get_error_pages();
 	for (it = error_pages.begin(); it != error_pages.end(); ++it)
 		std::cout << "error_pages: " << it->first << " " << it->second << "\n";
 	std::cout << "client_max_body_size: " << obj.get_client_max_body_size() << "\n";
+	std::cout << "methods: ";
+	i = -1;
+	while (++i < obj.get_methods().size())
+		std::cout << obj.get_methods()[i] << " ";
 }
 
 void Configuration::print_servers(const std::vector<Server> &servers) {
@@ -547,10 +523,6 @@ void Configuration::print_servers(const std::vector<Server> &servers) {
 		for (it = locations.begin(); it != locations.end(); ++it) {
 			std::cout << "\nLocation " << it->first << "\n";
 			print_shared_attributes(it->second);
-			std::cout << "methods: ";
-			ii = -1;
-			while (++ii < it->second.get_methods().size())
-				std::cout << it->second.get_methods()[ii] << " ";
 			std::cout << "\n";
 		}
 	}
