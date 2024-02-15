@@ -45,10 +45,16 @@ void			Response::call(Request & request, RequestConfig & requestConf) {
 	std::cout << "received path: " << _path << std::endl;
 	_errors_map = requestConf.get_error_pages();
 
-	// if (requestConf.get_methods().find( request.getRequestElem().find("method")) == requestConf.get_methods().end())
-	// 	_code = 405;
-	// else
-	if (requestConf.get_client_max_body_size() < request.getRequest().size())
+	std::map<std::string, std::string> elems = request.getRequestElem();
+	
+	std::vector<std::string> allowed_methods = requestConf.get_methods();
+	if ( _method.find(elems["method"]) == _method.end() ) {
+		std::cerr << "\033[0;31mUnknown method: \'" << elems["method"] << "\'!!\n\033[0;0m";
+		_code = 405;
+	}
+	else if ( std::find( allowed_methods.begin(), allowed_methods.end(), elems["method"] ) == allowed_methods.end() )
+		_code = 405;
+	else if (requestConf.get_client_max_body_size() < request.getRequest().size())
 		_code = 413;
 	if (_code == 405 || _code == 413)
 	{
@@ -57,17 +63,16 @@ void			Response::call(Request & request, RequestConfig & requestConf) {
 		_response = respHead.getResponseHeader() + _response + "\r\n";
 		return ;
 	}
-
-	std::map<std::string, std::string> elems = request.getRequestElem();
-	if ( _method.find(elems["method"]) == _method.end() ) {
-		std::cerr << "\033[0;31mUnknown method: \'" << elems["method"] << "\'!!\n\033[0;0m";
-	}
 	(this->*Response::_method[elems["method"]])(request, requestConf);
 }
 
 void			Response::getMethod(Request & request, RequestConfig & requestConfig ) {
 	std::cout << "-- Call GET --\n";
 
+	// if (cgipath!=null) {
+	// 	do smthg
+	// }
+	// else
 	if ( _code == 200 )
 		_code = readContent();
 	else // if 400 or cgi error

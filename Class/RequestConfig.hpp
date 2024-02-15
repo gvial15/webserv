@@ -3,9 +3,9 @@
 #include "../Class/Request.hpp"
 #include "../Class/Configuration.hpp"
 #include "../Class/Server.hpp"
-#include "../Class/SharedServerAttributes.hpp"
+#include "SharedServerDirectives.hpp"
 
-class RequestConfig: public SharedConfigAttributes {
+class RequestConfig: public SharedConfigDirectives {
 	public:
 		RequestConfig();
 		RequestConfig( Request &, Server * );

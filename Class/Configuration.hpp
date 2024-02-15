@@ -59,7 +59,6 @@ class Configuration {
 		Server						create_server(server_block server_blocks);
 		void						fill_server_attributes(std::vector<token> server_block_tokens, Server &server);
 		template <typename T> void	fill_shared_attributes(std::vector<token> server_block_tokens, T &obj);
-		void						fill_location_attributes(std::vector<token> server_block_tokens, Server::Location &location);
 		void						validate_listen_arguments(std::vector<token> tokens, size_t i, std::vector<std::string> arguments);
 		void						validate_server_name_arguments(std::vector<token> tokens, size_t i, std::vector<std::string> arguments);
 		std::vector<std::string>	get_arguments(std::vector<token> tokens, size_t i);
@@ -202,6 +201,12 @@ class Configuration {
 		public:
 			invalid_method_argument(const size_t line, const std::string& token)
 				: parsing_exception("Invalid method argument", line, token) {}
+		};
+
+		class invalid_post_path_argument : public parsing_exception {
+		public:
+			invalid_post_path_argument(const size_t line, const std::string& token)
+				: parsing_exception("Invalid post_path argument", line, token) {}
 		};
 
 		class unable_to_open_file : public std::exception {
