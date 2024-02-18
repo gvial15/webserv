@@ -30,13 +30,14 @@ class Request {
         Request(const char *req);
 
 		// Parsing functions
-        void    parse( void );
-        void    parseFirstLine( std::string firstLine );
-        void    parseHeaders(std::istringstream& iss);
+        void    parse();
+        void    parseFirstLine(std::string first_line);
+        void    parseHeaders(std::vector<std::string> lines);
 
 		// utils & debug
-		void	stringToLower(std::string &str);
-		void    printRequestElems() const;
+        std::vector<std::string>	split(std::string string, char delimiter);
+		void	                    stringToLower(std::string &str);
+		void                        printRequestElems() const;
         
         //getters
         const std::string                           &getRequest( void ) const;

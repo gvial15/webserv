@@ -66,7 +66,7 @@ void	Configuration::parse(std::ifstream& config_file) {
 	i = -1;
 	while (++i < server_blocks.size())
 		servers.push_back(create_server(server_blocks[i]));
-	print_servers(servers);
+	// print_servers(servers);
 }
 
 // space out special symbols } { ; \n
@@ -421,7 +421,6 @@ std::vector<std::string>	Configuration::split(std::string string, char delimiter
 
     while (std::getline(ss, element, delimiter))
         elements.push_back(element);
-
     return (elements);
 }
 
