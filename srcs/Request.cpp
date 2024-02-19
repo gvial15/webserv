@@ -13,6 +13,7 @@
 #include "../Class/Request.hpp"
 #include "../Class/Configuration.hpp"
 #include <codecvt>
+#include <cstddef>
 #include <iostream>
 #include <string>
 #include <sys/_types/_size_t.h>
@@ -27,6 +28,23 @@ void    Request::printRequestElems() const {
         std::cout << it->first << " -> " << it->second << std::endl;
 }
 
+void	Request::parseBody(std::vector<std::string> &lines, size_t i) {
+	--i;
+	while (++i < lines.size())
+		_body = _body + lines[i];
+	// check body format correspond to content-type
+}
+
+void	Request::parseHeaders(std::string &lines) {
+	std::vector<std::string>	split_line;
+	std::string					substr;
+
+	split_line = split(lines, ':');
+	if (split_line.size() > 1) {
+		substr = lines.substr(split_line[0].size() + 1, lines.size() - split_line[0].size() - 2);
+		_requestElem[split_line[0]] = substr;
+	}
+}
 
 // Parsing
 void	Request::parseFirstLine(std::string first_line) {
@@ -44,32 +62,22 @@ void	Request::parseFirstLine(std::string first_line) {
 	_requestElem["protocol"] = split_line[2];
 }
 
-void	Request::parseHeaders(std::vector<std::string> lines) {
-	size_t	i;
-	std::vector<std::string>	split_line;
-	std::string					substr;
-
-	i = 0;
-	while (++i < lines.size() - 1 && lines[i] != "\r\n") {
-		split_line = split(lines[i], ':');
-		if (split_line.size() > 1) {
-			substr = lines[i].substr(split_line[0].size() + 1, lines[i].size() - split_line[0].size() - 2);
-			_requestElem[split_line[0]] = substr;
-		}
-	}
-}
-
 void	Request::parse() {
+	size_t						i;
     std::vector<std::string>    lines;
 
-	// std::cout << "\n*****request parsing*****\n\n";
-	// std::cout << _request << "\n\n"; // print request
+	std::cout << "\n*****request parsing*****\n\n";
+	std::cout << _request << "\n"; // print request
     lines = split(_request, '\n');
-	parseFirstLine(lines[0]);;
-	parseHeaders(lines);
-	// std::cout << "\nrequestElems:\n";
-    // printRequestElems();
-	// std::cout << "\n*****request parsing END*****\n\n";
+	parseFirstLine(lines[0]);
+	i = 0;
+	while (++i < lines.size() - 1 && lines[i] != "\r\n")
+		parseHeaders(lines[i]);
+	parseBody(lines, i);
+	std::cout << "\nrequestElems:\n";
+    printRequestElems();
+	std::cout << "\nbody:\n" << _body << "\n";
+	std::cout << "\n*****request parsing END*****\n\n";
 }
 
 // utils functions
@@ -90,8 +98,8 @@ std::vector<std::string>	Request::split(std::string string, char delimiter) {
 
 // Getters
 const std::string                           &Request::getRequest() const { return (_request); }
-
 const std::map<std::string, std::string>    &Request::getRequestElem() const { return (_requestElem); }
+const std::string							&Request::getBody() const { return (_body); }
 
 // GET / HTTP/1.1
 // Host: localhost:8081
