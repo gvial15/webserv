@@ -52,18 +52,12 @@ void	Request::parseFirstLine(std::string first_line) {
 
 	split_line = split(first_line, ' ');
 	_code = 200;
-    if (split_line.size() != 3) {
+    if ((split_line.size() != 3) ||
+		(split_line[0] != "GET" && split_line[0] != "POST" && split_line[0] != "DELETE") ||
+		(split_line[2] != "HTTP/1.1\r")) {
 		_code = 400;
-        std::cout << "400 bad request (missing method/path/protocol)\n"; // 400 bad request;
-	}
-	if (split_line[0] != "GET" && split_line[0] != "POST" && split_line[0] != "DELETE") {
-		_code = 400;
-		std::cout << "400 bad request (method)\n"; // 400 bad request;
-	}
-	if (split_line[2] != "HTTP/1.1\r") {
-		_code = 400;
-		std::cout << "400 bad request2 (protocol)\n"; // 400 bad request;
-	}
+		return ;
+		}
 	_requestElem["method"] = split_line[0];
 	_requestElem["path"] = split_line[1];
 	_requestElem["protocol"] = split_line[2];
@@ -77,6 +71,8 @@ void	Request::parse() {
 	std::cout << _request << "\n"; // print request
     lines = split(_request, '\n');
 	parseFirstLine(lines[0]);
+	if (_code == 400)
+		return ;
 	i = 0;
 	while (++i < lines.size() - 1 && lines[i] != "\r\n")
 		parseHeaders(lines[i]);
