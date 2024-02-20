@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #pragma once
+#include <cstddef>
 #include <iostream>
 #include <map>
 #include <sstream>
@@ -23,6 +24,8 @@ class Request {
 
         const std::string                   _request;
         std::map<std::string, std::string>  _requestElem;
+        std::string                         _body;
+        int									_code;
 
     public:
 
@@ -30,16 +33,20 @@ class Request {
         Request(const char *req);
 
 		// Parsing functions
-        void    parse( void );
-        void    parseFirstLine( std::string firstLine );
-        void    parseHeaders(std::istringstream& iss);
+        void    parse();
+        void    parseFirstLine(std::string first_line);
+        void    parseHeaders(std::string &lines);
+        void    parseBody(std::vector<std::string> &lines, size_t i);
 
 		// utils & debug
-		void	stringToLower(std::string &str);
-		void    printRequestElems() const;
+        std::vector<std::string>	split(std::string string, char delimiter);
+		void	                    stringToLower(std::string &str);
+		void                        printRequestElems() const;
         
         //getters
         const std::string                           &getRequest( void ) const;
         const std::map<std::string, std::string>    &getRequestElem( void ) const;
+        const std::string                           &getBody( void ) const;
+        const int									&getCode( void ) const;
 
 };

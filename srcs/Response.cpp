@@ -37,13 +37,17 @@ std::map<std::string, void (Response::*)(Request &, RequestConfig &)> Response::
 // Methods
 
 void			Response::call(Request & request, RequestConfig & requestConf) {
-
-	// _code = request.code; // > check for 400 parsing error in request or 200 if everything good
-	// _isAutoIndex = requestConf._isAutoIndex;
-	_code = 200;
+	_code = request.getCode();
+	if ( _code != 200 ) {
+		_response = this->readHtml( _errors_map[ std::to_string(_code)] );
+		ResponseHeader	respHead( _code, _path.c_str(), _response.size(), ".html" );
+		_response = respHead.getResponseHeader() + _response + "\r\n";
+		return ;
+	}
 	_path = requestConf.getPath();
 	std::cout << "received path: " << _path << std::endl;
 	_errors_map = requestConf.get_error_pages();
+	// _isAutoIndex = requestConf._isAutoIndex;
 
 	std::map<std::string, std::string> elems = request.getRequestElem();
 	
@@ -139,6 +143,7 @@ std::string		Response::readHtml(const std::string& path)
 	std::ofstream		file;
 	std::stringstream	buffer;
 
+std::cout << "trying to read: " << path << std::endl;
 	if (pathIsFile(path))
 	{
 		file.open(path.c_str(), std::ifstream::in);
