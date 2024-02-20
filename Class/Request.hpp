@@ -25,6 +25,7 @@ class Request {
         const std::string                   _request;
         std::map<std::string, std::string>  _requestElem;
         std::string                         _body;
+        int									_code;
 
     public:
 
@@ -46,5 +47,6 @@ class Request {
         const std::string                           &getRequest( void ) const;
         const std::map<std::string, std::string>    &getRequestElem( void ) const;
         const std::string                           &getBody( void ) const;
+        const int									&getCode( void ) const;
 
 };

@@ -51,12 +51,19 @@ void	Request::parseFirstLine(std::string first_line) {
 	std::vector<std::string>	split_line;
 
 	split_line = split(first_line, ' ');
-    if (split_line.size() != 3)
+	_code = 200;
+    if (split_line.size() != 3) {
+		_code = 400;
         std::cout << "400 bad request (missing method/path/protocol)\n"; // 400 bad request;
-	if (split_line[0] != "GET" && split_line[0] != "POST" && split_line[0] != "DELETE")
+	}
+	if (split_line[0] != "GET" && split_line[0] != "POST" && split_line[0] != "DELETE") {
+		_code = 400;
 		std::cout << "400 bad request (method)\n"; // 400 bad request;
-	if (split_line[2] != "HTTP/1.1\r")
+	}
+	if (split_line[2] != "HTTP/1.1\r") {
+		_code = 400;
 		std::cout << "400 bad request2 (protocol)\n"; // 400 bad request;
+	}
 	_requestElem["method"] = split_line[0];
 	_requestElem["path"] = split_line[1];
 	_requestElem["protocol"] = split_line[2];
@@ -100,6 +107,7 @@ std::vector<std::string>	Request::split(std::string string, char delimiter) {
 const std::string                           &Request::getRequest() const { return (_request); }
 const std::map<std::string, std::string>    &Request::getRequestElem() const { return (_requestElem); }
 const std::string							&Request::getBody() const { return (_body); }
+const int									&Request::getCode( void ) const { return (_code); }
 
 // GET / HTTP/1.1
 // Host: localhost:8081

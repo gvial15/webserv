@@ -107,8 +107,8 @@ void	Webserv::manage_client_request(int pollfd) {
 		buffer[bytes_read] = '\0';
 		// print clients request *** testing ***
 		Request	req(buffer);
-		Response response;
 		RequestConfig requestConfig( req, fd_to_server_map.find(pollfd)->second );
+		Response response;
 		response.call( req, requestConfig );
 		// write back to client *** testing ***
 		std::string rep = response.getResponse();

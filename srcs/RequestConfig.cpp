@@ -14,14 +14,17 @@ struct both_slashes {
 RequestConfig::RequestConfig() {}
 
 RequestConfig::RequestConfig( Request & request, Server * server ) : SharedConfigDirectives( *server ) {
-	// insert path if not exist in copied server
-	error_pages.insert(std::make_pair("401", "/html/401AHAH_unauthorized.html"));
-	error_pages.insert(std::make_pair("404", "/html/404_not_found.html"));
-	error_pages.insert(std::make_pair("405", "/html/405_method_not_allowed.html"));
-	error_pages.insert(std::make_pair("500", "/html/500_internal_server_error.html"));
-	error_pages.insert(std::make_pair("502", "/html/502_bad_gateway.html"));
-	error_pages.insert(std::make_pair("503", "/html/503_service_unavailable.html"));
-	error_pages.insert(std::make_pair("504", "/html/504_gateway_timeout.html"));
+	// insert path if not exist in copied server // DEFAULT
+	error_pages.insert(std::make_pair("401", "error_pages/401_unauthorized.html"));
+	error_pages.insert(std::make_pair("404", "error_pages/404_not_found.html"));
+	error_pages.insert(std::make_pair("405", "error_pages/405_method_not_allowed.html"));
+	error_pages.insert(std::make_pair("500", "error_pages/500_internal_server_error.html"));
+	error_pages.insert(std::make_pair("502", "error_pages/502_bad_gateway.html"));
+	error_pages.insert(std::make_pair("503", "error_pages/503_service_unavailable.html"));
+	error_pages.insert(std::make_pair("504", "error_pages/504_gateway_timeout.html"));
+
+	if ( request.getCode() == 400 )
+		return;
 
 	// need parse query string ? or in Request Class
 

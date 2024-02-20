@@ -15,7 +15,6 @@ class RequestConfig: public SharedConfigDirectives {
 
 	private:
 		std::string											_path;
-		std::string											_code;
 		std::map<std::string, Server::Location>::iterator	_location;
 		std::map<std::string, Server::Location>				_locationsMap;
 
