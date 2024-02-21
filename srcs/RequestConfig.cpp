@@ -26,8 +26,6 @@ RequestConfig::RequestConfig( Request & request, Server * server ) : SharedConfi
 	if ( request.getCode() == 400 )
 		return;
 
-	// need parse query string ? or in Request Class
-
 	// GET PATH DEPENDING ON LOCATION / ROOTS / INDEXES
 	_path = const_cast<std::map<std::string, std::string>&>(request.getRequestElem())["path"];
 	_locationsMap = server->get_locations();
@@ -36,14 +34,10 @@ RequestConfig::RequestConfig( Request & request, Server * server ) : SharedConfi
 	this->copyLocationConfig( server );
 	this->pathRouting();
 
-	// check body size
-	// is method allowed
 	// need redirection ?
 
-	std::cout << "path result: " << _path << std::endl;
 	
 	_path.erase( std::unique(_path.begin(), _path.end(), both_slashes()), _path.end() );
-	std::cout << "erase result: " << _path << std::endl;
 
 	std::cout << "path is: " << _path << std::endl; //debug
 }
@@ -66,15 +60,15 @@ void	RequestConfig::findLocation( Server * server ) {
 				location_path = "/" + location_path;
 
 			if ( truncated_path == location_path ) {
-				std::cout << "FOUND " << std::endl;
-				std::cout << location_path << std::endl;
+				// std::cout << "FOUND " << std::endl;
+				// std::cout << location_path << std::endl;
 				return;
 			}
 			_location++;
 		}
 		truncated_path.pop_back();
 	}
-	std::cout << "No location found " << std::endl;
+	// std::cout << "No location found " << std::endl;
 }
 
 // if _location is valid, copy values and truncate path
@@ -98,7 +92,7 @@ void	RequestConfig::copyLocationConfig( Server * server ) {
 	std::map<std::string, std::string>::iterator it;
 	for ( it = location_error_pages.begin(); it != location_error_pages.end(); it++ ) {
 		error_pages.find( it->first )->second = it->second;
-		std::cout << "overwrite " << it->first << " with " << it->second << std::endl;
+		// std::cout << "overwrite " << it->first << " with " << it->second << std::endl;
 	}
 	
 	if ( _location->second.get_client_max_body_size() )
@@ -137,18 +131,18 @@ void	RequestConfig::pathRouting() {
 			struct stat s;
 			if ( stat( _path.c_str(), &s ) == 0 ) {
 				if ( s.st_mode & S_IFREG ) {
-					std::cout << _path << " is a file\n";
+					// std::cout << _path << " is a file\n";
 					break;
-				} else
-					std::cout << _path << " is not a file\n";
-			} else
+				} //else
+					// std::cout << _path << " is not a file\n";
+			} //else
 				// File doesnt exist or ERROR 505
-				std::cout << errno << " - " << _path << " - ERROR 505\n";
-			_path = "";
+				// std::cout << errno << " - " << _path << " - ERROR 505\n";
+			_path = this->get_root() + "/";
 			it++;
 		}
 		if ( _path == "" ) { // NO INDEX FOUND
-			std::cout << "ERROR no correct index found return empty\n";
+			// std::cout << "ERROR no correct index found return empty\n";
 			return;
 		}
 	}

@@ -49,6 +49,7 @@ void	Request::parseHeaders(std::string &lines) {
 // Parsing
 void	Request::parseFirstLine(std::string first_line) {
 	std::vector<std::string>	split_line;
+	std::vector<std::string>	split_path;
 
 	split_line = split(first_line, ' ');
 	_code = 200;
@@ -58,6 +59,9 @@ void	Request::parseFirstLine(std::string first_line) {
 		_code = 400;
 		return ;
 		}
+	split_path = split(split_line[1], '?');
+	if (split_path.size() == 2)
+		_query = split_path[1];
 	_requestElem["method"] = split_line[0];
 	_requestElem["path"] = split_line[1];
 	_requestElem["protocol"] = split_line[2];
@@ -79,7 +83,8 @@ void	Request::parse() {
 	parseBody(lines, i);
 	std::cout << "\nrequestElems:\n";
     printRequestElems();
-	std::cout << "\nbody:\n" << _body << "\n";
+	std::cout << "\nBody:\n" << _body << "\n";
+	std::cout << "\nQuery: " << _query << "\n";
 	std::cout << "\n*****request parsing END*****\n\n";
 }
 
