@@ -27,6 +27,4 @@ class CGI {
 		std::string const &getPostData( void ) const;
 		std::string const &getResponse( void ) const;
 		int			const getStatus( void ) const;
-
-		void		setEnvp( std::vector<char *> &envp );
 };

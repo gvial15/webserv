@@ -5,12 +5,13 @@ import os
 import sys
 
 try:
+    
     form = cgi.FieldStorage()
 
     num1 = form.getvalue('num1')
     oper = form.getvalue('operation')
     num2 = form.getvalue('num2')
-
+    
     if not oper or not num1 or not num2:
         raise ValueError("Parameters are not correct")
 

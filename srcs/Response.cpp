@@ -106,13 +106,15 @@ std::cout << "path: " << _path << std::endl;
 void			Response::getMethod(Request & request, RequestConfig & requestConfig ) {
 	std::cout << "-- Call GET --\n";
 
-	// if (cgipath!=null) {
-	// 	do smthg
-	// }
-	// else
-	if ( _code == 200 )
+	if (isCGI()) {
+		CGI cgi(request, requestConfig);
+		_response = cgi.getResponse();
+		if (cgi.getStatus())
+			_code = cgi.getStatus();
+	}
+	else if ( _code == 200 )
 		_code = readContent();
-	else // if 400 or cgi error
+	if ( _code == 400 )
 		_response = this->readHtml( _errors_map[ std::to_string(_code)] );
 	if ( _code == 500 ) // if open file error
 		_response = this->readHtml( _errors_map[ std::to_string(_code)] );
@@ -129,6 +131,8 @@ void			Response::postMethod(Request & request, RequestConfig & requestConfig) {
 	if (isCGI()){
 		CGI	cgi( request, requestConfig);
 		_response = cgi.getResponse();
+		if (cgi.getStatus())
+			_code = cgi.getStatus();
 	}
 	else{
 		// Florian, do your stuff
