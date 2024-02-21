@@ -7,7 +7,7 @@ CGI::CGI( Request & request, RequestConfig &config ){
     this->_postData = request.getBody();
 	this->_method = request.getRequestElem().find("method")->second;
     this->_contentType = request.getRequestElem().find("Content-Type")->second;
-    // std::cout << this->_contentType
+
 	this->_response = this->executeCgiScript();
 }
 
