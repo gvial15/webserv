@@ -24,6 +24,7 @@ class Request {
 
         const std::string                   _request;
         std::map<std::string, std::string>  _requestElem;
+        std::string                         _query;
         std::string                         _body;
         int									_code;
 
