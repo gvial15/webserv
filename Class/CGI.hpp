@@ -14,6 +14,7 @@ class CGI {
         std::string _query;
         std::string _response;
 		std::string	_method;
+        std::string _contentType;
 		int			_status;
 
     public:

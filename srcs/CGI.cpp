@@ -6,21 +6,20 @@ CGI::CGI( Request & request, RequestConfig &config ){
 	this->_scriptPath = request.getRequestElem().find("path")->second;
     this->_postData = request.getBody();
 	this->_method = request.getRequestElem().find("method")->second;
-
+    this->_contentType = request.getRequestElem().find("Content-Type")->second;
+    // std::cout << this->_contentType
 	this->_response = this->executeCgiScript();
 }
 
 void		CGI::setEnvp( std::vector<char *> &envp ) {
 	std::vector<std::string> envVars;
-	if (!_postData.empty()){
-		envVars.push_back("REQUEST_METHOD=POST");
+	envVars.push_back("REQUEST_METHOD=" + this->_method);
+	if (!this->_method.compare("POST")){
 		envVars.push_back("CONTENT_LENGTH=" + std::to_string(_postData.length()));
-		envVars.push_back("CONTENT_TYPE=application/x-www-form-urlencoded");
+		envVars.push_back("CONTENT_TYPE=" + this->_contentType);
 	}   
 	else{
-		// envVars.push_back("REQUEST_METHOD=GET");
 		envVars.push_back("QUERY_STRING=" + this->_query);
-		// envVars.push_back("CONTENT_LENGTH=" + std::to_string(_query.length()));
 	}
 
 	for (std::vector<std::string>::iterator it = envVars.begin(); it != envVars.end(); ++it) {
