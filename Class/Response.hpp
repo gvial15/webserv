@@ -19,6 +19,8 @@ class Response {
 		int				readContent(void);
 		std::string		readHtml(const std::string& path);
 
+		bool			isCGI() const;
+
 	private:
 		std::string	_path;
 		std::string	_uri;

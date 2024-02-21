@@ -1,5 +1,6 @@
 #include "../Class/Response.hpp"
 #include "../Class/ResponseHeader.hpp"
+#include "../Class/CGI.hpp"
 
 #include <dirent.h>
 
@@ -125,6 +126,19 @@ void			Response::getMethod(Request & request, RequestConfig & requestConfig ) {
 
 void			Response::postMethod(Request & request, RequestConfig & requestConfig) {
 	std::cout << "-- Call POST --\n";
+	if (isCGI()){
+		CGI	cgi( request, requestConfig);
+		_response = cgi.getResponse();
+	}
+	else{
+		// Florian, do your stuff
+	}
+	// SET RESPONSE
+	// this->_body = buffer.str();
+	ResponseHeader	respHead( _code, _path.c_str(), _response.size(), ".html" );
+	// this->_header = respHead.getResponseHeader();
+	this->_response = respHead.getResponseHeader() + _response + "\r\n";
+	std::cout << this->_response << std::endl; //debug
 }
 
 void			Response::deleteMethod(Request & request, RequestConfig & requestConfig) {
@@ -188,6 +202,22 @@ std::cout << "trying to read: " << path << std::endl;
 	}
 	else
 		return ("<!DOCTYPE html>\n<html><title>40404</title><body>There was an error finding your error page</body></html>\n");
+}
+
+bool	Response::isCGI() const {
+	// For now this is the check for cgi
+	// checking for extensions that are listed in the cgi_ext (.sh, .py for now)
+	std::string::size_type pos = _path.find_last_of('.');
+	std::string extension;
+
+    if (pos != std::string::npos && pos != _path.length() - 1) {
+        extension = _path.substr(pos);
+    } else {
+		return false;
+    }
+	if (extension.compare(".py") && extension.compare(".sh"))
+		return false;
+	return true;
 }
 
 std::string		Response::getResponse() { return _response; }
