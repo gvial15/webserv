@@ -19,35 +19,36 @@
 #include <string>
 
 class Request {
-    
-    private:
+	
+	private:
 
-        const std::string                   _request;
-        std::map<std::string, std::string>  _requestElem;
-        std::string                         _query;
-        std::string                         _body;
-        int									_code;
+		const std::string                   _request;
+		std::map<std::string, std::string>  _requestElem;
+		std::string       					_path_info;
+		std::string                         _query;
+		std::string                         _body;
+		int									_code;
 
-    public:
+	public:
 
 		// Constructor
-        Request(const char *req);
+		Request(const char *req);
 
 		// Parsing functions
-        void    parse();
-        void    parseFirstLine(std::string first_line);
-        void    parseHeaders(std::string &lines);
-        void    parseBody(std::vector<std::string> &lines, size_t i);
+		void    parse();
+		void    parseFirstLine(std::string first_line);
+		void    parseHeaders(std::string &lines);
+		void    parseBody(std::vector<std::string> &lines, size_t i);
 
 		// utils & debug
-        std::vector<std::string>	split(std::string string, char delimiter);
-		void	                    stringToLower(std::string &str);
-		void                        printRequestElems() const;
-        
-        //getters
-        const std::string                           &getRequest( void ) const;
-        const std::map<std::string, std::string>    &getRequestElem( void ) const;
-        const std::string                           &getBody( void ) const;
-        const int									&getCode( void ) const;
+		std::vector<std::string>	split(std::string string, char delimiter);
+		bool                        endsWith(const std::string string, const std::string suffix);
+		void                  		printRequestElems() const;
+		
+		//getters
+		const std::string                           &getRequest( void ) const;
+		const std::map<std::string, std::string>    &getRequestElem( void ) const;
+		const std::string                           &getBody( void ) const;
+		const int									&getCode( void ) const;
 
 };

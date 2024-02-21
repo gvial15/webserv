@@ -28,6 +28,7 @@ void    Request::printRequestElems() const {
         std::cout << it->first << " -> " << it->second << std::endl;
 }
 
+// Parsing
 void	Request::parseBody(std::vector<std::string> &lines, size_t i) {
 	--i;
 	while (++i < lines.size())
@@ -46,33 +47,47 @@ void	Request::parseHeaders(std::string &lines) {
 	}
 }
 
-// Parsing
 void	Request::parseFirstLine(std::string first_line) {
+	size_t						i;
 	std::vector<std::string>	split_line;
 	std::vector<std::string>	split_path;
+	std::vector<std::string>	split_query;
+	std::vector<std::string>	split_path_info;
 
 	split_line = split(first_line, ' ');
 	_code = 200;
+	// verify the method/path/protocol are there
     if ((split_line.size() != 3) ||
 		(split_line[0] != "GET" && split_line[0] != "POST" && split_line[0] != "DELETE") ||
 		(split_line[2] != "HTTP/1.1\r")) {
 		_code = 400;
 		return ;
 		}
-	split_path = split(split_line[1], '?');
-	if (split_path.size() == 2)
-		_query = split_path[1];
 	_requestElem["method"] = split_line[0];
 	_requestElem["path"] = split_line[1];
 	_requestElem["protocol"] = split_line[2];
+	// parse query & path_info
+	split_query = split(split_line[1], '?');
+	if (split_query.size() == 2) {
+		_query = split_query[1];
+		_requestElem["path"] = split_query[0];
+	}
+	else {
+	split_path = split(split_line[1], '/');
+	i = -1;
+	while (++i < split_path.size())
+		if (endsWith(split_path[i], ".py") || endsWith(split_path[i], ".sh"))
+			while (++i < split_path.size())
+				_path_info = _path_info + split_path[i] + "/";
+	}
 }
 
 void	Request::parse() {
 	size_t						i;
     std::vector<std::string>    lines;
 
-	std::cout << "\n*****request parsing*****\n\n";
-	std::cout << _request << "\n"; // print request
+	std::cout << "\n-- REQUEST PARSING --\n";
+	std::cout << _request << "\n";
     lines = split(_request, '\n');
 	parseFirstLine(lines[0]);
 	if (_code == 400)
@@ -83,15 +98,18 @@ void	Request::parse() {
 	parseBody(lines, i);
 	std::cout << "\nrequestElems:\n";
     printRequestElems();
-	std::cout << "\nBody:\n" << _body << "\n";
-	std::cout << "\nQuery: " << _query << "\n";
-	std::cout << "\n*****request parsing END*****\n\n";
+	std::cout << "\nbody:\n" << _body << "\n";
+	std::cout << "\nquery: " << _query << "\n";
+	std::cout << "\npath_info: " << _path_info << "\n";
+	std::cout << "\n-- REQUEST PARSING END --\n\n";
 }
 
 // utils functions
-void Request::stringToLower(std::string &str) {
-    for (size_t i = 0; i < str.length(); ++i)
-        str[i] = std::tolower(static_cast<unsigned char>(str[i]));
+bool Request::endsWith(const std::string str, const std::string suffix) {
+    if (str.length() >= suffix.length())
+        return (str.compare(str.length() - suffix.length(), suffix.length(), suffix) == 0);
+    else
+        return false;
 }
 
 std::vector<std::string>	Request::split(std::string string, char delimiter) {
