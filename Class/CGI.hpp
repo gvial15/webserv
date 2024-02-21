@@ -1,25 +1,31 @@
-#include <string>
+#pragma once
+
+#include "Request.hpp"
+#include "RequestConfig.hpp"
+#include <unistd.h>
 #include <vector>
 
 class CGI {
-	public:
-		CGI(std::string path, std::vector<std::string> params, int output_fd);
-		~CGI() {};
 
-	private:
+    private:
 
-		// private class
-		class ExecveException : public std::exception {
-		public:
-			virtual const char* what() const throw() {
-				return "Fatal Error: execve() failed";
-			}
-		};
+        std::string _scriptPath;
+        std::string _postData;
+        std::string _query;
+        std::string _response;
+		std::string	_method;
+		int			_status;
 
-		class ForkException : public std::exception {
-		public:
-			virtual const char* what() const throw() {
-				return "Fatal Error: fork() failed";
-			}
-		};
+    public:
+
+        CGI( Request & request, RequestConfig &config );
+
+        std::string	executeCgiScript( void );
+
+		std::string const &getScriptPath( void ) const;
+		std::string const &getPostData( void ) const;
+		std::string const &getResponse( void ) const;
+		int			const getStatus( void ) const;
+
+		void		setEnvp( std::vector<char *> &envp );
 };
