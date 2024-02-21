@@ -21,6 +21,7 @@ class Response {
 
 	private:
 		std::string	_path;
+		std::string	_uri;
 		std::string	_body;
 		std::string	_header;
 		std::string	_response;
@@ -30,4 +31,5 @@ class Response {
 
 		static std::map<std::string, void (Response::*)(Request &, RequestConfig &)>	_method;
 		static std::map<std::string, void (Response::*)(Request &, RequestConfig &)>	initMethods();
+		std::string			getAutoIndexPage(const char *path, std::string const &host, int port);
 };

@@ -4,7 +4,7 @@
 #include <dirent.h>
 
 
-std::string         getAutoIndexPage(const char *path, std::string const &host, int port) {
+std::string			Response::getAutoIndexPage(const char *path, std::string const &host, int port) {
 	std::string dirName(path);
 	DIR *dir = opendir(path);
 	std::string page =\
@@ -25,8 +25,8 @@ std::string         getAutoIndexPage(const char *path, std::string const &host, 
 		dirName = "/" + dirName;
 	for (struct dirent *dirEntry = readdir(dir); dirEntry; dirEntry = readdir(dir)) {
 		std::stringstream   ss;
-		ss << "\t\t<p><a href=\"http://" + host + ":" <<\
-			port << dirName + "/" + std::string(dirEntry->d_name) + "\">" + std::string(dirEntry->d_name) + "</a></p>\n";
+		ss << "\t\t<p><a href=\"http://" + host + ":" << port <<\
+			_uri + "/" + std::string(dirEntry->d_name) + "\">" + std::string(dirEntry->d_name) + "</a></p>\n";
 		page += ss.str();
 	}
 	page +="\
@@ -73,7 +73,10 @@ void			Response::call(Request & request, RequestConfig & requestConf) {
 	// 	_response = respHead.getResponseHeader() + _response + "\r\n";
 	// 	return ;
 	// }
+	_uri = request.getRequestElem().find("path")->second;
 	_path = requestConf.getPath();
+std::cout << "uri: " << _uri << std::endl;
+std::cout << "path: " << _path << std::endl;
 	std::cout << "received path: " << _path << std::endl;
 	_errors_map = requestConf.get_error_pages();
 	_isAutoIndex = requestConf.get_autoindex();
