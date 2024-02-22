@@ -96,8 +96,11 @@ std::string	CGI::executeCgiScript( void ){
         // Wait for the child process to finish
         waitpid(pid, &child_status, 0);
 		if (WIFEXITED(child_status)) {
-        	if(WEXITSTATUS(child_status))
-                this->_status = 500;
+            int exit_status = WEXITSTATUS(child_status);
+        	if(exit_status == 400)
+                this->_status = 400;
+            else if (exit_status)
+                this->_status = 400;
     	}
         return output;
     }

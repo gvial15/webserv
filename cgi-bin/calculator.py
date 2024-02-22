@@ -13,7 +13,8 @@ try:
     num2 = form.getvalue('num2')
     
     if not oper or not num1 or not num2:
-        raise ValueError("Parameters are not correct")
+        sys.exit(400)
+        # raise ValueError("Parameters are not correct")
 
     num1 = int(num1)
     num2 = int(num2)
@@ -26,10 +27,14 @@ try:
         result = num1 * num2
     elif oper == 'divide' and num2 != 0:
         result = round(float(num1) / num2, 2)
+    elif oper == 'divide' and num2 == 0:
+        print("<b>Error: Invalid operation. Cannot divide by zero.<b>")
+        sys.exit()
     else:
-        raise ValueError("Invalid operation")
+        sys.exit(400)
 
     print("<b>Result = %s</b>" % str(result))
 
 except Exception as e:
-    print("<b>Error: %s</b>" % str(e))
+    # print("<b>Error: %s</b>" % str(e))
+    sys.exit(400)
