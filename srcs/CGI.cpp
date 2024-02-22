@@ -13,28 +13,8 @@ CGI::CGI( Request & request, RequestConfig &config ){
 	this->_response = this->executeCgiScript();
 }
 
-std::string	CGI::executeCgiScript( void ){
-	std::cout << "EXECUTING ==== " << _scriptPath << " " << _postData << std::endl;
-    int stdout_pipefd[2];
-    int stdin_pipefd[2];
-    if (pipe(stdout_pipefd) == -1 || pipe(stdin_pipefd) == -1){
-        std::cerr << "Pipe failed" << std::endl;
-        this->_status = 500;
-        return "";
-    }
-
-    pid_t pid = fork();
-	int		child_status;
-
-    if (pid == -1) {
-        std::cerr << "Fork failed" << std::endl;
-        this->_status = 500;
-        return "";
-    }
-    if (pid == 0) {
-        // child process
-
-		this->_scriptPath.erase(0, 1);
+void        CGI::childProcess(int *stdout_pipefd, int *stdin_pipefd){
+    this->_scriptPath.erase(0, 1);
 		std::cout << this->_scriptPath << std::endl;
 
         close(stdout_pipefd[0]);
@@ -70,6 +50,30 @@ std::string	CGI::executeCgiScript( void ){
         execve(_scriptPath.c_str(), argv, envp.data());
         std::cerr << "Exec failed: " << std::strerror(errno) << std::endl;
         exit(EXIT_FAILURE);
+}
+
+std::string	CGI::executeCgiScript( void ){
+	std::cout << "EXECUTING ==== " << _scriptPath << " " << _postData << std::endl;
+    int stdout_pipefd[2];
+    int stdin_pipefd[2];
+    if (pipe(stdout_pipefd) == -1 || pipe(stdin_pipefd) == -1){
+        std::cerr << "Pipe failed" << std::endl;
+        this->_status = 500;
+        return "";
+    }
+
+    pid_t pid = fork();
+	int		child_status;
+
+    if (pid == -1) {
+        std::cerr << "Fork failed" << std::endl;
+        this->_status = 500;
+        return "";
+    }
+    if (pid == 0) {
+        // child process
+        this->childProcess(stdout_pipefd, stdin_pipefd);
+        return ("");
     } else {
         // Parent process
 
