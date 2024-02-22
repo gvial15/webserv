@@ -112,7 +112,16 @@ void	Webserv::manage_client_request(int pollfd) {
 		response.call( req, requestConfig );
 		// write back to client *** testing ***
 		std::string rep = response.getResponse();
-		send( pollfd, rep.c_str(), rep.size(), 0 );
+		int bufflen = rep.size();
+		int ret, bytes = 0;
+		int count = 0;
+		while ( bytes < bufflen ){
+			ret = send( pollfd, rep.c_str() + bytes, bufflen - bytes, 0 );
+			if ( ret == -1 )
+				std::cerr << "ERROR " << ++count << std::endl;
+			else
+				bytes += ret;
+		}
 	}
 }
 

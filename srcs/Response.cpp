@@ -162,6 +162,7 @@ void			Response::deleteMethod(Request & request, RequestConfig & requestConfig) 
 		_response = this->readHtml( _errors_map[ std::to_string(_code)] );
 	ResponseHeader	respHead( _code, _path.c_str(), _response.size(), _type.c_str() );
 	this->_response = respHead.getResponseHeader() + _response + "\r\n";
+	std::cerr << "BIG PROBLEM" << respHead.getResponseHeader().size() << std::endl;
 }
 
 int				Response::readContent(void)
@@ -182,7 +183,8 @@ int				Response::readContent(void)
 		}
 
 		buffer << file.rdbuf();
-		_response = buffer.str() + "\r\n";
+		// _response = buffer.str() + "\r\n";
+		_response = buffer.str();
 
 		file.close();
 	}
