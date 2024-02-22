@@ -186,6 +186,10 @@ int				Response::readContent(void)
 // std::cout << "trying autoindex" << std::endl;
 		buffer << getAutoIndexPage(_path.c_str(), _host, _port);
 		_response = buffer.str();
+		if ( _response == "" ) {
+			_response = this->readHtml(_errors_map["404"]);
+			return (404);
+		}
 		_type = "text/html";
 	}
 	else
