@@ -120,7 +120,7 @@ void	ResponseHeader::createResponseHeader( void ){
 	if (!this->_contentType.empty())
     	this->_responseHeader += "Content-Type: " + this->_contentType + "\n";
     this->_responseHeader += "Connection: " + this->_connection + "\n";
-    this->_responseHeader += "\n\n";
+    this->_responseHeader += "\r\n";
 
     std::cout << this->_responseHeader;
 
@@ -137,6 +137,7 @@ std::string ResponseHeader::getMimeType(const char* extension){
 	mimeTypes[".txt"] = "text/plain";
 	mimeTypes[".jpg"] = "image/jpeg";
 	mimeTypes[".png"] = "image/png";
+	mimeTypes[".ico"] = "image/x-icon";
 	mimeTypes[".gif"] = "image/gif";
 	mimeTypes[".css"] = "text/css";
 	mimeTypes[".js"] = "application/javascript";
