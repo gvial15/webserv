@@ -136,6 +136,7 @@ std::string ResponseHeader::getMimeType(const char* extension){
 	mimeTypes[".html"] = "text/html";
 	mimeTypes[".txt"] = "text/plain";
 	mimeTypes[".jpg"] = "image/jpeg";
+	mimeTypes[".jpeg"] = "image/jpeg";
 	mimeTypes[".png"] = "image/png";
 	mimeTypes[".ico"] = "image/x-icon";
 	mimeTypes[".gif"] = "image/gif";

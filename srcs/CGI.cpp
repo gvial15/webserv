@@ -43,9 +43,6 @@ void        CGI::childProcess(int *stdout_pipefd, int *stdin_pipefd){
             envp.push_back(const_cast<char*>(it->c_str()));
         }
         envp.push_back(NULL);
-        for (int i = 0; envp[i]; i++){
-		    std::cerr << "ENVP " << envp[i] << std::endl;
-	    }
         // Execute the CGI script with execve
         execve(_scriptPath.c_str(), argv, envp.data());
         std::cerr << "Exec failed: " << std::strerror(errno) << std::endl;
