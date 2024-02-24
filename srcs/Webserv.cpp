@@ -124,7 +124,7 @@ void	Webserv::manage_client_request(int pollfd) {
 	}
 }
 
-// sends the response, or the remainder of it
+// sends the response, or the remainder of it to the client
 void	Webserv::manage_client_response(int pollfd){
 	std::string rep = this->pending_responses.find(pollfd)->second; // retrieve the response of the client fd in the map
 	int			bytes = this->bytes_sent.find(pollfd)->second; // gets the amount of bytes sent of the response, acts as a checkpoint
