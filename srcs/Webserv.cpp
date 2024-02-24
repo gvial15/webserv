@@ -60,15 +60,15 @@ void	Webserv::run() {
 		if (ret < 0)
 			throw PollException();
 		while (i < pollfd_vec.size()) {
+			// check if socket is ready for READING (POLLIN)
 			if (pollfd_vec[i].revents & POLLIN) { // Event on a socket
 				if (i < servers.size()) // Input from new client
 					add_new_client(pollfd_vec[i].fd, servers[i]);
 				else // Input from existing client
 					manage_client_request(pollfd_vec[i].fd);
 			}
+			// check if sokcet is ready for WRITING (POLLOUT) AND if there is a pending respones associated with the client socket fd
 			if ((pollfd_vec[i].revents & POLLOUT) && (this->pending_responses.find(pollfd_vec[i].fd) != this->pending_responses.end())){
-				// && (this->pending_responses.find(pollfd_vec[i].fd) != this->pending_responses.end())
-				std::cerr << "haha\n";
 				manage_client_response(pollfd_vec[i].fd);
 			}
 			// Clear the revents field for the next poll call
