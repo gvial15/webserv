@@ -117,26 +117,27 @@ void	Webserv::manage_client_request(int pollfd) {
 		RequestConfig requestConfig( req, fd_to_server_map.find(pollfd)->second );
 		Response response;
 		response.call( req, requestConfig );
-		// write back to client *** testing ***
+		// store client request in the pending_responses map
 		std::string rep = response.getResponse();
 		this->pending_responses[pollfd] = rep;
 		this->bytes_sent[pollfd] = 0;
 	}
 }
 
+// sends the response, or the remainder of it
 void	Webserv::manage_client_response(int pollfd){
-	std::string rep = this->pending_responses.find(pollfd)->second;
-	int			bytes = this->bytes_sent.find(pollfd)->second;
-	int ret = send(pollfd, rep.c_str() + bytes, rep.size() - bytes, 0);
+	std::string rep = this->pending_responses.find(pollfd)->second; // retrieve the response of the client fd in the map
+	int			bytes = this->bytes_sent.find(pollfd)->second; // gets the amount of bytes sent of the response, acts as a checkpoint
+	int ret = send(pollfd, rep.c_str() + bytes, rep.size() - bytes, 0); // retrieve the amount of bytes sent with the send() fun
 	if (ret < 0)
 		return;
-	bytes += ret;
+	bytes += ret; // add the amount of bytes that was just sent via send() to the initial amount sent from previous instances
 	std::cerr << "REP SIZE: " << rep.size() << std::endl << "RET: " << ret << std::endl << "Bytes: " << bytes << std::endl;
-	if (bytes == rep.size()){
+	if (bytes == rep.size()){ // check if the response has been sent entirely, deletes if yes
 		this->pending_responses.erase(pollfd);
 		this->bytes_sent.erase(pollfd);
 	}
-	else
+	else // if the repsonse has not been sent entirely yet, save the amounts of bytes sent. Will act as checkpoint for the next call
 		this->bytes_sent[pollfd] = bytes;
 }
 
