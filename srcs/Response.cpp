@@ -105,13 +105,15 @@ void			Response::call(Request & request, RequestConfig & requestConf) {
 void			Response::getMethod(Request & request, RequestConfig & requestConfig ) {
 	std::cout << "-- Call GET --\n";
 
-	// if (cgipath!=null) {
-	// 	do smthg
-	// }
-	// else
-	if ( _code == 200 )
+	if (isCGI()) {
+		CGI cgi(request, requestConfig);
+		_response = cgi.getResponse();
+		if (cgi.getStatus())
+			_code = cgi.getStatus();
+	}
+	else if ( _code == 200 )
 		_code = readContent();
-	else // if 400 or cgi error
+	if ( _code == 400 )
 		_response = this->readHtml( _errors_map[ std::to_string(_code)] );
 	if ( _code == 500 ) // if open file error
 		_response = this->readHtml( _errors_map[ std::to_string(_code)] );
@@ -128,6 +130,8 @@ void			Response::postMethod(Request & request, RequestConfig & requestConfig) {
 	if (isCGI()){
 		CGI	cgi( request, requestConfig);
 		_response = cgi.getResponse();
+		if (cgi.getStatus())
+			_code = cgi.getStatus();
 	}
 	else{
 		// Florian, do your stuff
@@ -158,6 +162,7 @@ void			Response::deleteMethod(Request & request, RequestConfig & requestConfig) 
 		_response = this->readHtml( _errors_map[ std::to_string(_code)] );
 	ResponseHeader	respHead( _code, _path.c_str(), _response.size(), _type.c_str() );
 	this->_response = respHead.getResponseHeader() + _response + "\r\n";
+	std::cerr << "BIG PROBLEM" << respHead.getResponseHeader().size() << std::endl;
 }
 
 int				Response::readContent(void)
@@ -178,7 +183,8 @@ int				Response::readContent(void)
 		}
 
 		buffer << file.rdbuf();
-		_response = buffer.str() + "\r\n";
+		// _response = buffer.str() + "\r\n";
+		_response = buffer.str();
 
 		file.close();
 	}
