@@ -59,19 +59,27 @@ void	Request::parseFirstLine(std::string first_line) {
 		_code = 400;
 		return ;
 	}
+	// get query or path_info
 	_requestElem["path"] = split_line[1];
 	split_path = split(split_line[1], '?');
-	if (split_path.size() == 2){
+	if (split_path.size() == 2) {
 		_requestElem["path"] = split_path[0];
 		_query = split_path[1];
 	}
 	else {
-	split_path = split(split_line[1], '/');
-	i = -1;
-	while (++i < split_path.size())
-		if (endsWith(split_path[i], ".py") || endsWith(split_path[i], ".sh"))
-			while (++i < split_path.size())
-				_path_info = _path_info + split_path[i] + "/";
+		split_path = split(split_line[1], '/');
+		i = -1;
+		while (++i < split_path.size()) {
+			if (i == 0)
+				_requestElem["path"].erase();
+			_requestElem["path"] = _requestElem["path"] + split_path[i] + "/";
+			if (endsWith(split_path[i], ".py") || endsWith(split_path[i], ".sh")) {
+				_path_info = "/";
+				while (++i < split_path.size())
+					_path_info = _path_info + split_path[i] + "/";
+				_path_info.pop_back();
+			}
+		}
 	}
 	_requestElem["method"] = split_line[0];
 	_requestElem["protocol"] = split_line[2];
