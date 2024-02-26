@@ -24,6 +24,7 @@ class Request {
 
         const std::string                   _request;
         std::map<std::string, std::string>  _requestElem;
+        std::string                         _path_info;
         std::string                         _query;
         std::string                         _body;
         int									_code;
@@ -40,6 +41,7 @@ class Request {
         void    parseBody(std::vector<std::string> &lines, size_t i);
 
 		// utils & debug
+        bool                        endsWith(const std::string str, const std::string suffix);
         std::vector<std::string>	split(std::string string, char delimiter);
 		void	                    stringToLower(std::string &str);
 		void                        printRequestElems() const;

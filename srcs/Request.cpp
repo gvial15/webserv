@@ -32,7 +32,6 @@ void	Request::parseBody(std::vector<std::string> &lines, size_t i) {
 	--i;
 	while (++i < lines.size())
 		_body = _body + lines[i];
-	// check body format correspond to content-type
 }
 
 void	Request::parseHeaders(std::string &lines) {
@@ -48,6 +47,7 @@ void	Request::parseHeaders(std::string &lines) {
 
 // Parsing
 void	Request::parseFirstLine(std::string first_line) {
+	size_t						i;
 	std::vector<std::string>	split_line;
 	std::vector<std::string>	split_path;
 
@@ -64,6 +64,14 @@ void	Request::parseFirstLine(std::string first_line) {
 	if (split_path.size() == 2){
 		_requestElem["path"] = split_path[0];
 		_query = split_path[1];
+	}
+	else {
+	split_path = split(split_line[1], '/');
+	i = -1;
+	while (++i < split_path.size())
+		if (endsWith(split_path[i], ".py") || endsWith(split_path[i], ".sh"))
+			while (++i < split_path.size())
+				_path_info = _path_info + split_path[i] + "/";
 	}
 	_requestElem["method"] = split_line[0];
 	_requestElem["protocol"] = split_line[2];
@@ -87,10 +95,18 @@ void	Request::parse() {
     printRequestElems();
 	std::cout << "\nBody:\n" << _body << "\n";
 	std::cout << "\nQuery: " << _query << "\n";
+	std::cout << "\nPath_info: " << _path_info << "\n";
 	std::cout << "\n*****request parsing END*****\n\n";
 }
 
 // utils functions
+bool Request::endsWith(const std::string str, const std::string suffix) {
+    if (str.length() >= suffix.length())
+        return (str.compare(str.length() - suffix.length(), suffix.length(), suffix) == 0);
+    else
+        return false;
+}
+
 void Request::stringToLower(std::string &str) {
     for (size_t i = 0; i < str.length(); ++i)
         str[i] = std::tolower(static_cast<unsigned char>(str[i]));
