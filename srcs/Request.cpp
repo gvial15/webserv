@@ -33,7 +33,7 @@ void	Request::parseBody(std::vector<std::string> &lines, size_t i) {
 	--i;
 	while (++i < lines.size())
 		_body = _body + lines[i];
-	// check body format correspond to content-type
+	// TODO: check body format correspond to content-type
 }
 
 void	Request::parseHeaders(std::string &lines) {
