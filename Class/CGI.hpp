@@ -14,6 +14,7 @@ class CGI {
         std::string _query;
         std::string _response;
 		std::string	_method;
+        std::string _contentType;
 		int			_status;
 
     public:
@@ -21,11 +22,10 @@ class CGI {
         CGI( Request & request, RequestConfig &config );
 
         std::string	executeCgiScript( void );
+        void        childProcess( int* stdout_pipefd, int* stdin_pipefd );
 
 		std::string const &getScriptPath( void ) const;
 		std::string const &getPostData( void ) const;
 		std::string const &getResponse( void ) const;
 		int			const getStatus( void ) const;
-
-		void		setEnvp( std::vector<char *> &envp );
 };

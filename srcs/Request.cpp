@@ -6,7 +6,7 @@
 /*   By: arivera <arivera@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/06 12:43:17 by arivera           #+#    #+#             */
-/*   Updated: 2024/02/06 14:07:43 by arivera          ###   ########.fr       */
+/*   Updated: 2024/02/21 16:01:19 by arivera          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,12 +58,14 @@ void	Request::parseFirstLine(std::string first_line) {
 		(split_line[2] != "HTTP/1.1\r")) {
 		_code = 400;
 		return ;
-		}
-	split_path = split(split_line[1], '?');
-	if (split_path.size() == 2)
-		_query = split_path[1];
-	_requestElem["method"] = split_line[0];
+	}
 	_requestElem["path"] = split_line[1];
+	split_path = split(split_line[1], '?');
+	if (split_path.size() == 2){
+		_requestElem["path"] = split_path[0];
+		_query = split_path[1];
+	}
+	_requestElem["method"] = split_line[0];
 	_requestElem["protocol"] = split_line[2];
 }
 
@@ -108,6 +110,7 @@ std::vector<std::string>	Request::split(std::string string, char delimiter) {
 const std::string                           &Request::getRequest() const { return (_request); }
 const std::map<std::string, std::string>    &Request::getRequestElem() const { return (_requestElem); }
 const std::string							&Request::getBody() const { return (_body); }
+const std::string                           &Request::getQuery( void ) const {return (_query); }
 const int									&Request::getCode( void ) const { return (_code); }
 
 // GET / HTTP/1.1

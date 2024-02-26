@@ -23,6 +23,9 @@ class Webserv {
 		std::vector<pollfd>		pollfd_vec;
 		std::map<int, Server*>	fd_to_server_map;
 
+		std::map<int, std::string>	pending_responses;
+		std::map<int, int>			bytes_sent;
+
 		// private methods
 		void        run();
 		void	    close_all_fds();
@@ -30,6 +33,8 @@ class Webserv {
 		static void	signal_handler(int signum);
 		void		add_new_client(int fd, Server &server);
 		void		manage_client_request(int pollfd);
+
+		void		manage_client_response(int pollfd);
 		// *********** testing functions ***********
 		void        display_new_client_infos(int client_socket, int port);
 

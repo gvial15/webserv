@@ -23,6 +23,9 @@ RequestConfig::RequestConfig( Request & request, Server * server ) : SharedConfi
 	error_pages.insert(std::make_pair("503", "error_pages/503_service_unavailable.html"));
 	error_pages.insert(std::make_pair("504", "error_pages/504_gateway_timeout.html"));
 
+	_host = server->get_ip();
+	_port = server->get_port();
+
 	if ( request.getCode() == 400 )
 		return;
 

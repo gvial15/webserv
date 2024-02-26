@@ -68,19 +68,18 @@ std::map<std::string, void (Response::*)(Request &, RequestConfig &)> Response::
 
 void			Response::call(Request & request, RequestConfig & requestConf) {
 	_code = request.getCode();
-	// if ( _code != 200 ) {
-	// 	_response = this->readHtml( _errors_map[ std::to_string(_code)] );
-	// 	ResponseHeader	respHead( _code, _path.c_str(), _response.size(), ".html" );
-	// 	_response = respHead.getResponseHeader() + _response + "\r\n";
-	// 	return ;
-	// }
 	_uri = request.getRequestElem().find("path")->second;
+	_host = requestConf.getHost();
+	_port = requestConf.getPort();
 	_path = requestConf.getPath();
-std::cout << "uri: " << _uri << std::endl;
-std::cout << "path: " << _path << std::endl;
+
 	std::cout << "received path: " << _path << std::endl;
 	_errors_map = requestConf.get_error_pages();
 	_isAutoIndex = requestConf.get_autoindex();
+	if ( _path.find('.') != -1 ) {
+		std::cout << "filetype: " << _path.substr( _path.find_last_of('.'), _path.size() ) << std::endl;
+		_type = _path.substr( _path.find_last_of('.') );
+	}
 
 	std::map<std::string, std::string> elems = request.getRequestElem();
 	
@@ -96,7 +95,7 @@ std::cout << "path: " << _path << std::endl;
 	if (_code == 405 || _code == 413)
 	{
 		_response = this->readHtml( _errors_map[ std::to_string(_code)] );
-		ResponseHeader	respHead( _code, _path.c_str(), _response.size(), ".html" );
+		ResponseHeader	respHead( _code, _path.c_str(), _response.size(), _type.c_str() );
 		_response = respHead.getResponseHeader() + _response + "\r\n";
 		return ;
 	}
@@ -106,20 +105,22 @@ std::cout << "path: " << _path << std::endl;
 void			Response::getMethod(Request & request, RequestConfig & requestConfig ) {
 	std::cout << "-- Call GET --\n";
 
-	// if (cgipath!=null) {
-	// 	do smthg
-	// }
-	// else
-	if ( _code == 200 )
+	if (isCGI()) {
+		CGI cgi(request, requestConfig);
+		_response = cgi.getResponse();
+		if (cgi.getStatus())
+			_code = cgi.getStatus();
+	}
+	else if ( _code == 200 )
 		_code = readContent();
-	else // if 400 or cgi error
+	if ( _code == 400 )
 		_response = this->readHtml( _errors_map[ std::to_string(_code)] );
 	if ( _code == 500 ) // if open file error
 		_response = this->readHtml( _errors_map[ std::to_string(_code)] );
 
 
 	// SET RESPONSE
-	ResponseHeader	respHead( _code, _path.c_str(), _response.size(), ".html" );
+	ResponseHeader	respHead( _code, _path.c_str(), _response.size(), _type.c_str() );
 	this->_response = respHead.getResponseHeader() + _response + "\r\n";
 	std::cout << this->_response << std::endl; //debug
 }
@@ -129,20 +130,39 @@ void			Response::postMethod(Request & request, RequestConfig & requestConfig) {
 	if (isCGI()){
 		CGI	cgi( request, requestConfig);
 		_response = cgi.getResponse();
+		if (cgi.getStatus())
+			_code = cgi.getStatus();
 	}
 	else{
 		// Florian, do your stuff
+		_code = 204;
+		_response = "";
 	}
 	// SET RESPONSE
-	// this->_body = buffer.str();
-	ResponseHeader	respHead( _code, _path.c_str(), _response.size(), ".html" );
-	// this->_header = respHead.getResponseHeader();
+	ResponseHeader	respHead( _code, _path.c_str(), _response.size(), _type.c_str() );
 	this->_response = respHead.getResponseHeader() + _response + "\r\n";
 	std::cout << this->_response << std::endl; //debug
 }
 
 void			Response::deleteMethod(Request & request, RequestConfig & requestConfig) {
 	std::cout << "-- Call DELETE --\n";
+	(void)request;
+
+	_response = "";
+	if (pathIsFile(_path))
+	{
+		if (remove(_path.c_str()) == 0)
+			_code = 204;
+		else
+			_code = 403;
+	}
+	else
+		_code = 404;
+	if (_code == 403 || _code == 404)
+		_response = this->readHtml( _errors_map[ std::to_string(_code)] );
+	ResponseHeader	respHead( _code, _path.c_str(), _response.size(), _type.c_str() );
+	this->_response = respHead.getResponseHeader() + _response + "\r\n";
+	std::cerr << "BIG PROBLEM" << respHead.getResponseHeader().size() << std::endl;
 }
 
 int				Response::readContent(void)
@@ -155,7 +175,7 @@ int				Response::readContent(void)
 	// std::cout << YELLOW << _path << RESET << std::endl;
 	if (pathIsFile(_path))
 	{
-		file.open(_path.c_str(), std::ifstream::in);
+		file.open(_path.c_str(), std::ios::binary);
 		if (file.is_open() == false)
 		{
 			_response = this->readHtml(_errors_map["403"]);
@@ -163,15 +183,16 @@ int				Response::readContent(void)
 		}
 
 		buffer << file.rdbuf();
+		// _response = buffer.str() + "\r\n";
 		_response = buffer.str();
 
 		file.close();
 	}
 	else if (_isAutoIndex) {
-std::cout << "trying autoindex" << std::endl;
-		buffer << getAutoIndexPage(_path.c_str(), "localhost", 8081);
+// std::cout << "trying autoindex" << std::endl;
+		buffer << getAutoIndexPage(_path.c_str(), _host, _port);
 		_response = buffer.str();
-		// _type = "text/html";
+		_type = "text/html";
 	}
 	else
 	{
@@ -192,16 +213,16 @@ std::cout << "trying to read: " << path << std::endl;
 	{
 		file.open(path.c_str(), std::ifstream::in);
 		if (file.is_open() == false)
-			return ("<!DOCTYPE html>\n<html><title>40404</title><body>There was an error finding your error page</body></html>\n");
+			return ("<!DOCTYPE html>\n<html><title>40404</title><body>There was an error finding your error page</body></html>\r\n");
 
 		buffer << file.rdbuf();
 		file.close();
-		// _type = "text/html";
+		_type = "text/html";
 
-		return (buffer.str());
+		return ( buffer.str() + "\r\n" );
 	}
 	else
-		return ("<!DOCTYPE html>\n<html><title>40404</title><body>There was an error finding your error page</body></html>\n");
+		return ("<!DOCTYPE html>\n<html><title>40404</title><body>There was an error finding your error page</body></html>\r\n");
 }
 
 bool	Response::isCGI() const {
