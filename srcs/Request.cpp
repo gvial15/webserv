@@ -80,6 +80,7 @@ void	Request::parseFirstLine(std::string first_line) {
 				_path_info.pop_back();
 			}
 		}
+		_requestElem["path"].pop_back();
 	}
 	_requestElem["method"] = split_line[0];
 	_requestElem["protocol"] = split_line[2];
