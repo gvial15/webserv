@@ -90,7 +90,7 @@ void			Response::call(Request & request, RequestConfig & requestConf) {
 	}
 	else if ( std::find( allowed_methods.begin(), allowed_methods.end(), elems["method"] ) == allowed_methods.end() )
 		_code = 405;
-	else if (requestConf.get_client_max_body_size() < request.getRequest().size())
+	else if (requestConf.get_client_max_body_size() < request.getBody().size())
 		_code = 413;
 	if (_code == 405 || _code == 413)
 	{
