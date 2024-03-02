@@ -19,11 +19,12 @@
 #include <sys/_types/_size_t.h>
 #include <vector>
 
-Request::Request( const char *request ): _request(request) {
+Request::Request( std::string request ): _request(request) {
     parse();
 }
 
 void    Request::printRequestElems() const {
+	std::cout << "\n";
     for (std::map<std::string, std::string>::const_iterator it = _requestElem.begin(); it != _requestElem.end(); ++it)
         std::cout << it->first << " -> " << it->second << std::endl;
 }
@@ -31,7 +32,8 @@ void    Request::printRequestElems() const {
 void	Request::parseBody(std::vector<std::string> &lines, size_t i) {
 	--i;
 	while (++i < lines.size())
-		_body = _body + lines[i];
+		if (lines[i] != "\r")
+			_body = _body + lines[i];
 }
 
 void	Request::parseHeaders(std::string &lines) {
@@ -90,22 +92,23 @@ void	Request::parse() {
 	size_t						i;
     std::vector<std::string>    lines;
 
-	std::cout << "\n*****request parsing*****\n\n";
+	std::cout << "\n--- REQUEST PARSING ---\n\n";
 	std::cout << _request << "\n"; // print request
     lines = split(_request, '\n');
 	parseFirstLine(lines[0]);
 	if (_code == 400)
 		return ;
 	i = 0;
-	while (++i < lines.size() - 1 && lines[i] != "\r\n")
-		parseHeaders(lines[i]);
+	while (++i < lines.size() - 1 && lines[i] != "\r\n" && lines[i] != "\r\n\r\n"
+			&& lines[i] != "\r" && lines[i] != "\n")
+				parseHeaders(lines[i]);
 	parseBody(lines, i);
-	std::cout << "\nrequestElems:\n";
-    printRequestElems();
+	// std::cout << "\nrequestElems:";
+    // printRequestElems();
 	std::cout << "\nBody:\n" << _body << "\n";
-	std::cout << "\nQuery: " << _query << "\n";
-	std::cout << "\nPath_info: " << _path_info << "\n";
-	std::cout << "\n*****request parsing END*****\n\n";
+	// std::cout << "\nQuery: " << _query << "\n";
+	// std::cout << "\nPath_info: " << _path_info << "\n";
+	std::cout << "\n--- REQUEST PARSING END ---\n\n";
 }
 
 // utils functions

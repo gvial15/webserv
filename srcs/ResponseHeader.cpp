@@ -4,7 +4,7 @@
 
 ResponseHeader::ResponseHeader(int status, const char *path, int size, const char *extension) {
 
-    std::cout << "\n-- RESPONSE HEADER --\n";
+    // std::cout << "\n-- RESPONSE HEADER --\n";
     
     this->initializeValues(status, path, size, extension);
     this->createResponseHeader();

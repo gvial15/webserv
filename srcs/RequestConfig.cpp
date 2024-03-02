@@ -33,8 +33,8 @@ RequestConfig::RequestConfig( Request & request, Server * server ) : SharedConfi
 	_path = const_cast<std::map<std::string, std::string>&>(request.getRequestElem())["path"];
 	_locationsMap = server->get_locations();
 
-	this->findLocation( server );
-	this->copyLocationConfig( server );
+	this->findLocation();
+	this->copyLocationConfig();
 	this->pathRouting();
 
 	// need redirection ?
@@ -42,19 +42,18 @@ RequestConfig::RequestConfig( Request & request, Server * server ) : SharedConfi
 	
 	_path.erase( std::unique(_path.begin(), _path.end(), both_slashes()), _path.end() );
 
-	std::cout << "path is: " << _path << std::endl; //debug
+	// std::cout << "path is: " << _path << std::endl; //debug
 }
 
 RequestConfig::~RequestConfig() {}
 
 // Update _location var
-void	RequestConfig::findLocation( Server * server ) {
+void	RequestConfig::findLocation() {
 	std::string								truncated_path = _path;
 	if ( truncated_path.back() != '/' )
 		truncated_path.push_back('/');
 
 	// check if part of a location
-	size_t	cmp_size = truncated_path.size();
 	while ( truncated_path.size() > 0 ) {
 		_location = _locationsMap.begin();
 		while( _location != _locationsMap.end() ) {
@@ -75,7 +74,7 @@ void	RequestConfig::findLocation( Server * server ) {
 }
 
 // if _location is valid, copy values and truncate path
-void	RequestConfig::copyLocationConfig( Server * server ) {
+void	RequestConfig::copyLocationConfig() {
 	if ( _location == _locationsMap.end() )
 		return;
 

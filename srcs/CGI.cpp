@@ -2,7 +2,8 @@
 #include <unistd.h>
 #include <iostream>
 
-CGI::CGI( Request & request, RequestConfig &config ){
+CGI::CGI( Request & request, RequestConfig &config) {
+    (void) config;
 	this->_scriptPath = request.getRequestElem().find("path")->second;
     this->_postData = request.getBody();
 	this->_method = request.getRequestElem().find("method")->second;
@@ -103,18 +104,18 @@ std::string	CGI::executeCgiScript( void ){
     }
 }
 
-std::string const &CGI::getScriptPath( void ) const{
+std::string const &CGI::getScriptPath( void ) const {
 	return (this->_scriptPath);
 }
 
-std::string const &CGI::getPostData( void ) const{
+std::string const &CGI::getPostData( void ) const {
 	return (this->_postData);
 }
 
-std::string const &CGI::getResponse( void ) const{
+std::string const &CGI::getResponse( void ) const {
 	return (this->_response);
 }
 
-int			const CGI::getStatus( void ) const {
+int CGI::getStatus( void ) const {
 	return this->_status;
 }

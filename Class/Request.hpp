@@ -32,7 +32,7 @@ class Request {
     public:
 
 		// Constructor
-        Request(const char *req);
+        Request(std::string request);
 
 		// Parsing functions
         void    parse();

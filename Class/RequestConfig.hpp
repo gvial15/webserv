@@ -24,8 +24,8 @@ class RequestConfig: public SharedConfigDirectives {
 		int													_port;
 
 
-		void	findLocation( Server * );
-		void	copyLocationConfig( Server * );
+		void	findLocation();
+		void	copyLocationConfig();
 		void	pathRouting();
 
 

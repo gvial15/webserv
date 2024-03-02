@@ -59,6 +59,7 @@ std::map<std::string, void (Response::*)(Request &, RequestConfig &)>	Response::
 	map["POST"] = &Response::postMethod;
 	map["DELETE"] = &Response::deleteMethod;
 
+
 	return map;
 }
 
@@ -73,11 +74,11 @@ void			Response::call(Request & request, RequestConfig & requestConf) {
 	_port = requestConf.getPort();
 	_path = requestConf.getPath();
 
-	std::cout << "received path: " << _path << std::endl;
+	// std::cout << "received path: " << _path << std::endl;
 	_errors_map = requestConf.get_error_pages();
 	_isAutoIndex = requestConf.get_autoindex();
 	if ( _path.find('.') != -1 ) {
-		std::cout << "filetype: " << _path.substr( _path.find_last_of('.'), _path.size() ) << std::endl;
+		// std::cout << "filetype: " << _path.substr( _path.find_last_of('.'), _path.size() ) << std::endl;
 		_type = _path.substr( _path.find_last_of('.') );
 	}
 
@@ -145,9 +146,10 @@ void			Response::postMethod(Request & request, RequestConfig & requestConfig) {
 }
 
 void			Response::deleteMethod(Request & request, RequestConfig & requestConfig) {
-	std::cout << "-- Call DELETE --\n";
-	(void)request;
+	(void)	request;
+	(void)	requestConfig;
 
+	std::cout << "-- Call DELETE --\n";
 	_response = "";
 	if (pathIsFile(_path))
 	{
@@ -212,7 +214,7 @@ std::string		Response::readHtml(const std::string& path)
 	std::ofstream		file;
 	std::stringstream	buffer;
 
-std::cout << "trying to read: " << path << std::endl;
+// std::cout << "trying to read: " << path << std::endl;
 	if (pathIsFile(path))
 	{
 		file.open(path.c_str(), std::ifstream::in);

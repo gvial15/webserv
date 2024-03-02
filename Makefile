@@ -7,7 +7,6 @@ SRCS =	main.cpp \
 		srcs/RequestConfig.cpp \
 		srcs/Response.cpp \
 		srcs/ResponseHeader.cpp \
-		# srcs/HTTPRequest.cpp srcs/HTTPResponse.cpp
 
 OBJDIR = obj
 OBJS = $(SRCS:%.cpp=$(OBJDIR)/%.o)
@@ -15,9 +14,8 @@ OBJS = $(SRCS:%.cpp=$(OBJDIR)/%.o)
 NAME = webserv
 
 # CFLAGS = -Wall -Wextra -Werror -std=c++98
-CFLAGS = -std=c++98
 
-CC = g++
+CC = g++ # -fsanitize=address -g
 
 all: $(OBJDIR) $(NAME)
 

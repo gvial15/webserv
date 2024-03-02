@@ -17,7 +17,7 @@ Webserv::Webserv(std::vector<Server> servers) :
 servers(servers) {
 	instance = this;
 	// init servers
-	for (int i = 0; i < servers.size(); ++i)
+	for (size_t i = 0; i < servers.size(); ++i)
 		this->servers[i].init();
 	create_pollfds();
 	run();
@@ -65,10 +65,13 @@ void	Webserv::run() {
 				if (i < servers.size()) // Input from new client
 					add_new_client(pollfd_vec[i].fd, servers[i]);
 				else // Input from existing client
-					manage_client_request(pollfd_vec[i].fd);
+					process_request(pollfd_vec[i].fd);
 			}
 			// check if sokcet is ready for WRITING (POLLOUT) AND if there is a pending respones associated with the client socket fd
-			if ((pollfd_vec[i].revents & POLLOUT) && (this->pending_responses.find(pollfd_vec[i].fd) != this->pending_responses.end())){
+			if ((pollfd_vec[i].revents & POLLOUT) && (this->pending_responses.find(pollfd_vec[i].fd) != this->pending_responses.end())
+				&& (pending_requests[pollfd_vec[i].fd].content_length == pending_requests[pollfd_vec[i].fd].body_size)) {
+				std::cout << "\n-- CONTENT-LENGTH " << pending_requests[pollfd_vec[i].fd].content_length << "\n";
+				std::cout << "-- BODY SIZE " << pending_requests[pollfd_vec[i].fd].body_size << "\n";
 				manage_client_response(pollfd_vec[i].fd);
 			}
 			// Clear the revents field for the next poll call
@@ -97,43 +100,63 @@ void	Webserv::add_new_client(int pollfd, Server &server) {
 }
 
 // read client input, send it to processing
-void	Webserv::manage_client_request(int pollfd) {
+void	Webserv::process_request(int pollfd) {
 	char buffer[1024];
-	int bytes_read = read(pollfd, buffer, 1024);
+	int bytes_read = read(pollfd, buffer, 1023);
 
 	std::cout << "Input from client " << pollfd << " on port " << fd_to_server_map.find(pollfd)->second->get_port() << "\n";
-	if (bytes_read <= 0) { // Connection with client closed or error
-		std::cout << "closing communication with client "<< pollfd << "\n\n";
-		close(pollfd);
-		fd_to_server_map.erase(pollfd);
-		this->pending_responses.erase(pollfd);
-		this->bytes_sent.erase(pollfd);
-		pollfd = 0;
+	buffer[bytes_read] = '\0';
+	if (pending_requests.find(pollfd) != pending_requests.end())
+		pending_requests[pollfd].request = pending_requests[pollfd].request + buffer;
+	else
+	 	pending_requests[pollfd].request = buffer;
+	if (bytes_read <= 0) // Connection with client closed or error
+		close_connection(pollfd);
+	else {
+		Request	req(pending_requests[pollfd].request);
+
+		if (req.getRequestElem().find("Content-Length") != req.getRequestElem().end())
+			pending_requests[pollfd].content_length = std::stoi(req.getRequestElem().find("Content-Length")->second);
+		else
+		 	pending_requests[pollfd].content_length = 0;
+			pending_requests[pollfd].body_size = req.getBody().size(); // reference ABORT
+
+			std::cout << "\n-- CONTENT-LENGTH > " << pending_requests[pollfd].content_length << "\n";
+			std::cout << "-- BODY SIZE > " << pending_requests[pollfd].body_size << "\n\n";
+
+			RequestConfig requestConfig( req, fd_to_server_map.find(pollfd)->second );
+			Response response;
+			response.call( req, requestConfig );
+			// store client request in the pending_responses map
+			std::string rep = response.getResponse();
+			this->pending_responses[pollfd] = rep;
+			this->bytes_sent[pollfd] = 0;
 	}
-	else { // TODO: process request (parsing, response , cgi)
-		buffer[bytes_read] = '\0';
-		// print clients request *** testing ***
-		Request	req(buffer);
-		RequestConfig requestConfig( req, fd_to_server_map.find(pollfd)->second );
-		Response response;
-		response.call( req, requestConfig );
-		// store client request in the pending_responses map
-		std::string rep = response.getResponse();
-		this->pending_responses[pollfd] = rep;
-		this->bytes_sent[pollfd] = 0;
-	}
+}
+
+// close connection
+void	Webserv::close_connection(int pollfd) {
+	std::cout << "closing communication with client "<< pollfd << "\n\n";
+	close(pollfd);
+	fd_to_server_map.erase(pollfd);
+	this->pending_responses.erase(pollfd);
+	this->pending_requests.erase(pollfd);
+	this->bytes_sent.erase(pollfd);
+	pollfd = 0;
 }
 
 // sends the response, or the remainder of it to the client
 void	Webserv::manage_client_response(int pollfd){
-	std::string rep = this->pending_responses.find(pollfd)->second; // retrieve the response of the client fd in the map
-	int			bytes = this->bytes_sent.find(pollfd)->second; // gets the amount of bytes sent of the response, acts as a checkpoint
+	std::string	rep = this->pending_responses.find(pollfd)->second; // retrieve the response of the client fd in the map
+	size_t		bytes = this->bytes_sent.find(pollfd)->second; // gets the amount of bytes sent of the response, acts as a checkpoint
+	std::cout << "\n-- SEND --\n\n";
 	int ret = send(pollfd, rep.c_str() + bytes, rep.size() - bytes, 0); // retrieve the amount of bytes sent with the send() fun
 	if (ret < 0)
 		return;
 	bytes += ret; // add the amount of bytes that was just sent via send() to the initial amount sent from previous instances
 	std::cerr << "REP SIZE: " << rep.size() << std::endl << "RET: " << ret << std::endl << "Bytes: " << bytes << std::endl;
 	if (bytes == rep.size()){ // check if the response has been sent entirely, deletes if yes
+		this->pending_requests.erase(pollfd);
 		this->pending_responses.erase(pollfd);
 		this->bytes_sent.erase(pollfd);
 	}
@@ -141,6 +164,7 @@ void	Webserv::manage_client_response(int pollfd){
 		this->bytes_sent[pollfd] = bytes;
 }
 
+// close all pollfd fds
 void	Webserv::close_all_fds() {
 	size_t i = -1;
 

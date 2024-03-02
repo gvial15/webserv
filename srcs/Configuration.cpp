@@ -273,7 +273,7 @@ void	Configuration::fill_server_attributes(std::vector<token> tokens, Server &se
 			}
 			else if (tokens[i].content == "server_name") {
 				server.clear_server_name();
-				for (int ii = 0; ii < arguments.size(); ++ii)
+				for (size_t ii = 0; ii < arguments.size(); ++ii)
 					server.set_server_name(arguments[ii]);
 			}
 			arguments.clear();
@@ -337,7 +337,7 @@ void	Configuration::fill_shared_attributes(std::vector<token> tokens, T &obj) {
 			}
 			else if (tokens[i].content == "index") {
 				obj.clear_index();
-				for (int ii = 0; ii < arguments.size(); ++ii)
+				for (size_t ii = 0; ii < arguments.size(); ++ii)
 					obj.set_index(arguments[ii]);
 			}
 			else if (tokens[i].content == "autoindex") {
@@ -371,7 +371,7 @@ void	Configuration::fill_shared_attributes(std::vector<token> tokens, T &obj) {
 			}
 			else if (tokens[i].content == "methods") {
 				obj.clear_methods();
-				for (int ii = 0; ii < arguments.size(); ++ii) {
+				for (size_t ii = 0; ii < arguments.size(); ++ii) {
 					if (arguments[ii] != "POST" && arguments[ii] != "GET" && arguments[ii] != "DELETE")
 						throw invalid_method_argument(tokens[i].line, arguments[ii]);
 					obj.set_methods(arguments[ii]);
@@ -511,7 +511,6 @@ void	print_shared_attributes(const C &obj) {
 
 void Configuration::print_servers(const std::vector<Server> &servers) {
 	size_t	i;
-	size_t	ii;
 	std::map<std::string, Server::Location>	locations;
 	std::map<std::string, Server::Location>::iterator	it;
 
@@ -521,7 +520,7 @@ void Configuration::print_servers(const std::vector<Server> &servers) {
 		std::cout << "port: " << servers[i].get_port() << "\n";
 		std::cout << "ip: " << servers[i].get_ip() << "\n";
 		std::cout << "server_name: ";
-		for (int s = 0; s < servers[i].get_server_names().size(); ++s)
+		for (size_t s = 0; s < servers[i].get_server_names().size(); ++s)
 			std::cout << servers[i].get_server_names()[s] << " ";
 		std::cout << "\n";
 		print_shared_attributes(servers[i]);
