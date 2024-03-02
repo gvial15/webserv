@@ -24,8 +24,8 @@ class CGI {
         std::string	executeCgiScript( void );
         void        childProcess( int* stdout_pipefd, int* stdin_pipefd );
 
-		std::string const &getScriptPath( void ) const;
-		std::string const &getPostData( void ) const;
-		std::string const &getResponse( void ) const;
-		int			const getStatus( void ) const;
+		std::string const   &getScriptPath( void ) const;
+		std::string const   &getPostData( void ) const;
+		std::string const   &getResponse( void ) const;
+		int			        getStatus( void ) const;
 };
