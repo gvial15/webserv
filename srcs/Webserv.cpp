@@ -119,7 +119,7 @@ void	Webserv::process_request(int pollfd) {
 			pending_requests[pollfd].content_length = std::stoi(req.getRequestElem().find("Content-Length")->second);
 		else
 		 	pending_requests[pollfd].content_length = 0;
-			pending_requests[pollfd].body_size = req.getBody().size(); // reference ABORT
+			pending_requests[pollfd].body_size = req.getBody().size();
 
 			std::cout << "\n-- CONTENT-LENGTH > " << pending_requests[pollfd].content_length << "\n";
 			std::cout << "-- BODY SIZE > " << pending_requests[pollfd].body_size << "\n\n";
