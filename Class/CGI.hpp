@@ -23,6 +23,7 @@ class CGI {
 
         std::string	executeCgiScript( void );
         void        childProcess( int* stdout_pipefd, int* stdin_pipefd );
+        std::string vector_to_string(std::vector<std::string> vector);
 
 		std::string const   &getScriptPath( void ) const;
 		std::string const   &getPostData( void ) const;

@@ -1,11 +1,20 @@
 #include "../Class/CGI.hpp"
+#include <string>
 #include <unistd.h>
 #include <iostream>
+
+std::string CGI::vector_to_string(std::vector<std::string> vector) {
+    std::string string;
+
+    for (size_t i = 0; i < vector.size(); i++)
+        string = string + vector[i];
+    return (string);
+}
 
 CGI::CGI( Request & request, RequestConfig &config) {
     (void) config;
 	this->_scriptPath = request.getRequestElem().find("path")->second;
-    this->_postData = request.getBody();
+    this->_postData = vector_to_string(request.getBody());
 	this->_method = request.getRequestElem().find("method")->second;
     this->_contentType = request.getRequestElem().find("Content-Type")->second;
     this->_query = request.getQuery();
@@ -119,3 +128,4 @@ std::string const &CGI::getResponse( void ) const {
 int CGI::getStatus( void ) const {
 	return this->_status;
 }
+

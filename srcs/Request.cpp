@@ -33,7 +33,7 @@ void	Request::parseBody(std::vector<std::string> &lines, size_t i) {
 	--i;
 	while (++i < lines.size())
 		if (lines[i] != "\r")
-			_body = _body + lines[i];
+			_body.push_back(lines[i]);
 }
 
 void	Request::parseHeaders(std::string &lines) {
@@ -44,6 +44,8 @@ void	Request::parseHeaders(std::string &lines) {
 	if (split_line.size() > 1) {
 		substr = lines.substr(split_line[0].size() + 1, lines.size() - split_line[0].size() - 2);
 		_requestElem[split_line[0]] = substr;
+		if (split_line[0] == "Content-Length")
+			; // log boundary for later use
 	}
 }
 
@@ -105,7 +107,9 @@ void	Request::parse() {
 	parseBody(lines, i);
 	// std::cout << "\nrequestElems:";
     // printRequestElems();
-	std::cout << "\nBody:\n" << _body << "\n";
+	std::cout << "\nBody:\n";
+	for (int i = 0; i < _body.size(); i++)
+		std::cout << _body[i] << "\n";
 	// std::cout << "\nQuery: " << _query << "\n";
 	// std::cout << "\nPath_info: " << _path_info << "\n";
 	std::cout << "\n--- REQUEST PARSING END ---\n\n";
@@ -135,9 +139,17 @@ std::vector<std::string>	Request::split(std::string string, char delimiter) {
 }
 
 // Getters
+const int	Request::getBodySize() const {
+	int	size = 0;
+
+	for (int i = 0; i < _body.size(); i++)
+		size += _body[i].size();
+	return (size);
+};
+
 const std::string                           &Request::getRequest() const { return (_request); }
 const std::map<std::string, std::string>    &Request::getRequestElem() const { return (_requestElem); }
-const std::string							&Request::getBody() const { return (_body); }
+const std::vector<std::string>				&Request::getBody() const { return (_body); }
 const std::string                           &Request::getQuery( void ) const {return (_query); }
 const int									&Request::getCode( void ) const { return (_code); }
 

@@ -26,7 +26,7 @@ class Request {
         std::map<std::string, std::string>  _requestElem;
         std::string                         _path_info;
         std::string                         _query;
-        std::string                         _body;
+        std::vector<std::string>            _body;
         int									_code;
 
     public:
@@ -47,9 +47,10 @@ class Request {
 		void                        printRequestElems() const;
         
         //getters
+        const int                                   getBodySize( void ) const;
         const std::string                           &getRequest( void ) const;
         const std::map<std::string, std::string>    &getRequestElem( void ) const;
-        const std::string                           &getBody( void ) const;
+        const std::vector<std::string>              &getBody( void ) const;
         const std::string                           &getQuery( void ) const;
         const int									&getCode( void ) const;
 };
