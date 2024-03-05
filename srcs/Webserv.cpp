@@ -69,11 +69,9 @@ void	Webserv::run() {
 			}
 			// check if sokcet is ready for WRITING (POLLOUT) AND if there is a pending respones associated with the client socket fd
 			if ((pollfd_vec[i].revents & POLLOUT) && (this->pending_responses.find(pollfd_vec[i].fd) != this->pending_responses.end())
-				&& (pending_requests[pollfd_vec[i].fd].content_length == pending_requests[pollfd_vec[i].fd].body_size)) {
-				std::cout << "\n-- CONTENT-LENGTH " << pending_requests[pollfd_vec[i].fd].content_length << "\n";
-				std::cout << "-- BODY SIZE " << pending_requests[pollfd_vec[i].fd].body_size << "\n";
+				&& (pending_requests[pollfd_vec[i].fd].content_length == pending_requests[pollfd_vec[i].fd].body_size))
 				manage_client_response(pollfd_vec[i].fd);
-			}
+
 			// Clear the revents field for the next poll call
 			pollfd_vec[i].revents = 0;
 			++i;
@@ -112,7 +110,7 @@ void	Webserv::process_request(int pollfd) {
 	 	pending_requests[pollfd].request = buffer;
 	if (bytes_read <= 0) // Connection with client closed or error
 		close_connection(pollfd);
-	else {
+	else { // process request
 		Request	req(pending_requests[pollfd].request);
 
 		if (req.getRequestElem().find("Content-Length") != req.getRequestElem().end())
@@ -120,9 +118,6 @@ void	Webserv::process_request(int pollfd) {
 		else
 		 	pending_requests[pollfd].content_length = 0;
 			pending_requests[pollfd].body_size = req.getBodySize();
-
-			std::cout << "\n-- CONTENT-LENGTH > " << pending_requests[pollfd].content_length << "\n";
-			std::cout << "-- BODY SIZE > " << pending_requests[pollfd].body_size << "\n\n";
 
 			RequestConfig requestConfig( req, fd_to_server_map.find(pollfd)->second );
 			Response response;

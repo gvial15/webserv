@@ -12,6 +12,7 @@
 
 #include "../Class/Request.hpp"
 #include "../Class/Configuration.hpp"
+#include <_stdio.h>
 #include <codecvt>
 #include <cstddef>
 #include <iostream>
@@ -29,11 +30,35 @@ void    Request::printRequestElems() const {
         std::cout << it->first << " -> " << it->second << std::endl;
 }
 
+std::string	Request::find_filname(std::vector<std::string>, int i) {
+	int			ii;
+	std::string	filename;
+
+	while (split(_body[++i], ':')[0] != "Content-Disposition");
+	filename = remove_char(remove_char(split(split(_body[i], ';')[2], '=')[1], '"'), '\r');
+	return (filename);
+}
+
+void Request::parseFiles() {
+	std::string filename;
+
+	for (int i = 0; i < _body.size(); ++i) {
+		if (_body[i] == _boundary) {
+			filename = find_filname(_body, i);
+			_filenames.push_back(filename);
+			while (endsWith(_body[++i], "\r"));
+		}
+		if (_body[i] != remove_char(_boundary, '\r') + "--\r")
+			_files[filename] = _files[filename] + _body[i] + "\n";
+	}
+}
+
 void	Request::parseBody(std::vector<std::string> &lines, size_t i) {
 	--i;
-	while (++i < lines.size())
+	while (++i < lines.size()) {
 		if (lines[i] != "\r")
 			_body.push_back(lines[i]);
+	}
 }
 
 void	Request::parseHeaders(std::string &lines) {
@@ -45,7 +70,7 @@ void	Request::parseHeaders(std::string &lines) {
 		substr = lines.substr(split_line[0].size() + 1, lines.size() - split_line[0].size() - 2);
 		_requestElem[split_line[0]] = substr;
 		if (split_line[0] == "Content-Type")
-			_boundary = split(split_line[1], '=')[1];
+			_boundary = "--" + split(split_line[1], '=')[1];
 	}
 }
 
@@ -94,8 +119,6 @@ void	Request::parse() {
 	size_t						i;
     std::vector<std::string>    lines;
 
-	std::cout << "\n--- REQUEST PARSING ---\n\n";
-	std::cout << _request << "\n"; // print request
     lines = split(_request, '\n');
 	parseFirstLine(lines[0]);
 	if (_code == 400)
@@ -105,18 +128,20 @@ void	Request::parse() {
 			&& lines[i] != "\r" && lines[i] != "\n")
 				parseHeaders(lines[i]);
 	parseBody(lines, i);
-	std::cout << "\nrequestElems:";
-    printRequestElems();
-	std::cout << "\nBody:\n";
-	for (int i = 0; i < _body.size(); i++)
-		std::cout << _body[i] << "\n";
-	std::cout << "\nQuery: " << _query << "\n";
-	std::cout << "\nPath_info: " << _path_info << "\n";
-	std::cout << "\nBoundary: " << _boundary << "\n";
-	std::cout << "\n--- REQUEST PARSING END ---\n\n";
+	if (_boundary.size() != 0)
+		parseFiles();
 }
 
 // utils functions
+std::string Request::remove_char(std::string input, char c) {
+    std::string result;
+
+    for (size_t i = 0; i < input.length(); ++i)
+        if (input[i] != c)
+            result += input[i];
+    return (result);
+}
+
 bool Request::endsWith(const std::string str, const std::string suffix) {
     if (str.length() >= suffix.length())
         return (str.compare(str.length() - suffix.length(), suffix.length(), suffix) == 0);
@@ -151,22 +176,7 @@ const int	Request::getBodySize() const {
 const std::string                           &Request::getRequest() const { return (_request); }
 const std::map<std::string, std::string>    &Request::getRequestElem() const { return (_requestElem); }
 const std::vector<std::string>				&Request::getBody() const { return (_body); }
+std::vector<std::string>					&Request::getFilenames() { return (_filenames); }
+std::map<std::string, std::string>			&Request::getFiles() { return (_files); }
 const std::string                           &Request::getQuery( void ) const {return (_query); }
 const int									&Request::getCode( void ) const { return (_code); }
-
-// GET / HTTP/1.1
-// Host: localhost:8081
-// Connection: keep-alive
-// Cache-Control: max-age=0
-// sec-ch-ua: "Not.A/Brand";v="8", "Chromium";v="114", "Google Chrome";v="114"
-// sec-ch-ua-mobile: ?0
-// sec-ch-ua-platform: "macOS"
-// Upgrade-Insecure-Requests: 1
-// User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36
-// Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
-// Sec-Fetch-Site: none
-// Sec-Fetch-Mode: navigate
-// Sec-Fetch-User: ?1
-// Sec-Fetch-Dest: document
-// Accept-Encoding: gzip, deflate, br
-// Accept-Language: en-US,en;q=0.9

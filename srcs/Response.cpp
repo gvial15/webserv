@@ -128,21 +128,29 @@ void			Response::getMethod(Request & request, RequestConfig & requestConfig ) {
 
 void			Response::postMethod(Request & request, RequestConfig & requestConfig) {
 	std::cout << "-- Call POST --\n";
-	if (isCGI()){
+	if (isCGI()) {
 		CGI	cgi( request, requestConfig);
 		_response = cgi.getResponse();
 		if (cgi.getStatus())
 			_code = cgi.getStatus();
 	}
-	else{
-		// Florian, do your stuff
+	else {
 		_code = 204;
-		_response = "";
+		for (int i = 0; i < request.getFilenames().size(); i++) {
+			std::string filename = requestConfig.get_post_path() + request.getFilenames()[i].c_str();
+			std::ofstream file(filename);
+			if (file.is_open()) {
+				file << request.getFiles()[request.getFilenames()[i]];
+				file.close();
+			}
+			else
+				; // error opening file
+		}
 	}
 	// SET RESPONSE
-	ResponseHeader	respHead( _code, _path.c_str(), _response.size(), _type.c_str() );
+	ResponseHeader	respHead(_code, _path.c_str(), _response.size(), _type.c_str());
 	this->_response = respHead.getResponseHeader() + _response + "\r\n";
-	std::cout << this->_response << std::endl; //debug
+	std::cout << "post_path: " << requestConfig.get_post_path() << "\n"; //debug
 }
 
 void			Response::deleteMethod(Request & request, RequestConfig & requestConfig) {
@@ -191,7 +199,6 @@ int				Response::readContent(void)
 		file.close();
 	}
 	else if (_isAutoIndex) {
-// std::cout << "trying autoindex" << std::endl;
 		buffer << getAutoIndexPage(_path.c_str(), _host, _port);
 		_response = buffer.str();
 		if ( _response == "" ) {
@@ -214,7 +221,6 @@ std::string		Response::readHtml(const std::string& path)
 	std::ofstream		file;
 	std::stringstream	buffer;
 
-// std::cout << "trying to read: " << path << std::endl;
 	if (pathIsFile(path))
 	{
 		file.open(path.c_str(), std::ifstream::in);
@@ -232,8 +238,6 @@ std::string		Response::readHtml(const std::string& path)
 }
 
 bool	Response::isCGI() const {
-	// For now this is the check for cgi
-	// checking for extensions that are listed in the cgi_ext (.sh, .py for now)
 	std::string::size_type pos = _path.find_last_of('.');
 	std::string extension;
 
