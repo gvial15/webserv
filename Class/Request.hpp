@@ -25,6 +25,7 @@ class Request {
         const std::string                   _request;
         std::map<std::string, std::string>  _requestElem;
         std::string                         _path_info;
+        std::string                         _boundary;
         std::string                         _query;
         std::vector<std::string>            _body;
         int									_code;

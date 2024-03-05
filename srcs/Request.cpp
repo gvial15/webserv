@@ -44,8 +44,8 @@ void	Request::parseHeaders(std::string &lines) {
 	if (split_line.size() > 1) {
 		substr = lines.substr(split_line[0].size() + 1, lines.size() - split_line[0].size() - 2);
 		_requestElem[split_line[0]] = substr;
-		if (split_line[0] == "Content-Length")
-			; // log boundary for later use
+		if (split_line[0] == "Content-Type")
+			_boundary = split(split_line[1], '=')[1];
 	}
 }
 
@@ -105,13 +105,14 @@ void	Request::parse() {
 			&& lines[i] != "\r" && lines[i] != "\n")
 				parseHeaders(lines[i]);
 	parseBody(lines, i);
-	// std::cout << "\nrequestElems:";
-    // printRequestElems();
+	std::cout << "\nrequestElems:";
+    printRequestElems();
 	std::cout << "\nBody:\n";
 	for (int i = 0; i < _body.size(); i++)
 		std::cout << _body[i] << "\n";
-	// std::cout << "\nQuery: " << _query << "\n";
-	// std::cout << "\nPath_info: " << _path_info << "\n";
+	std::cout << "\nQuery: " << _query << "\n";
+	std::cout << "\nPath_info: " << _path_info << "\n";
+	std::cout << "\nBoundary: " << _boundary << "\n";
 	std::cout << "\n--- REQUEST PARSING END ---\n\n";
 }
 
