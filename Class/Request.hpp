@@ -17,6 +17,7 @@
 #include <sstream>
 #include <cctype>
 #include <string>
+#include <vector>
 
 class Request {
     

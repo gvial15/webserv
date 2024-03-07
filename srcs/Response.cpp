@@ -76,7 +76,7 @@ void			Response::call(Request & request, RequestConfig & requestConf) {
 
 	_errors_map = requestConf.get_error_pages();
 	_isAutoIndex = requestConf.get_autoindex();
-	if ( _path.find('.') != -1 ) {
+	if ( _path.find('.') != std::string::npos ) {
 		_type = _path.substr( _path.find_last_of('.') );
 	}
 

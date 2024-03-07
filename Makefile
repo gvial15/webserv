@@ -13,7 +13,7 @@ OBJS = $(SRCS:%.cpp=$(OBJDIR)/%.o)
 
 NAME = webserv
 
-# CFLAGS = -Wall -Wextra -Werror -std=c++98
+CFLAGS = -Wall -Wextra -Werror -std=c++98
 
 CC = g++ # -fsanitize=address -g
 
