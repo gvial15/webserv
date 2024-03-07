@@ -70,11 +70,10 @@ void	Webserv::run() {
 			// check if sokcet is ready for WRITING (POLLOUT) AND if there is a pending respones associated with the client socket fd
 			if ((pollfd_vec[i].revents & POLLOUT) && (this->pending_responses.find(pollfd_vec[i].fd) != this->pending_responses.end())
 				&& (pending_requests[pollfd_vec[i].fd].content_length == pending_requests[pollfd_vec[i].fd].body_size))
-				manage_client_response(pollfd_vec[i].fd);
-
-			// Clear the revents field for the next poll call
-			pollfd_vec[i].revents = 0;
-			++i;
+					manage_client_response(pollfd_vec[i].fd);
+				// Clear the revents field for the next poll call
+				pollfd_vec[i].revents = 0;
+				++i;
 		}
 	}
 }
@@ -98,36 +97,40 @@ void	Webserv::add_new_client(int pollfd, Server &server) {
 }
 
 // read client input, send it to processing
-void	Webserv::process_request(int pollfd) {
-	char buffer[1024];
-	int bytes_read = read(pollfd, buffer, 1023);
+void Webserv::process_request(int pollfd) {
+    char buffer[1024];
+    int bytes_read = read(pollfd, buffer, sizeof(buffer)); // Read up to sizeof(buffer) bytes
 
-	std::cout << "Input from client " << pollfd << " on port " << fd_to_server_map.find(pollfd)->second->get_port() << "\n";
-	buffer[bytes_read] = '\0';
-	if (pending_requests.find(pollfd) != pending_requests.end())
-		pending_requests[pollfd].request = pending_requests[pollfd].request + buffer;
-	else
-	 	pending_requests[pollfd].request = buffer;
 	if (bytes_read <= 0) // Connection with client closed or error
-		close_connection(pollfd);
-	else { // process request
-		Request	req(pending_requests[pollfd].request);
+        close_connection(pollfd);
+	else {
+        std::cout << "Input from client " << pollfd << " on port " << fd_to_server_map.find(pollfd)->second->get_port() << "\n";
 
-		if (req.getRequestElem().find("Content-Length") != req.getRequestElem().end())
-			pending_requests[pollfd].content_length = std::stoi(req.getRequestElem().find("Content-Length")->second);
+        // Append read data to the pending request
+		if (pending_requests.find(pollfd) != pending_requests.end())
+            pending_requests[pollfd].request.append(buffer, bytes_read); // Append binary data
 		else
-		 	pending_requests[pollfd].content_length = 0;
-			pending_requests[pollfd].body_size = req.getBodySize();
+            pending_requests[pollfd].request.assign(buffer, bytes_read); // Assign new data
 
-			RequestConfig requestConfig( req, fd_to_server_map.find(pollfd)->second );
-			Response response;
-			response.call( req, requestConfig );
-			// store client request in the pending_responses map
-			std::string rep = response.getResponse();
-			this->pending_responses[pollfd] = rep;
-			this->bytes_sent[pollfd] = 0;
-	}
+        Request req(pending_requests[pollfd].request);
+
+        if (req.getRequestElem().find("Content-Length") != req.getRequestElem().end())
+            pending_requests[pollfd].content_length = std::stoi(req.getRequestElem().find("Content-Length")->second);
+        else
+            pending_requests[pollfd].content_length = 0;
+        pending_requests[pollfd].body_size = req.getBodySize();
+
+        RequestConfig requestConfig(req, fd_to_server_map.find(pollfd)->second);
+        Response response;
+        response.call(req, requestConfig);
+
+        // Store client request in the pending_responses map
+        std::string rep = response.getResponse();
+        this->pending_responses[pollfd] = rep;
+        this->bytes_sent[pollfd] = 0;
+    }
 }
+
 
 // close connection
 void	Webserv::close_connection(int pollfd) {
@@ -144,12 +147,11 @@ void	Webserv::close_connection(int pollfd) {
 void	Webserv::manage_client_response(int pollfd){
 	std::string	rep = this->pending_responses.find(pollfd)->second; // retrieve the response of the client fd in the map
 	size_t		bytes = this->bytes_sent.find(pollfd)->second; // gets the amount of bytes sent of the response, acts as a checkpoint
-	std::cout << "\n-- SEND --\n\n";
+
 	int ret = send(pollfd, rep.c_str() + bytes, rep.size() - bytes, 0); // retrieve the amount of bytes sent with the send() fun
 	if (ret < 0)
 		return;
 	bytes += ret; // add the amount of bytes that was just sent via send() to the initial amount sent from previous instances
-	std::cerr << "REP SIZE: " << rep.size() << std::endl << "RET: " << ret << std::endl << "Bytes: " << bytes << std::endl;
 	if (bytes == rep.size()){ // check if the response has been sent entirely, deletes if yes
 		this->pending_requests.erase(pollfd);
 		this->pending_responses.erase(pollfd);

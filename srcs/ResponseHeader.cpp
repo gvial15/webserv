@@ -4,7 +4,6 @@
 
 ResponseHeader::ResponseHeader(int status, const char *path, int size, const char *extension) {
 
-    // std::cout << "\n-- RESPONSE HEADER --\n";
     
     this->initializeValues(status, path, size, extension);
     this->createResponseHeader();
@@ -121,9 +120,6 @@ void	ResponseHeader::createResponseHeader( void ){
     	this->_responseHeader += "Content-Type: " + this->_contentType + "\n";
     this->_responseHeader += "Connection: " + this->_connection + "\n";
     this->_responseHeader += "\r\n";
-
-    std::cout << this->_responseHeader;
-
 }
 
 //////////////////////// VALUE INITIALIZERS //////////////////////////////

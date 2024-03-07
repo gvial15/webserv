@@ -25,8 +25,6 @@ CGI::CGI( Request & request, RequestConfig &config) {
 
 void        CGI::childProcess(int *stdout_pipefd, int *stdin_pipefd){
     this->_scriptPath.erase(0, 1);
-		std::cout << this->_scriptPath << std::endl;
-
         close(stdout_pipefd[0]);
         close(stdin_pipefd[1]);
         dup2(stdout_pipefd[1], STDOUT_FILENO);
@@ -60,7 +58,6 @@ void        CGI::childProcess(int *stdout_pipefd, int *stdin_pipefd){
 }
 
 std::string	CGI::executeCgiScript( void ){
-	std::cout << "EXECUTING ==== " << _scriptPath << " " << _postData << std::endl;
     int stdout_pipefd[2];
     int stdin_pipefd[2];
     if (pipe(stdout_pipefd) == -1 || pipe(stdin_pipefd) == -1){
@@ -104,7 +101,7 @@ std::string	CGI::executeCgiScript( void ){
         waitpid(pid, &child_status, 0);
 		if (WIFEXITED(child_status)) {
             int exit_status = WEXITSTATUS(child_status);
-        	if(exit_status == 400)
+            if (exit_status == 400)
                 this->_status = 400;
             else if (exit_status)
                 this->_status = 400;

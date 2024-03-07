@@ -74,11 +74,9 @@ void			Response::call(Request & request, RequestConfig & requestConf) {
 	_port = requestConf.getPort();
 	_path = requestConf.getPath();
 
-	// std::cout << "received path: " << _path << std::endl;
 	_errors_map = requestConf.get_error_pages();
 	_isAutoIndex = requestConf.get_autoindex();
 	if ( _path.find('.') != -1 ) {
-		// std::cout << "filetype: " << _path.substr( _path.find_last_of('.'), _path.size() ) << std::endl;
 		_type = _path.substr( _path.find_last_of('.') );
 	}
 
@@ -104,8 +102,6 @@ void			Response::call(Request & request, RequestConfig & requestConf) {
 }
 
 void			Response::getMethod(Request & request, RequestConfig & requestConfig ) {
-	std::cout << "-- Call GET --\n";
-
 	if (isCGI()) {
 		CGI cgi(request, requestConfig);
 		_response = cgi.getResponse();
@@ -123,11 +119,9 @@ void			Response::getMethod(Request & request, RequestConfig & requestConfig ) {
 	// SET RESPONSE
 	ResponseHeader	respHead( _code, _path.c_str(), _response.size(), _type.c_str() );
 	this->_response = respHead.getResponseHeader() + _response + "\r\n";
-	std::cout << this->_response << std::endl; //debug
 }
 
 void			Response::postMethod(Request & request, RequestConfig & requestConfig) {
-	std::cout << "-- Call POST --\n";
 	if (isCGI()) {
 		CGI	cgi( request, requestConfig);
 		_response = cgi.getResponse();
@@ -150,14 +144,12 @@ void			Response::postMethod(Request & request, RequestConfig & requestConfig) {
 	// SET RESPONSE
 	ResponseHeader	respHead(_code, _path.c_str(), _response.size(), _type.c_str());
 	this->_response = respHead.getResponseHeader() + _response + "\r\n";
-	std::cout << "post_path: " << requestConfig.get_post_path() << "\n"; //debug
 }
 
 void			Response::deleteMethod(Request & request, RequestConfig & requestConfig) {
 	(void)	request;
 	(void)	requestConfig;
 
-	std::cout << "-- Call DELETE --\n";
 	_response = "";
 	if (pathIsFile(_path))
 	{
@@ -182,7 +174,6 @@ int				Response::readContent(void)
 
 	_response = "";
 
-	// std::cout << YELLOW << _path << RESET << std::endl;
 	if (pathIsFile(_path))
 	{
 		file.open(_path.c_str(), std::ios::binary);

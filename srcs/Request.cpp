@@ -55,10 +55,9 @@ void Request::parseFiles() {
 
 void	Request::parseBody(std::vector<std::string> &lines, size_t i) {
 	--i;
-	while (++i < lines.size()) {
+	while (++i < lines.size())
 		if (lines[i] != "\r")
 			_body.push_back(lines[i]);
-	}
 }
 
 void	Request::parseHeaders(std::string &lines) {
@@ -71,6 +70,8 @@ void	Request::parseHeaders(std::string &lines) {
 		_requestElem[split_line[0]] = substr;
 		if (split_line[0] == "Content-Type")
 			_boundary = "--" + split(split_line[1], '=')[1];
+		if (_boundary == "--")
+			_boundary.clear();
 	}
 }
 
@@ -169,7 +170,12 @@ const int	Request::getBodySize() const {
 	int	size = 0;
 
 	for (int i = 0; i < _body.size(); i++)
-		size += _body[i].size();
+		if (_boundary.empty())
+			size += _body[i].size();
+		else
+			size += _body[i].size() + 1;
+	if (!_boundary.empty())
+		size += 2;
 	return (size);
 };
 

@@ -42,7 +42,6 @@ RequestConfig::RequestConfig( Request & request, Server * server ) : SharedConfi
 	
 	_path.erase( std::unique(_path.begin(), _path.end(), both_slashes()), _path.end() );
 
-	// std::cout << "path is: " << _path << std::endl; //debug
 }
 
 RequestConfig::~RequestConfig() {}
@@ -61,16 +60,13 @@ void	RequestConfig::findLocation() {
 			if ( location_path[0] != '/' )
 				location_path = "/" + location_path;
 
-			if ( truncated_path == location_path ) {
-				// std::cout << "FOUND " << std::endl;
-				// std::cout << location_path << std::endl;
+			if ( truncated_path == location_path )
 				return;
-			}
 			_location++;
 		}
 		truncated_path.pop_back();
 	}
-	// std::cout << "No location found " << std::endl;
+	//  << "No location found " << std::endl;
 }
 
 // if _location is valid, copy values and truncate path
@@ -94,23 +90,10 @@ void	RequestConfig::copyLocationConfig() {
 	std::map<std::string, std::string>::iterator it;
 	for ( it = location_error_pages.begin(); it != location_error_pages.end(); it++ ) {
 		error_pages.find( it->first )->second = it->second;
-		// std::cout << "overwrite " << it->first << " with " << it->second << std::endl;
 	}
 	
 	if ( _location->second.get_client_max_body_size() )
 		set_client_max_body_size( _location->second.get_client_max_body_size() );
-	// set cgi_pass
-	// set allowed_method
-
-// TEST
-	// std::cout << "location name: " << _location->first << std::endl;
-	// std::cout << "location root: " << _location->second.get_root() << std::endl;
-	// std::cout << "location index size: " << _location->second.get_index().size() << std::endl;
-	// std::cout << "location autoindex: " << _location->second.get_autoindex() << std::endl;
-	// std::cout << "location redirection 1: " << _location->second.get_redirection().first << std::endl;
-	// std::cout << "location get_error_pages().size(): " << _location->second.get_error_pages().begin()->second << std::endl; // SEGFAULT TBD
-	// std::cout << "location get_client_max_body_size(): " << _location->second.get_cl/ient_max_body_size() << std::endl;
-// TEST--
 
 	// remove associated location path
 	std::string location_minus_slash = _location->first;
@@ -133,7 +116,6 @@ void	RequestConfig::pathRouting() {
 			struct stat s;
 			if ( stat( _path.c_str(), &s ) == 0 ) {
 				if ( s.st_mode & S_IFREG ) {
-					// std::cout << _path << " is a file\n";
 					break;
 				} //else
 					// std::cout << _path << " is not a file\n";
@@ -144,7 +126,6 @@ void	RequestConfig::pathRouting() {
 			it++;
 		}
 		if ( _path == "" ) { // NO INDEX FOUND
-			// std::cout << "ERROR no correct index found return empty\n";
 			return;
 		}
 	}

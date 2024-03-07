@@ -53,20 +53,13 @@ void	Configuration::parse(std::ifstream& config_file) {
 	create_directive_bank();
 	space_out_symbols(file_content);
 	tokens = tokenize(file_content);
-	// size_t	i;
-	// i = -1;
-	// while (++i < tokens.size())
-	// 	std::cout << tokens[i].line << " " << tokens[i].content << "\n";
-	// std::cout << "\n\n";
 	server_blocks = parse_server_blocks(tokens);
 	if (server_blocks.empty())
 		throw no_server_blocks();
-	// print_server_blocks(server_blocks);
 	size_t	i;
 	i = -1;
 	while (++i < server_blocks.size())
 		servers.push_back(create_server(server_blocks[i]));
-	// print_servers(servers);
 }
 
 // space out special symbols } { ; \n
