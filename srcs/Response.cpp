@@ -130,7 +130,7 @@ void			Response::postMethod(Request & request, RequestConfig & requestConfig) {
 	}
 	else {
 		_code = 204;
-		for (int i = 0; i < request.getFilenames().size(); i++) {
+		for (size_t i = 0; i < request.getFilenames().size(); i++) {
 			std::string filename = requestConfig.get_post_path() + request.getFilenames()[i].c_str();
 			std::ofstream file(filename);
 			if (file.is_open()) {

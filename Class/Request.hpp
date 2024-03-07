@@ -53,7 +53,7 @@ class Request {
 		void                        printRequestElems() const;
 
         //getters
-        const int                                   getBodySize( void ) const;
+        int                                        getBodySize( void ) const;
         const std::string                           &getRequest( void ) const;
         const std::map<std::string, std::string>    &getRequestElem( void ) const;
         const std::vector<std::string>              &getBody( void ) const;

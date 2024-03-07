@@ -31,7 +31,6 @@ void    Request::printRequestElems() const {
 }
 
 std::string	Request::find_filname(std::vector<std::string>, int i) {
-	int			ii;
 	std::string	filename;
 
 	while (split(_body[++i], ':')[0] != "Content-Disposition");
@@ -42,7 +41,7 @@ std::string	Request::find_filname(std::vector<std::string>, int i) {
 void Request::parseFiles() {
 	std::string filename;
 
-	for (int i = 0; i < _body.size(); ++i) {
+	for (size_t i = 0; i < _body.size(); ++i) {
 		if (_body[i] == _boundary) {
 			filename = find_filname(_body, i);
 			_filenames.push_back(filename);
@@ -166,10 +165,10 @@ std::vector<std::string>	Request::split(std::string string, char delimiter) {
 }
 
 // Getters
-const int	Request::getBodySize() const {
+int	Request::getBodySize() const {
 	int	size = 0;
 
-	for (int i = 0; i < _body.size(); i++)
+	for (size_t i = 0; i < _body.size(); i++)
 		if (_boundary.empty())
 			size += _body[i].size();
 		else
