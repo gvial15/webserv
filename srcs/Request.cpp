@@ -67,7 +67,7 @@ void	Request::parseHeaders(std::string &lines) {
 	if (split_line.size() > 1) {
 		substr = lines.substr(split_line[0].size() + 1, lines.size() - split_line[0].size() - 2);
 		_requestElem[split_line[0]] = substr;
-		if (split_line[0] == "Content-Type")
+		if (split_line[0] == "Content-Type" && split(split_line[1], '=').size() > 1)
 			_boundary = "--" + split(split_line[1], '=')[1];
 		if (_boundary == "--")
 			_boundary.clear();
@@ -119,6 +119,9 @@ void	Request::parse() {
 	size_t						i;
     std::vector<std::string>    lines;
 
+	std::cout << "\n-- REQUEST\n";
+	std::cout << _request << "\n";
+	std::cout << "\n-- REQUEST END\n";
     lines = split(_request, '\n');
 	parseFirstLine(lines[0]);
 	if (_code == 400)
@@ -168,13 +171,16 @@ std::vector<std::string>	Request::split(std::string string, char delimiter) {
 int	Request::getBodySize() const {
 	int	size = 0;
 
+	std::cout << "-- BOUNDARY " << _boundary << "\n";
 	for (size_t i = 0; i < _body.size(); i++)
 		if (_boundary.empty())
 			size += _body[i].size();
 		else
 			size += _body[i].size() + 1;
-	if (!_boundary.empty())
+	if (!_boundary.empty()) {
+		std::cout << "-- +2\n";
 		size += 2;
+	}
 	return (size);
 };
 

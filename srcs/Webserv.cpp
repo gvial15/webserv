@@ -128,9 +128,11 @@ void Webserv::process_request(int pollfd) {
         std::string rep = response.getResponse();
         this->pending_responses[pollfd] = rep;
         this->bytes_sent[pollfd] = 0;
+
+		std::cout << "-- CONTENT-LENGTH " << pending_requests[pollfd].content_length << "\n";
+		std::cout << "-- BODY-SIZE " << pending_requests[pollfd].body_size << "\n";
     }
 }
-
 
 // close connection
 void	Webserv::close_connection(int pollfd) {
