@@ -14,17 +14,10 @@
 Configuration::Configuration(const std::string config_file_path) {
 	std::ifstream config_file(config_file_path);
 
-	if (config_file_path.empty()) {
-		std::cout << "Starting with default configuration...\n";
-		Server	server;
-		servers.push_back(server);
-	}
-	else {
-		if (!config_file)
-			throw unable_to_open_file();
-		else
-			parse(config_file);
-	}
+	if (!config_file)
+		throw unable_to_open_file();
+	else
+		parse(config_file);
 }
 
 // destructor

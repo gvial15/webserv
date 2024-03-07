@@ -33,6 +33,8 @@ int	main(int argc, char **argv)
 		std::string config_file_path;
 		if (argc == 2)
 			config_file_path = argv[1];
+		else
+			config_file_path = "config/default.conf";
 		// parse config file into a vector of servers {}
 		Configuration	config(config_file_path);
 		// run servers, process request and send response to client (poll(), accept(), ...)
