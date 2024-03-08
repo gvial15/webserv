@@ -25,6 +25,7 @@ try:
         # raise ValueError("Parameters are not correct")
 
     if not num1.isdigit() or not num2.isdigit():
+        print("<b>Error: Invalid operation. Only numerical characters are accepted<b>")
         sys.exit(400)
 
     num1 = int(num1)
