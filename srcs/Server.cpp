@@ -47,6 +47,6 @@ void	Server::init()
 		throw BindException();
 
 	// Listening for a connection
-	if (listen(server_fd, 3) < 0)
+	if (listen(server_fd, 500) < 0)
 		throw ListenException();
 }

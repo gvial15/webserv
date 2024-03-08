@@ -44,7 +44,7 @@ class Webserv {
 		void		add_new_client(int fd, Server &server);
 		void		process_request(int pollfd);
 		void		close_connection(int pollfd);
-		void		manage_client_response(int pollfd);
+		void		manage_client_response(int pollfd, size_t *index);
 
 		// *********** testing functions ***********
 		void        display_new_client_infos(int client_socket, int port);

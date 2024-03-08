@@ -70,7 +70,7 @@ void	Webserv::run() {
 			// check if sokcet is ready for WRITING (POLLOUT) AND if there is a pending respones associated with the client socket fd
 			if ((pollfd_vec[i].revents & POLLOUT) && (this->pending_responses.find(pollfd_vec[i].fd) != this->pending_responses.end())
 				&& (pending_requests[pollfd_vec[i].fd].content_length == pending_requests[pollfd_vec[i].fd].body_size))
-					manage_client_response(pollfd_vec[i].fd);
+					manage_client_response(pollfd_vec[i].fd, &i);
 				// Clear the revents field for the next poll call
 				pollfd_vec[i].revents = 0;
 				++i;
@@ -146,7 +146,7 @@ void	Webserv::close_connection(int pollfd) {
 }
 
 // sends the response, or the remainder of it to the client
-void	Webserv::manage_client_response(int pollfd){
+void	Webserv::manage_client_response(int pollfd, size_t *index){
 	std::string	rep = this->pending_responses.find(pollfd)->second; // retrieve the response of the client fd in the map
 	size_t		bytes = this->bytes_sent.find(pollfd)->second; // gets the amount of bytes sent of the response, acts as a checkpoint
 
@@ -155,9 +155,12 @@ void	Webserv::manage_client_response(int pollfd){
 		return;
 	bytes += ret; // add the amount of bytes that was just sent via send() to the initial amount sent from previous instances
 	if (bytes == rep.size()){ // check if the response has been sent entirely, deletes if yes
-		this->pending_requests.erase(pollfd);
-		this->pending_responses.erase(pollfd);
-		this->bytes_sent.erase(pollfd);
+		// this->pending_requests.erase(pollfd);
+		// this->pending_responses.erase(pollfd);
+		// this->bytes_sent.erase(pollfd);
+		this->close_connection(pollfd);
+		this->pollfd_vec.erase(pollfd_vec.begin() + *index);
+
 	}
 	else // if the repsonse has not been sent entirely yet, save the amounts of bytes sent. Will act as checkpoint for the next call
 		this->bytes_sent[pollfd] = bytes;
