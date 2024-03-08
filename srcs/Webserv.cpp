@@ -160,7 +160,7 @@ void	Webserv::manage_client_response(int pollfd, size_t *index){
 		// this->bytes_sent.erase(pollfd);
 		this->close_connection(pollfd);
 		this->pollfd_vec.erase(pollfd_vec.begin() + *index);
-
+		(*index)--;
 	}
 	else // if the repsonse has not been sent entirely yet, save the amounts of bytes sent. Will act as checkpoint for the next call
 		this->bytes_sent[pollfd] = bytes;
