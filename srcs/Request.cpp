@@ -6,7 +6,7 @@
 /*   By: arivera <arivera@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/06 12:43:17 by arivera           #+#    #+#             */
-/*   Updated: 2024/02/21 16:01:19 by arivera          ###   ########.fr       */
+/*   Updated: 2024/03/08 10:03:11 by arivera          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -187,3 +187,4 @@ std::vector<std::string>					&Request::getFilenames() { return (_filenames); }
 std::map<std::string, std::string>			&Request::getFiles() { return (_files); }
 const std::string                           &Request::getQuery( void ) const {return (_query); }
 const int									&Request::getCode( void ) const { return (_code); }
+const std::string							&Request::getPathInfo( void ) const { return (_path_info); }

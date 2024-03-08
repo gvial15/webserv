@@ -1,5 +1,4 @@
 #include "../Class/CGI.hpp"
-#include <string>
 #include <unistd.h>
 #include <iostream>
 
@@ -11,53 +10,80 @@ std::string CGI::vector_to_string(std::vector<std::string> vector) {
     return (string);
 }
 
-CGI::CGI( Request & request, RequestConfig &config) {
-    (void) config;
-	this->_scriptPath = request.getRequestElem().find("path")->second;
+CGI::CGI( Request & request, RequestConfig &config ){
+	this->_scriptPath = config.getPath();
+    std::cerr << this->_scriptPath << std::endl;
     this->_postData = vector_to_string(request.getBody());
 	this->_method = request.getRequestElem().find("method")->second;
     this->_contentType = request.getRequestElem().find("Content-Type")->second;
     this->_query = request.getQuery();
+    this->_pathInfo = request.getPathInfo();
     this->_status = 0;
 
 	this->_response = this->executeCgiScript();
 }
 
+void        CGI::splitScriptPath( void ){
+    size_t lastSlashPos = this->_scriptPath.find_last_of('/');
+
+    if (lastSlashPos != std::string::npos) {
+        this->_execLocation = this->_scriptPath.substr(0, lastSlashPos + 1); // Includes the trailing slash
+        this->_script = this->_scriptPath.substr(lastSlashPos + 1);
+    } else {
+        // Script is in the root directory
+        this->_execLocation = "./"; // Current directory
+        this->_script = this->_scriptPath;
+    }
+}
+
 void        CGI::childProcess(int *stdout_pipefd, int *stdin_pipefd){
-    this->_scriptPath.erase(0, 1);
-        close(stdout_pipefd[0]);
-        close(stdin_pipefd[1]);
-        dup2(stdout_pipefd[1], STDOUT_FILENO);
-        close(stdout_pipefd[1]);
-        dup2(stdin_pipefd[0], STDIN_FILENO);
-        close(stdin_pipefd[0]);
+    this->splitScriptPath();
+    if (this->_execLocation[0] == '/')
+        this->_execLocation.erase(0,1);
+    std::cerr << "SP: " << this->_scriptPath << std::endl;
+    std::cerr << "Sc: " << this->_script << std::endl;
+    std::cerr << "Loc: " << this->_execLocation << std::endl;
+    if (chdir(this->_execLocation.c_str()) != 0)
+        exit(500);
 
-        // Prepare arguments array (argv)
-        char* argv[] = {const_cast<char*>(_scriptPath.c_str()), NULL};
-        
-        // Set CGI environment variables
-        std::vector<char*> envp;
-        std::vector<std::string> envVars;
-        if (!this->_method.compare("POST")){
-            envVars.push_back("REQUEST_METHOD=" + this->_method);
-            envVars.push_back("CONTENT_LENGTH=" + std::to_string(_postData.length()));
-            envVars.push_back("CONTENT_TYPE=" + this->_contentType);
-        }   
-        else {
+    close(stdout_pipefd[0]);
+    close(stdin_pipefd[1]);
+    dup2(stdout_pipefd[1], STDOUT_FILENO);
+    close(stdout_pipefd[1]);
+    dup2(stdin_pipefd[0], STDIN_FILENO);
+    close(stdin_pipefd[0]);
+
+    // Prepare arguments array (argv)
+    char* argv[] = {const_cast<char*>(_script.c_str()), NULL};
+    
+    // Set CGI environment variables
+    std::vector<char*> envp;
+    std::vector<std::string> envVars;
+    if (!this->_method.compare("POST")){
+        envVars.push_back("REQUEST_METHOD=" + this->_method);
+        envVars.push_back("CONTENT_LENGTH=" + std::to_string(_postData.length()));
+        envVars.push_back("CONTENT_TYPE=" + this->_contentType);
+    }   
+    else {
+        if (!this->_pathInfo.empty())
+            envVars.push_back("PATH_INFO=" + this->_pathInfo);
+        else
             envVars.push_back("QUERY_STRING=" + this->_query);
-        }
+    }
 
-        for (std::vector<std::string>::iterator it = envVars.begin(); it != envVars.end(); ++it) {
-            envp.push_back(const_cast<char*>(it->c_str()));
-        }
-        envp.push_back(NULL);
-        // Execute the CGI script with execve
-        execve(_scriptPath.c_str(), argv, envp.data());
-        std::cerr << "Exec failed: " << std::strerror(errno) << std::endl;
-        exit(EXIT_FAILURE);
+    for (std::vector<std::string>::iterator it = envVars.begin(); it != envVars.end(); ++it) {
+        envp.push_back(const_cast<char*>(it->c_str()));
+    }
+    envp.push_back(NULL);
+    // Execute the CGI script with execve
+    std::cerr << "DEBUG" << std::endl;
+    execve(_script.c_str(), argv, envp.data());
+    std::cerr << "Exec failed: " << std::strerror(errno) << std::endl;
+    exit(EXIT_FAILURE);
 }
 
 std::string	CGI::executeCgiScript( void ){
+	std::cout << "EXECUTING ==== " << _scriptPath << " " << _postData << std::endl;
     int stdout_pipefd[2];
     int stdin_pipefd[2];
     if (pipe(stdout_pipefd) == -1 || pipe(stdin_pipefd) == -1){
@@ -101,7 +127,7 @@ std::string	CGI::executeCgiScript( void ){
         waitpid(pid, &child_status, 0);
 		if (WIFEXITED(child_status)) {
             int exit_status = WEXITSTATUS(child_status);
-            if (exit_status == 400)
+        	if(exit_status == 400)
                 this->_status = 400;
             else if (exit_status)
                 this->_status = 400;
@@ -110,19 +136,18 @@ std::string	CGI::executeCgiScript( void ){
     }
 }
 
-std::string const &CGI::getScriptPath( void ) const {
+std::string const &CGI::getScriptPath( void ) const{
 	return (this->_scriptPath);
 }
 
-std::string const &CGI::getPostData( void ) const {
+std::string const &CGI::getPostData( void ) const{
 	return (this->_postData);
 }
 
-std::string const &CGI::getResponse( void ) const {
+std::string const &CGI::getResponse( void ) const{
 	return (this->_response);
 }
 
-int CGI::getStatus( void ) const {
+int			CGI::getStatus( void ) const {
 	return this->_status;
 }
-
