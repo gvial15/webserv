@@ -20,6 +20,7 @@ class Response {
 		std::string		readHtml(const std::string& path);
 
 		bool			isCGI() const;
+		bool			fileExists(const std::string& filename) const;
 
 	private:
 		std::string							_path;

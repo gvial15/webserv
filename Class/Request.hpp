@@ -6,7 +6,7 @@
 /*   By: arivera <arivera@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/06 12:43:19 by arivera           #+#    #+#             */
-/*   Updated: 2024/02/21 17:12:51 by arivera          ###   ########.fr       */
+/*   Updated: 2024/03/08 10:03:02 by arivera          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,6 +59,7 @@ class Request {
         const std::map<std::string, std::string>    &getRequestElem( void ) const;
         const std::vector<std::string>              &getBody( void ) const;
         const std::string                           &getQuery( void ) const;
+        const std::string                           &getPathInfo( void ) const;
         std::vector<std::string>				    &getFilenames();
         std::map<std::string, std::string>	        &getFiles();
         const int									&getCode( void ) const;

@@ -102,7 +102,7 @@ void			Response::call(Request & request, RequestConfig & requestConf) {
 }
 
 void			Response::getMethod(Request & request, RequestConfig & requestConfig ) {
-	if (isCGI()) {
+	if (isCGI() && fileExists(requestConfig.getPath())) {
 		CGI cgi(request, requestConfig);
 		_response = cgi.getResponse();
 		if (cgi.getStatus())
@@ -122,7 +122,7 @@ void			Response::getMethod(Request & request, RequestConfig & requestConfig ) {
 }
 
 void			Response::postMethod(Request & request, RequestConfig & requestConfig) {
-	if (isCGI()) {
+	if (isCGI() && fileExists(requestConfig.getPath())) {
 		CGI	cgi( request, requestConfig);
 		_response = cgi.getResponse();
 		if (cgi.getStatus())
@@ -226,6 +226,11 @@ std::string		Response::readHtml(const std::string& path)
 	}
 	else
 		return ("<!DOCTYPE html>\n<html><title>40404</title><body>There was an error finding your error page</body></html>\r\n");
+}
+
+bool Response::fileExists(const std::string& filename) const {
+    std::ifstream file(filename.c_str());
+    return file.good();
 }
 
 bool	Response::isCGI() const {
