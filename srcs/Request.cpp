@@ -130,6 +130,7 @@ void	Request::parse() {
 			&& lines[i] != "\r" && lines[i] != "\n")
 				parseHeaders(lines[i]);
 	parseBody(lines, i);
+	if (!_body.empty())
 	if (_boundary.size() != 0)
 		parseFiles();
 }
@@ -176,6 +177,9 @@ int	Request::getBodySize() const {
 		else
 			size += _body[i].size() + 1;
 	if (!_boundary.empty())
+		size += 2;
+	if (_requestElem.find("Content-Length") != _requestElem.end()
+		&& size == std::stoi(_requestElem.find("Content-Length")->second) - 2)
 		size += 2;
 	return (size);
 };
