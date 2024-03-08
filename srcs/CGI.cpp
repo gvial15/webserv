@@ -12,7 +12,6 @@ std::string CGI::vector_to_string(std::vector<std::string> vector) {
 
 CGI::CGI( Request & request, RequestConfig &config ){
 	this->_scriptPath = config.getPath();
-    std::cerr << this->_scriptPath << std::endl;
     this->_postData = vector_to_string(request.getBody());
 	this->_method = request.getRequestElem().find("method")->second;
     this->_contentType = request.getRequestElem().find("Content-Type")->second;
@@ -40,9 +39,6 @@ void        CGI::childProcess(int *stdout_pipefd, int *stdin_pipefd){
     this->splitScriptPath();
     if (this->_execLocation[0] == '/')
         this->_execLocation.erase(0,1);
-    std::cerr << "SP: " << this->_scriptPath << std::endl;
-    std::cerr << "Sc: " << this->_script << std::endl;
-    std::cerr << "Loc: " << this->_execLocation << std::endl;
     if (chdir(this->_execLocation.c_str()) != 0)
         exit(500);
 
