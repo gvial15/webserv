@@ -44,7 +44,7 @@ class Request {
         void        parseHeaders(std::string &lines);
         void        parseBody(std::vector<std::string> &lines, size_t i);
         void        parseFiles();
-        std::string find_filname(std::vector<std::string>, int i);
+        std::string find_filname(std::vector<std::string>, size_t i);
 
 		// utils & debug
         std::string                 remove_char(std::string input, char c);
