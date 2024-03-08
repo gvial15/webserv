@@ -30,10 +30,10 @@ void    Request::printRequestElems() const {
         std::cout << it->first << " -> " << it->second << std::endl;
 }
 
-std::string	Request::find_filname(std::vector<std::string>, int i) {
+std::string	Request::find_filname(std::vector<std::string>, size_t i) {
 	std::string	filename;
 
-	while (split(_body[++i], ':')[0] != "Content-Disposition");
+	while (++i < _body.size() && split(_body[i], ':')[0] != "Content-Disposition");
 	filename = remove_char(remove_char(split(split(_body[i], ';')[2], '=')[1], '"'), '\r');
 	return (filename);
 }
