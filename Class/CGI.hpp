@@ -21,7 +21,7 @@ class CGI {
         std::string _pathInfo;
         std::string _execLocation;
         std::string _script;
-		int			_status;
+		int	        _status;
 
     public:
 

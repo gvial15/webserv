@@ -30,6 +30,7 @@ Webserv::~Webserv() {
 };
 
 void	Webserv::signal_handler(int signum) {
+	std::cerr << "OH" << std::endl;
 	instance->close_all_fds();
 	exit(signum);
 }

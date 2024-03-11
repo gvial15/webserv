@@ -2,6 +2,8 @@
 #include <unistd.h>
 #include <iostream>
 
+static int  timeout = 0;
+
 std::string CGI::vector_to_string(std::vector<std::string> vector) {
     std::string string;
 
@@ -11,6 +13,7 @@ std::string CGI::vector_to_string(std::vector<std::string> vector) {
 }
 
 CGI::CGI( Request & request, RequestConfig &config ){
+    timeout = 0;
 	this->_scriptPath = config.getPath();
     this->_postData = vector_to_string(request.getBody());
 	this->_method = request.getRequestElem().find("method")->second;
@@ -35,6 +38,12 @@ void        CGI::splitScriptPath( void ){
     }
 }
 
+static void handle_alarm(int sig){
+    (void)sig;
+    std::cerr << "CGI timeout" << std::endl;
+    timeout = 1;
+}
+
 void        CGI::childProcess(int *stdout_pipefd, int *stdin_pipefd){
     this->splitScriptPath();
     if (this->_execLocation[0] == '/')
@@ -51,7 +60,7 @@ void        CGI::childProcess(int *stdout_pipefd, int *stdin_pipefd){
 
     // Prepare arguments array (argv)
     char* argv[] = {const_cast<char*>(_script.c_str()), NULL};
-    
+
     // Set CGI environment variables
     std::vector<char*> envp;
     std::vector<std::string> envVars;
@@ -72,14 +81,15 @@ void        CGI::childProcess(int *stdout_pipefd, int *stdin_pipefd){
     }
     envp.push_back(NULL);
     // Execute the CGI script with execve
-    std::cerr << "DEBUG" << std::endl;
+    // signal(SIGALRM, handle_alarm);
+    alarm(3);
+
     execve(_script.c_str(), argv, envp.data());
     std::cerr << "Exec failed: " << std::strerror(errno) << std::endl;
     exit(500);
 }
 
-std::string	CGI::executeCgiScript( void ){
-	std::cout << "EXECUTING ==== " << _scriptPath << " " << _postData << std::endl;
+std::string CGI::executeCgiScript( void ){
     int stdout_pipefd[2];
     int stdin_pipefd[2];
     if (pipe(stdout_pipefd) == -1 || pipe(stdin_pipefd) == -1){
@@ -89,7 +99,7 @@ std::string	CGI::executeCgiScript( void ){
     }
 
     pid_t pid = fork();
-	int		child_status;
+    int child_status;
 
     if (pid == -1) {
         std::cerr << "Fork failed" << std::endl;
@@ -102,7 +112,8 @@ std::string	CGI::executeCgiScript( void ){
         return ("");
     } else {
         // Parent process
-
+        signal(SIGALRM, handle_alarm);
+        alarm(2);
         close(stdout_pipefd[1]);
         close(stdin_pipefd[0]);
 
@@ -110,25 +121,34 @@ std::string	CGI::executeCgiScript( void ){
         write(stdin_pipefd[1], _postData.c_str(), _postData.size());
         close(stdin_pipefd[1]);  // Close the pipe after writing
 
-        // Read the script's output
-        std::string output;
-        char buffer[1024];
-        ssize_t count;
-        while ((count = read(stdout_pipefd[0], buffer, sizeof(buffer))) > 0) {
-            output.append(buffer, count);
-        }
-        close(stdout_pipefd[0]);
-
         // Wait for the child process to finish
         waitpid(pid, &child_status, 0);
-		if (WIFEXITED(child_status)) {
+        if (timeout){
+            std::cerr << "CGI: timeout" << std::endl;
+            this->_status = 500;
+        } else if (WIFEXITED(child_status)) {
             int exit_status = WEXITSTATUS(child_status);
-        	if(exit_status == 144)
+            if(exit_status == 144){
+                std::cerr << "CGI: error with Query or PATH_INFO" << std::endl;
                 this->_status = 400;
-            else if (exit_status)
+            }
+            else if (exit_status){
+                std::cerr << "CGI: error running script" << std::endl;
                 this->_status = 500;
-            std::cerr << "Exit status" << exit_status << std::endl;
-    	}
+            }
+        }
+        alarm(0);
+
+        // Read the script's output only if status is not 500
+        std::string output;
+        if (this->_status == 0){
+            char buffer[4096];
+            ssize_t count;
+            while ((count = read(stdout_pipefd[0], buffer, sizeof(buffer))) > 0) {
+                output.append(buffer, count);
+            }
+        }
+        close(stdout_pipefd[0]);
         return output;
     }
 }
