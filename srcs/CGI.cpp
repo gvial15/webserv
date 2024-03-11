@@ -40,7 +40,6 @@ void        CGI::splitScriptPath( void ){
 
 static void handle_alarm(int sig){
     (void)sig;
-    std::cerr << "CGI timeout" << std::endl;
     timeout = 1;
 }
 
@@ -82,7 +81,7 @@ void        CGI::childProcess(int *stdout_pipefd, int *stdin_pipefd){
     envp.push_back(NULL);
     // Execute the CGI script with execve
     // signal(SIGALRM, handle_alarm);
-    alarm(3);
+    alarm(2);
 
     execve(_script.c_str(), argv, envp.data());
     std::cerr << "Exec failed: " << std::strerror(errno) << std::endl;
@@ -113,7 +112,7 @@ std::string CGI::executeCgiScript( void ){
     } else {
         // Parent process
         signal(SIGALRM, handle_alarm);
-        alarm(2);
+        alarm(1);
         close(stdout_pipefd[1]);
         close(stdin_pipefd[0]);
 
