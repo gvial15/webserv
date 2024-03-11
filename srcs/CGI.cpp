@@ -75,7 +75,7 @@ void        CGI::childProcess(int *stdout_pipefd, int *stdin_pipefd){
     std::cerr << "DEBUG" << std::endl;
     execve(_script.c_str(), argv, envp.data());
     std::cerr << "Exec failed: " << std::strerror(errno) << std::endl;
-    exit(EXIT_FAILURE);
+    exit(500);
 }
 
 std::string	CGI::executeCgiScript( void ){
@@ -123,10 +123,11 @@ std::string	CGI::executeCgiScript( void ){
         waitpid(pid, &child_status, 0);
 		if (WIFEXITED(child_status)) {
             int exit_status = WEXITSTATUS(child_status);
-        	if(exit_status == 400)
+        	if(exit_status == 144)
                 this->_status = 400;
             else if (exit_status)
-                this->_status = 400;
+                this->_status = 500;
+            std::cerr << "Exit status" << exit_status << std::endl;
     	}
         return output;
     }

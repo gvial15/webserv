@@ -2,6 +2,9 @@
 
 #include "Request.hpp"
 #include "RequestConfig.hpp"
+#include <signal.h>
+#include <sys/wait.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <vector>
 
