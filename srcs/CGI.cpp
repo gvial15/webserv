@@ -83,7 +83,14 @@ void        CGI::childProcess(int *stdout_pipefd, int *stdin_pipefd){
     // signal(SIGALRM, handle_alarm);
     alarm(2);
 
-    execve(_script.c_str(), argv, envp.data());
+    // Execute the CGI script with execve
+    std::string scriptExtension = _script.substr(_script.find_last_of('.') + 1);
+    if (scriptExtension == "php") {
+        const char* php_argv[] = {"/usr/bin/php", _script.c_str(), NULL};
+        execve("/usr/bin/php", const_cast<char**>(php_argv), envp.data());
+    } else {
+        execve(_script.c_str(), argv, envp.data());
+    }
     std::cerr << "Exec failed: " << std::strerror(errno) << std::endl;
     exit(500);
 }
