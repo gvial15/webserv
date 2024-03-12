@@ -102,7 +102,7 @@ void			Response::call(Request & request, RequestConfig & requestConf) {
 }
 
 void			Response::getMethod(Request & request, RequestConfig & requestConfig ) {
-	if (isCGI(requestConfig.get_cgi_ext())& fileExists(requestConfig.getPath())) {
+	if (isCGI(requestConfig.get_cgi_ext()) && fileExists(requestConfig.getPath())) {
 		CGI cgi(request, requestConfig);
 		_response = cgi.getResponse();
 		if (cgi.getStatus())
