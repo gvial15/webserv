@@ -20,6 +20,7 @@ class SharedConfigDirectives {
 		std::pair<std::string, std::string>	redirection;
 		std::map<std::string, std::string>	error_pages;
 		std::size_t							client_max_body_size;
+		std::vector<std::string>			cgi_ext;
 
 	public:
 
@@ -51,6 +52,7 @@ class SharedConfigDirectives {
 			redirection = src.redirection;
 			error_pages = src.error_pages;
 			client_max_body_size = src.client_max_body_size;
+			cgi_ext = src.cgi_ext;
 			return *this;
 		}
 
@@ -64,6 +66,7 @@ class SharedConfigDirectives {
 		std::pair<std::string, std::string>	get_redirection() const { return redirection; }
 		std::map<std::string, std::string>	get_error_pages() const { return error_pages; }
 		std::size_t 						get_client_max_body_size() const { return client_max_body_size; }
+		std::vector<std::string>			get_cgi_ext() const { return cgi_ext; }
 
 		// setters
 		void 	set_root(const std::string new_root) { root = new_root; }
@@ -74,6 +77,7 @@ class SharedConfigDirectives {
 		void 	set_redirection(const std::pair<std::string, std::string> new_redirection) { redirection = new_redirection; }
 		void 	set_error_page(const std::pair<std::string, std::string> new_error_pages) { error_pages.insert(new_error_pages); }
 		void 	set_client_max_body_size(const std::size_t new_client_max_body_size) { client_max_body_size = new_client_max_body_size; }
+		void	set_cgi_ext(std::string new_cgi_ext) {cgi_ext.push_back(new_cgi_ext); }
 
 		void	clear_index() { index.clear(); }
 		void	clear_methods() { methods.clear(); };

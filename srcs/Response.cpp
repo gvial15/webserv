@@ -102,7 +102,7 @@ void			Response::call(Request & request, RequestConfig & requestConf) {
 }
 
 void			Response::getMethod(Request & request, RequestConfig & requestConfig ) {
-	if (isCGI() && fileExists(requestConfig.getPath())) {
+	if (isCGI(requestConfig.get_cgi_ext())& fileExists(requestConfig.getPath())) {
 		CGI cgi(request, requestConfig);
 		_response = cgi.getResponse();
 		if (cgi.getStatus())
@@ -122,7 +122,7 @@ void			Response::getMethod(Request & request, RequestConfig & requestConfig ) {
 }
 
 void			Response::postMethod(Request & request, RequestConfig & requestConfig) {
-	if (isCGI() && fileExists(requestConfig.getPath())) {
+	if (isCGI(requestConfig.get_cgi_ext()) && fileExists(requestConfig.getPath())) {
 		CGI	cgi( request, requestConfig);
 		_response = cgi.getResponse();
 		if (cgi.getStatus())
@@ -233,18 +233,21 @@ bool Response::fileExists(const std::string& filename) const {
     return file.good();
 }
 
-bool	Response::isCGI() const {
+bool	Response::isCGI(const std::vector<std::string>& extensions ) const {
 	std::string::size_type pos = _path.find_last_of('.');
 	std::string extension;
 
     if (pos != std::string::npos && pos != _path.length() - 1) {
-        extension = _path.substr(pos);
+        extension = _path.substr(pos + 1);
     } else {
 		return false;
     }
-	if (extension.compare(".py") && extension.compare(".sh"))
+	if (extensions.empty())
 		return false;
-	return true;
+	if (std::find(extensions.begin(), extensions.end(), extension) != extensions.end()) {
+        return true;
+    }
+	return false;
 }
 
 std::string		Response::getResponse() { return _response; }
