@@ -63,4 +63,11 @@ class Webserv {
 				return "accept() failed";
 			}
 		};
+
+		class SignalException : public std::exception {
+		public:
+			virtual const char* what() const throw() {
+				return "exit on signal";
+			}
+		};
 };

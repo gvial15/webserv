@@ -30,8 +30,10 @@ Webserv::~Webserv() {
 };
 
 void	Webserv::signal_handler(int signum) {
+	(void)	signum;
+	std::cerr << "OH" << std::endl;
 	instance->close_all_fds();
-	exit(signum);
+	throw	SignalException();
 }
 
 void    Webserv::create_pollfds() {
