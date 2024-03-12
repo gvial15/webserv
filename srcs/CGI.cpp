@@ -1,8 +1,8 @@
 #include "../Class/CGI.hpp"
 #include <unistd.h>
 #include <iostream>
+#include <fcntl.h>
 
-static int  timeout = 0;
 
 std::string CGI::vector_to_string(std::vector<std::string> vector) {
     std::string string;
@@ -13,7 +13,6 @@ std::string CGI::vector_to_string(std::vector<std::string> vector) {
 }
 
 CGI::CGI( Request & request, RequestConfig &config ){
-    timeout = 0;
 	this->_scriptPath = config.getPath();
     this->_postData = vector_to_string(request.getBody());
 	this->_method = request.getRequestElem().find("method")->second;
@@ -21,6 +20,7 @@ CGI::CGI( Request & request, RequestConfig &config ){
     this->_query = request.getQuery();
     this->_pathInfo = request.getPathInfo();
     this->_status = 0;
+    this->_timeout = 1000000;
 
 	this->_response = this->executeCgiScript();
 }
@@ -38,17 +38,11 @@ void        CGI::splitScriptPath( void ){
     }
 }
 
-static void handle_alarm(int sig){
-    (void)sig;
-    timeout = 1;
-}
-
 void        CGI::childProcess(int *stdout_pipefd, int *stdin_pipefd){
     this->splitScriptPath();
     if (this->_execLocation[0] == '/')
         this->_execLocation.erase(0,1);
-    if (chdir(this->_execLocation.c_str()) != 0)
-        exit(500);
+    chdir(this->_execLocation.c_str());
 
     close(stdout_pipefd[0]);
     close(stdin_pipefd[1]);
@@ -79,9 +73,11 @@ void        CGI::childProcess(int *stdout_pipefd, int *stdin_pipefd){
         envp.push_back(const_cast<char*>(it->c_str()));
     }
     envp.push_back(NULL);
-    // Execute the CGI script with execve
-    // signal(SIGALRM, handle_alarm);
-    alarm(2);
+
+    //redirect script errors to dev/null
+    int dev_null_fd = open("/dev/null", O_WRONLY);
+    dup2(dev_null_fd, STDERR_FILENO);
+    close(dev_null_fd);
 
     // Execute the CGI script with execve
     std::string scriptExtension = _script.substr(_script.find_last_of('.') + 1);
@@ -92,7 +88,6 @@ void        CGI::childProcess(int *stdout_pipefd, int *stdin_pipefd){
         execve(_script.c_str(), argv, envp.data());
     }
     std::cerr << "Exec failed: " << std::strerror(errno) << std::endl;
-    exit(500);
 }
 
 std::string CGI::executeCgiScript( void ){
@@ -118,8 +113,6 @@ std::string CGI::executeCgiScript( void ){
         return ("");
     } else {
         // Parent process
-        signal(SIGALRM, handle_alarm);
-        alarm(1);
         close(stdout_pipefd[1]);
         close(stdin_pipefd[0]);
 
@@ -128,8 +121,10 @@ std::string CGI::executeCgiScript( void ){
         close(stdin_pipefd[1]);  // Close the pipe after writing
 
         // Wait for the child process to finish
-        waitpid(pid, &child_status, 0);
-        if (timeout){
+        pid_t res = 0;
+        for (int i = 0; i < _timeout && res == 0; i++)
+            res = waitpid(pid, &child_status, WNOHANG);
+        if (res == 0){
             std::cerr << "CGI: timeout" << std::endl;
             this->_status = 500;
         } else if (WIFEXITED(child_status)) {
@@ -143,7 +138,6 @@ std::string CGI::executeCgiScript( void ){
                 this->_status = 500;
             }
         }
-        alarm(0);
 
         // Read the script's output only if status is not 500
         std::string output;

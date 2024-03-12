@@ -127,6 +127,10 @@ void			Response::postMethod(Request & request, RequestConfig & requestConfig) {
 		_response = cgi.getResponse();
 		if (cgi.getStatus())
 			_code = cgi.getStatus();
+		if ( _code == 400 )
+			_response = this->readHtml( _errors_map[ std::to_string(_code)] );
+		else if ( _code == 500 ) // if open file error
+			_response = this->readHtml( _errors_map[ std::to_string(_code)] );
 	}
 	else {
 		_code = 204;
