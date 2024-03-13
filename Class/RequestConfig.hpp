@@ -27,6 +27,4 @@ class RequestConfig: public SharedConfigDirectives {
 		void	findLocation();
 		void	copyLocationConfig();
 		void	pathRouting();
-
-
 };

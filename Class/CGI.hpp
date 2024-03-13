@@ -2,6 +2,9 @@
 
 #include "Request.hpp"
 #include "RequestConfig.hpp"
+#include <signal.h>
+#include <sys/wait.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <vector>
 
@@ -18,7 +21,8 @@ class CGI {
         std::string _pathInfo;
         std::string _execLocation;
         std::string _script;
-		int			_status;
+		int	        _status;
+        int         _timeout;
 
     public:
 

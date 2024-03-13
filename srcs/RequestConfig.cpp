@@ -85,6 +85,8 @@ void	RequestConfig::copyLocationConfig() {
 		set_autoindex( _location->second.get_autoindex() );
 	if ( _location->second.get_redirection().first != "" )
 		set_redirection( _location->second.get_redirection() );
+	if ( _location->second.get_cgi_ext().size() > 0)
+		cgi_ext = _location->second.get_cgi_ext();
 
 	std::map<std::string, std::string> location_error_pages = _location->second.get_error_pages();
 	std::map<std::string, std::string>::iterator it;

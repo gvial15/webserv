@@ -6,6 +6,7 @@ import sys
 
 try:
 
+    # printt(xdd)
     path_info = os.environ.get('PATH_INFO', '')
     if path_info:
         parts = path_info.split('/')
@@ -49,4 +50,4 @@ try:
 
 except Exception as e:
     # print("<b>Error: %s</b>" % str(e))
-    sys.exit(400)
+    sys.exit(500)

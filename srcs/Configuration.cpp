@@ -35,6 +35,7 @@ void	Configuration::create_directive_bank() {
 	directive_bank.insert(std::make_pair("error_page", std::make_pair(2, 2)));
 	directive_bank.insert(std::make_pair("methods", std::make_pair(1, 3)));
 	directive_bank.insert(std::make_pair("post_path", std::make_pair(1, 1)));
+	directive_bank.insert(std::make_pair("cgi_ext", std::make_pair(1, -1)));
 }
 
 // main parsing function
@@ -367,6 +368,10 @@ void	Configuration::fill_shared_attributes(std::vector<token> tokens, T &obj) {
 				if (!is_valid_path(arguments[0]))
 					throw invalid_post_path_argument(tokens[i].line, arguments[0]);
 				obj.set_post_path(arguments[0]);
+			}
+			else if (tokens[i].content == "cgi_ext"){
+				for (size_t ii = 0; ii < arguments.size(); ++ii)
+					obj.set_cgi_ext(arguments[ii]);
 			}
 			arguments.clear();
 		}

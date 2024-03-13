@@ -102,31 +102,33 @@ void			Response::call(Request & request, RequestConfig & requestConf) {
 }
 
 void			Response::getMethod(Request & request, RequestConfig & requestConfig ) {
-	if (isCGI() && fileExists(requestConfig.getPath())) {
+	if (isCGI(requestConfig.get_cgi_ext()) && fileExists(requestConfig.getPath())) {
 		CGI cgi(request, requestConfig);
 		_response = cgi.getResponse();
 		if (cgi.getStatus())
 			_code = cgi.getStatus();
 	}
-	else if ( _code == 200 )
+	else if (_code == 200)
 		_code = readContent();
-	if ( _code == 400 )
-		_response = this->readHtml( _errors_map[ std::to_string(_code)] );
-	if ( _code == 500 ) // if open file error
-		_response = this->readHtml( _errors_map[ std::to_string(_code)] );
-
-
+	if (_code == 400)
+		_response = this->readHtml( _errors_map[std::to_string(_code)]);
+	if (_code == 500) // if open file error
+		_response = this->readHtml( _errors_map[std::to_string(_code)]);
 	// SET RESPONSE
-	ResponseHeader	respHead( _code, _path.c_str(), _response.size(), _type.c_str() );
+	ResponseHeader	respHead(_code, _path.c_str(), _response.size(), _type.c_str());
 	this->_response = respHead.getResponseHeader() + _response + "\r\n";
 }
 
 void			Response::postMethod(Request & request, RequestConfig & requestConfig) {
-	if (isCGI() && fileExists(requestConfig.getPath())) {
+	if (isCGI(requestConfig.get_cgi_ext()) && fileExists(requestConfig.getPath())) {
 		CGI	cgi( request, requestConfig);
 		_response = cgi.getResponse();
 		if (cgi.getStatus())
 			_code = cgi.getStatus();
+		if ( _code == 400 )
+			_response = this->readHtml( _errors_map[ std::to_string(_code)] );
+		else if ( _code == 500 ) // if open file error
+			_response = this->readHtml( _errors_map[ std::to_string(_code)] );
 	}
 	else {
 		_code = 204;
@@ -233,18 +235,21 @@ bool Response::fileExists(const std::string& filename) const {
     return file.good();
 }
 
-bool	Response::isCGI() const {
+bool	Response::isCGI(const std::vector<std::string>& extensions ) const {
 	std::string::size_type pos = _path.find_last_of('.');
 	std::string extension;
 
     if (pos != std::string::npos && pos != _path.length() - 1) {
-        extension = _path.substr(pos);
+        extension = _path.substr(pos + 1);
     } else {
 		return false;
     }
-	if (extension.compare(".py") && extension.compare(".sh"))
+	if (extensions.empty())
 		return false;
-	return true;
+	if (std::find(extensions.begin(), extensions.end(), extension) != extensions.end()) {
+        return true;
+    }
+	return false;
 }
 
 std::string		Response::getResponse() { return _response; }
