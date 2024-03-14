@@ -10,6 +10,8 @@
 #include <signal.h>
 #include <utility>
 
+volatile sig_atomic_t shutdown_flag = 0;
+
 Webserv* Webserv::instance = nullptr;
 
 // constructor
@@ -31,9 +33,8 @@ Webserv::~Webserv() {
 
 void	Webserv::signal_handler(int signum) {
 	(void)	signum;
-	std::cerr << "OH" << std::endl;
 	instance->close_all_fds();
-	throw	SignalException();
+	shutdown_flag = 1;
 }
 
 void    Webserv::create_pollfds() {
@@ -54,13 +55,16 @@ void	Webserv::run() {
 	signal(SIGINT, signal_handler);
 	signal(SIGTERM, signal_handler);
 
-	while (true) {
+	while (!shutdown_flag) {
 		size_t i = 0;
 		int ret;
-	
 		ret = poll(&pollfd_vec[0], pollfd_vec.size(), -1);
-		if (ret < 0)
-			throw PollException();
+		if (ret < 0){
+			if (shutdown_flag)
+				throw SignalException();
+			else
+				throw PollException();
+		}
 		while (i < pollfd_vec.size()) {
 			// check if socket is ready for READING (POLLIN)
 			if (pollfd_vec[i].revents & POLLIN) { // Event on a socket
@@ -154,9 +158,6 @@ void	Webserv::manage_client_response(int pollfd, size_t *index){
 		return;
 	bytes += ret; // add the amount of bytes that was just sent via send() to the initial amount sent from previous instances
 	if (bytes == rep.size()){ // check if the response has been sent entirely, deletes if yes
-		// this->pending_requests.erase(pollfd);
-		// this->pending_responses.erase(pollfd);
-		// this->bytes_sent.erase(pollfd);
 		this->close_connection(pollfd);
 		this->pollfd_vec.erase(pollfd_vec.begin() + *index);
 		(*index)--;

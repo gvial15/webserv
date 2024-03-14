@@ -7,6 +7,7 @@ ResponseHeader::ResponseHeader(int status, const char *path, int size, const cha
     
     this->initializeValues(status, path, size, extension);
     this->createResponseHeader();
+    // std::cout << _responseHeader << std::endl;
 }
 
 ResponseHeader::~ResponseHeader() {}
@@ -166,6 +167,7 @@ std::string			ResponseHeader::initLastModified(const char* path){
 
 void  ResponseHeader::initializeValues( int status, const char *path, int size, const char *extension){
 
+    this->createHttpStatusMap();
     this->_HTTPVersion = "HTTP/1.1";
     this->_statusCode = this->nbToString(status); // received from Response
     this->_reasonPhrase = _httpStatusMap[this->_statusCode];
