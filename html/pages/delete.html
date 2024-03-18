@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Delete Request Test</title>
+</head>
+<body>
+
+<h1>Delete Request Test</h1>
+
+<button onclick="sendDeleteRequest()">Send DELETE Request</button>
+
+<script>
+function sendDeleteRequest() {
+  fetch('http://localhost:8003/html/big_upload_copy.txt', {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    return response.json();
+  })
+  .then(data => {
+    console.log('Success:', data);
+  })
+  .catch(error => {
+    console.error('Error:', error);
+  });
+}
+</script>
+
+</body>
+</html>
