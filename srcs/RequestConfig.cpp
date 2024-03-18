@@ -18,6 +18,7 @@ RequestConfig::RequestConfig( Request & request, Server * server ) : SharedConfi
 	error_pages.insert(std::make_pair("401", "error_pages/401_unauthorized.html"));
 	error_pages.insert(std::make_pair("404", "error_pages/404_not_found.html"));
 	error_pages.insert(std::make_pair("405", "error_pages/405_method_not_allowed.html"));
+	error_pages.insert(std::make_pair("413", "error_pages/413_content_too_large.html"));
 	error_pages.insert(std::make_pair("500", "error_pages/500_internal_server_error.html"));
 	error_pages.insert(std::make_pair("502", "error_pages/502_bad_gateway.html"));
 	error_pages.insert(std::make_pair("503", "error_pages/503_service_unavailable.html"));
@@ -94,7 +95,7 @@ void	RequestConfig::copyLocationConfig() {
 		error_pages.find( it->first )->second = it->second;
 	}
 	
-	if ( _location->second.get_client_max_body_size() )
+	if ( _location->second.get_client_max_body_size() != 1 << 20 && _location->second.get_client_max_body_size() > 0 )
 		set_client_max_body_size( _location->second.get_client_max_body_size() );
 
 	// remove associated location path

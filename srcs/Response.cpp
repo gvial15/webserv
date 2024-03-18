@@ -89,7 +89,7 @@ void			Response::call(Request & request, RequestConfig & requestConf) {
 	}
 	else if ( std::find( allowed_methods.begin(), allowed_methods.end(), elems["method"] ) == allowed_methods.end() )
 		_code = 405;
-	else if (requestConf.get_client_max_body_size() < request.getBody().size())
+	else if (requestConf.get_client_max_body_size() < (size_t)request.getBodySize())
 		_code = 413;
 	if (_code == 405 || _code == 413)
 	{
@@ -166,7 +166,6 @@ void			Response::deleteMethod(Request & request, RequestConfig & requestConfig) 
 		_response = this->readHtml( _errors_map[ std::to_string(_code)] );
 	ResponseHeader	respHead( _code, _path.c_str(), _response.size(), _type.c_str() );
 	this->_response = respHead.getResponseHeader() + _response + "\r\n";
-	std::cerr << "BIG PROBLEM" << respHead.getResponseHeader().size() << std::endl;
 }
 
 int				Response::readContent(void)
