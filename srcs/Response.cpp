@@ -98,6 +98,13 @@ void			Response::call(Request & request, RequestConfig & requestConf) {
 		_response = respHead.getResponseHeader() + _response + "\r\n";
 		return ;
 	}
+	if (requestConf.get_redirection().first != "")
+	{
+		ResponseHeader	respHead( std::stoi(requestConf.get_redirection().first), "", 0, _type.c_str() );
+		std::string	header = respHead.getResponseHeader();
+		_response = header.substr(0, header.size() - 2) + "Location: " + requestConf.get_redirection().second + "\r\n";
+		return ;
+	}
 	(this->*Response::_method[elems["method"]])(request, requestConf);
 }
 

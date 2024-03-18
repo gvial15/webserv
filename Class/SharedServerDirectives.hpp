@@ -26,20 +26,13 @@ class SharedConfigDirectives {
 
 		SharedConfigDirectives() :
 			root("/html"),
-			post_path("/default/path"), // to be changed
+			post_path("/post"),
 			autoindex(false),
 			client_max_body_size(1 << 20)
 		{
 			methods.push_back("GET");
 			methods.push_back("POST");
 			methods.push_back("DELETE");
-			// index.push_back("index.html");
-			// error_pages.insert(std::make_pair("401", "/html/401_unauthorized.html"));
-			// error_pages.insert(std::make_pair("404", "/html/404_not_found.html"));
-			// error_pages.insert(std::make_pair("500", "/html/500_internal_server_error.html"));
-			// error_pages.insert(std::make_pair("502", "/html/502_bad_gateway.html"));
-			// error_pages.insert(std::make_pair("503", "/html/503_service_unavailable.html"));
-			// error_pages.insert(std::make_pair("504", "/html/504_gateway_timeout.html"));
 		}
 		SharedConfigDirectives( SharedConfigDirectives const & src ) { *this = src; }
 
